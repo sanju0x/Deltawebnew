@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -32,8 +33,14 @@ import {
   XCircle,
   AlertTriangle,
   Filter,
+  Newspaper,
+  Activity,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { NewsManager } from "./news-manager";
+import { StatusManager } from "./status-manager";
+import { UpdatesManager } from "./updates-manager";
 
 interface AdminUser {
   discord_id: string;
@@ -184,6 +191,27 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="bugs" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 rounded-xl bg-secondary/50 p-1">
+            <TabsTrigger value="bugs" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+              <Bug className="h-4 w-4" />
+              <span className="hidden sm:inline">Bug Reports</span>
+            </TabsTrigger>
+            <TabsTrigger value="news" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+              <Newspaper className="h-4 w-4" />
+              <span className="hidden sm:inline">News</span>
+            </TabsTrigger>
+            <TabsTrigger value="status" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Bot Status</span>
+            </TabsTrigger>
+            <TabsTrigger value="updates" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Updates</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="bugs" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-card border-border">
             <CardContent className="p-4">
@@ -396,6 +424,20 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="news">
+            <NewsManager />
+          </TabsContent>
+
+          <TabsContent value="status">
+            <StatusManager />
+          </TabsContent>
+
+          <TabsContent value="updates">
+            <UpdatesManager />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
