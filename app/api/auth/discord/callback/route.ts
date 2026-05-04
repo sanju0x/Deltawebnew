@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error("Discord token exchange failed:", tokenResponse.status, errorText);
       return NextResponse.redirect(new URL("/admin/login?error=token_exchange_failed", request.url));
     }
 
@@ -65,6 +67,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error("Discord user fetch failed:", userResponse.status, errorText);
       return NextResponse.redirect(new URL("/admin/login?error=user_fetch_failed", request.url));
     }
 
@@ -77,6 +81,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!memberResponse.ok) {
+      const errorText = await memberResponse.text();
+      console.error("Discord guild member fetch failed:", memberResponse.status, errorText);
       return NextResponse.redirect(new URL("/admin/login?error=not_in_guild", request.url));
     }
 
