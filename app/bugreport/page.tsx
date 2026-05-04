@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
 import { Bug, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 
 const categories = [
@@ -43,18 +42,13 @@ export default function BugReportPage() {
     setErrorMessage("");
 
     try {
-      const supabase = createClient();
-      
-      const { error } = await supabase.from("bug_reports").insert({
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        severity: formData.severity,
-        reporter_email: formData.email || null,
-        reporter_discord_username: formData.discordUsername || null,
+      const response = await fetch("/api/bug-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error("Submit failed");
 
       setSubmitStatus("success");
       setFormData({
@@ -115,7 +109,6 @@ export default function BugReportPage() {
                 </div>
               )}
 
-              {/* Title */}
               <div className="space-y-2">
                 <label htmlFor="title" className="block text-sm font-medium text-foreground">
                   Bug Title <span className="text-primary">*</span>
@@ -131,7 +124,6 @@ export default function BugReportPage() {
                 />
               </div>
 
-              {/* Category & Severity */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="category" className="block text-sm font-medium text-foreground">
@@ -172,7 +164,6 @@ export default function BugReportPage() {
                 </div>
               </div>
 
-              {/* Description */}
               <div className="space-y-2">
                 <label htmlFor="description" className="block text-sm font-medium text-foreground">
                   Description <span className="text-primary">*</span>
@@ -188,7 +179,6 @@ export default function BugReportPage() {
                 />
               </div>
 
-              {/* Contact Info */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium text-foreground">

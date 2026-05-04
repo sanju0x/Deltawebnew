@@ -33,7 +33,6 @@ import {
   AlertTriangle,
   Filter,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 interface AdminUser {
@@ -82,28 +81,19 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
-  const supabase = createClient();
 
   const fetchReports = async () => {
     setLoading(true);
-    let query = supabase
-      .from("bug_reports")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (statusFilter !== "all") {
-      query = query.eq("status", statusFilter);
-    }
-    if (severityFilter !== "all") {
-      query = query.eq("severity", severityFilter);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Error fetching reports:", error);
+    const params = new URLSearchParams({
+      status: statusFilter,
+      severity: severityFilter,
+    });
+    const response = await fetch(`/api/admin/bug-reports?${params.toString()}`);
+    const payload = await response.json();
+    if (!response.ok) {
+      console.error("Error fetching reports:", payload.error);
     } else {
-      setReports(data || []);
+      setReports(payload.data || []);
     }
     setLoading(false);
   };
@@ -113,23 +103,22 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
   }, [statusFilter, severityFilter]);
 
   const updateStatus = async (id: string, newStatus: string) => {
-    const { error } = await supabase
-      .from("bug_reports")
-      .update({ status: newStatus })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Error updating status:", error);
+    const response = await fetch(`/api/admin/bug-reports/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!response.ok) {
+      console.error("Error updating status");
     } else {
       fetchReports();
     }
   };
 
   const deleteReport = async (id: string) => {
-    const { error } = await supabase.from("bug_reports").delete().eq("id", id);
-
-    if (error) {
-      console.error("Error deleting report:", error);
+    const response = await fetch(`/api/admin/bug-reports/${id}`, { method: "DELETE" });
+    if (!response.ok) {
+      console.error("Error deleting report");
     } else {
       fetchReports();
     }
@@ -149,7 +138,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -196,7 +184,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-card border-border">
             <CardContent className="p-4">
@@ -244,7 +231,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           </Card>
         </div>
 
-        {/* Filters */}
         <Card className="bg-card border-border mb-6">
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-4">
@@ -289,7 +275,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
           </CardContent>
         </Card>
 
-        {/* Reports List */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
