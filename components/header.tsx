@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Users, Headphones, Terminal, Bug, Handshake, Crown } from "lucide-react";
+import { Menu, X, Users, Headphones, Terminal, Bug, Handshake, Crown, Activity, Sparkles } from "lucide-react";
 
 const navLinks = [
   { href: "/team", label: "Team", icon: Users },
@@ -12,6 +12,8 @@ const navLinks = [
   { href: "/bugreport", label: "Bug Report", icon: Bug },
   { href: "/partners", label: "Partners", icon: Handshake },
   { href: "/premium", label: "Premium", icon: Crown },
+  { href: "/status", label: "Status", icon: Activity },
+  { href: "/updates", label: "Updates", icon: Sparkles },
 ];
 
 export function Header() {
