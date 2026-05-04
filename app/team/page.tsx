@@ -10,7 +10,7 @@ const teamRoles = [
     icon: Crown,
     color: "from-yellow-500 to-orange-500",
     members: [
-      { name: "Alex Thunder", avatar: "AT", role: "Founder & Visionary" },
+      { name: "Delta", avatar: "Dl", role: "Founder & Visionary" },
     ],
   },
   {
@@ -26,7 +26,7 @@ const teamRoles = [
     icon: Code,
     color: "from-blue-500 to-cyan-500",
     members: [
-      { name: "Mike Coder", avatar: "MC", role: "Lead Developer" },
+      { name: "SANJU", avatar: "GOD", role: "Lead Developer" },
       { name: "Emma Script", avatar: "ES", role: "Backend Developer" },
     ],
   },
