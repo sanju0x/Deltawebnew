@@ -123,3 +123,122 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Animated Team Cards */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--glow-color, rgba(220, 38, 38, 0.3)),
+                0 0 20px var(--glow-color, rgba(220, 38, 38, 0.2)),
+                0 0 40px var(--glow-color, rgba(220, 38, 38, 0.1));
+  }
+  50% {
+    box-shadow: 0 0 10px var(--glow-color, rgba(220, 38, 38, 0.5)),
+                0 0 30px var(--glow-color, rgba(220, 38, 38, 0.3)),
+                0 0 60px var(--glow-color, rgba(220, 38, 38, 0.2));
+  }
+}
+
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animated-card {
+  animation: float 4s ease-in-out infinite;
+  position: relative;
+}
+
+.animated-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--glow-color, #dc2626), transparent, var(--glow-color, #dc2626));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-glow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.animated-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shine-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.animated-card:hover {
+  animation-play-state: paused;
+}
+
+.animated-card:hover::after {
+  animation-play-state: paused;
+}
+
+/* Role-specific glow colors */
+.glow-founder {
+  --glow-color: rgba(234, 179, 8, 0.6);
+}
+
+.glow-owner {
+  --glow-color: rgba(220, 38, 38, 0.6);
+}
+
+.glow-developer {
+  --glow-color: rgba(59, 130, 246, 0.6);
+}
+
+.glow-assistant {
+  --glow-color: rgba(168, 85, 247, 0.6);
+}
+
+.glow-council {
+  --glow-color: rgba(34, 197, 94, 0.6);
+}
+
+.glow-audio {
+  --glow-color: rgba(249, 115, 22, 0.6);
+}
+
+/* Animation delays for staggered effect */
+.animated-card-delay-1 { animation-delay: 0.1s; }
+.animated-card-delay-2 { animation-delay: 0.2s; }
+.animated-card-delay-3 { animation-delay: 0.3s; }
+.animated-card-delay-4 { animation-delay: 0.4s; }
+.animated-card-delay-5 { animation-delay: 0.5s; }
+.animated-card-delay-6 { animation-delay: 0.6s; }

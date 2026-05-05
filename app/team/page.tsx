@@ -17,13 +17,13 @@ interface TeamMember {
   order: number;
 }
 
-const roleConfig: Record<string, { icon: typeof Crown; color: string }> = {
-  Founder: { icon: Crown, color: "from-yellow-500 to-orange-500" },
-  Owner: { icon: Shield, color: "from-primary to-red-700" },
-  Developer: { icon: Code, color: "from-blue-500 to-cyan-500" },
-  "Assistant Developer": { icon: Code, color: "from-purple-500 to-pink-500" },
-  Council: { icon: Users, color: "from-green-500 to-emerald-500" },
-  "Audio Server Manager": { icon: Headphones, color: "from-orange-500 to-red-500" },
+const roleConfig: Record<string, { icon: typeof Crown; color: string; glowClass: string }> = {
+  Founder: { icon: Crown, color: "from-yellow-500 to-orange-500", glowClass: "glow-founder" },
+  Owner: { icon: Shield, color: "from-primary to-red-700", glowClass: "glow-owner" },
+  Developer: { icon: Code, color: "from-blue-500 to-cyan-500", glowClass: "glow-developer" },
+  "Assistant Developer": { icon: Code, color: "from-purple-500 to-pink-500", glowClass: "glow-assistant" },
+  Council: { icon: Users, color: "from-green-500 to-emerald-500", glowClass: "glow-council" },
+  "Audio Server Manager": { icon: Headphones, color: "from-orange-500 to-red-500", glowClass: "glow-audio" },
 };
 
 const defaultTeamRoles = [
@@ -105,12 +105,12 @@ export default function TeamPage() {
   const renderTeamCard = (
     member: { name: string; avatar: string; role: string; avatarUrl?: string; socialLink?: string },
     roleColor: string,
+    glowClass: string,
     index: number
   ) => (
     <div
       key={member.name}
-      className="group relative bg-card border border-border rounded-3xl p-6 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 overflow-hidden"
-      style={{ animationDelay: `${index * 100}ms` }}
+      className={`animated-card ${glowClass} animated-card-delay-${(index % 6) + 1} group relative bg-card border border-border rounded-3xl p-6 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 overflow-hidden`}
     >
       {/* Animated background gradient */}
       <div className={`absolute inset-0 bg-gradient-to-br ${roleColor} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
@@ -190,7 +190,7 @@ export default function TeamPage() {
           ) : useApi && teamMembers.length > 0 ? (
             <div className="space-y-12">
               {Object.entries(groupedMembers).map(([category, members]) => {
-                const config = roleConfig[category] || { icon: Users, color: "from-gray-500 to-gray-600" };
+                const config = roleConfig[category] || { icon: Users, color: "from-gray-500 to-gray-600", glowClass: "glow-developer" };
                 const IconComponent = config.icon;
                 
                 return (
@@ -205,7 +205,7 @@ export default function TeamPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       {members
                         .sort((a, b) => a.order - b.order)
-                        .map((member, index) => renderTeamCard(member, config.color, index))}
+                        .map((member, index) => renderTeamCard(member, config.color, config.glowClass, index))}
                     </div>
                   </div>
                 );
@@ -214,7 +214,7 @@ export default function TeamPage() {
           ) : (
             <div className="space-y-12">
               {defaultTeamRoles.map((role) => {
-                const config = roleConfig[role.title] || { icon: Users, color: "from-gray-500 to-gray-600" };
+                const config = roleConfig[role.title] || { icon: Users, color: "from-gray-500 to-gray-600", glowClass: "glow-developer" };
                 const IconComponent = config.icon;
                 
                 return (
@@ -227,7 +227,7 @@ export default function TeamPage() {
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {role.members.map((member, index) => renderTeamCard(member, config.color, index))}
+                      {role.members.map((member, index) => renderTeamCard(member, config.color, config.glowClass, index))}
                     </div>
                   </div>
                 );

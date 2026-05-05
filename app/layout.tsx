@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { NewsPopup } from '@/components/news-popup'
+import { VisitorTracker } from '@/components/visitor-tracker'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -40,6 +41,7 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-background text-foreground">
         {children}
         <NewsPopup />
+        <VisitorTracker />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
