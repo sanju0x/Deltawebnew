@@ -34,8 +34,6 @@ import {
 
 interface WebhookSettings {
   enabled: boolean;
-  discordBotToken: string;
-  discordChannelId: string;
   embedColor: string;
   embedTitle: string;
   embedFooter: string;
