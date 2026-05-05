@@ -36,11 +36,19 @@ import {
   Newspaper,
   Activity,
   Sparkles,
+  Users,
+  Handshake,
+  Crown,
+  Webhook,
 } from "lucide-react";
 import Link from "next/link";
 import { NewsManager } from "./news-manager";
 import { StatusManager } from "./status-manager";
 import { UpdatesManager } from "./updates-manager";
+import { TeamManager } from "./team-manager";
+import { PartnersManager } from "./partners-manager";
+import { PremiumManager } from "./premium-manager";
+import { WebhookSettings } from "./webhook-settings";
 
 interface AdminUser {
   discord_id: string;
@@ -192,22 +200,38 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="bugs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 rounded-xl bg-secondary/50 p-1">
-            <TabsTrigger value="bugs" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+          <TabsList className="flex flex-wrap justify-start gap-1 rounded-xl bg-secondary/50 p-1 h-auto">
+            <TabsTrigger value="bugs" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
               <Bug className="h-4 w-4" />
-              <span className="hidden sm:inline">Bug Reports</span>
+              <span className="hidden sm:inline">Bugs</span>
             </TabsTrigger>
-            <TabsTrigger value="news" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+            <TabsTrigger value="news" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
               <Newspaper className="h-4 w-4" />
               <span className="hidden sm:inline">News</span>
             </TabsTrigger>
-            <TabsTrigger value="status" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+            <TabsTrigger value="status" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
               <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Bot Status</span>
+              <span className="hidden sm:inline">Status</span>
             </TabsTrigger>
-            <TabsTrigger value="updates" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2">
+            <TabsTrigger value="updates" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Updates</span>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Team</span>
+            </TabsTrigger>
+            <TabsTrigger value="partners" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Handshake className="h-4 w-4" />
+              <span className="hidden sm:inline">Partners</span>
+            </TabsTrigger>
+            <TabsTrigger value="premium" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Crown className="h-4 w-4 text-yellow-500" />
+              <span className="hidden sm:inline">Premium</span>
+            </TabsTrigger>
+            <TabsTrigger value="webhook" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Webhook className="h-4 w-4" />
+              <span className="hidden sm:inline">Webhook</span>
             </TabsTrigger>
           </TabsList>
 
@@ -436,6 +460,22 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
 
           <TabsContent value="updates">
             <UpdatesManager />
+          </TabsContent>
+
+          <TabsContent value="team">
+            <TeamManager />
+          </TabsContent>
+
+          <TabsContent value="partners">
+            <PartnersManager />
+          </TabsContent>
+
+          <TabsContent value="premium">
+            <PremiumManager />
+          </TabsContent>
+
+          <TabsContent value="webhook">
+            <WebhookSettings />
           </TabsContent>
         </Tabs>
       </main>
