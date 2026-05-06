@@ -1,37 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 
-// Rate limiting in-memory store (for simple rate limiting)
+// Rate limiting in-memory store
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const ipCooldownStore = new Map<string, number>();
 
-// Get configuration from environment variables
-const VISITOR_WEBHOOK_ENABLED = process.env.VISITOR_WEBHOOK_ENABLED === "true";
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
-const WEBHOOK_EMBED_COLOR = process.env.WEBHOOK_EMBED_COLOR || "#dc2626";
-const WEBHOOK_EMBED_TITLE = process.env.WEBHOOK_EMBED_TITLE || "New Visitor Alert";
-const WEBHOOK_EMBED_FOOTER = process.env.WEBHOOK_EMBED_FOOTER || "Delta Visitor Tracking";
-const WEBHOOK_EMBED_THUMBNAIL = process.env.WEBHOOK_EMBED_THUMBNAIL || "";
-const WEBHOOK_RATE_LIMIT = parseInt(process.env.WEBHOOK_RATE_LIMIT || "30", 10);
-const WEBHOOK_COOLDOWN = parseInt(process.env.WEBHOOK_COOLDOWN || "5", 10);
-
-// Feature flags from env (default all true)
-const INCLUDE_IP = process.env.WEBHOOK_INCLUDE_IP !== "false";
-const INCLUDE_LOCATION = process.env.WEBHOOK_INCLUDE_LOCATION !== "false";
-const INCLUDE_BROWSER = process.env.WEBHOOK_INCLUDE_BROWSER !== "false";
-const INCLUDE_OS = process.env.WEBHOOK_INCLUDE_OS !== "false";
-const INCLUDE_DEVICE = process.env.WEBHOOK_INCLUDE_DEVICE !== "false";
-const INCLUDE_SCREEN = process.env.WEBHOOK_INCLUDE_SCREEN !== "false";
-const INCLUDE_REFERRER = process.env.WEBHOOK_INCLUDE_REFERRER !== "false";
-const INCLUDE_PAGE = process.env.WEBHOOK_INCLUDE_PAGE !== "false";
-const INCLUDE_LANGUAGE = process.env.WEBHOOK_INCLUDE_LANGUAGE !== "false";
-const INCLUDE_TIMEZONE = process.env.WEBHOOK_INCLUDE_TIMEZONE !== "false";
+// Only one env variable needed - the Discord webhook URL
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if webhook is enabled via environment variable
-    if (!VISITOR_WEBHOOK_ENABLED || !DISCORD_BOT_TOKEN || !DISCORD_CHANNEL_ID) {
+    // Check if webhook URL is configured
+    if (!DISCORD_WEBHOOK_URL) {
       return NextResponse.json({ success: false, reason: "disabled" });
     }
 
@@ -43,17 +23,17 @@ export async function POST(request: NextRequest) {
     const realIp = request.headers.get("x-real-ip");
     const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown";
 
-    // Check IP cooldown
+    // Check IP cooldown (5 seconds default)
     const lastVisit = ipCooldownStore.get(ip);
-    const cooldownMs = WEBHOOK_COOLDOWN * 1000;
+    const cooldownMs = 5000;
     if (lastVisit && Date.now() - lastVisit < cooldownMs) {
       return NextResponse.json({ success: false, reason: "cooldown" });
     }
 
-    // Check rate limit
+    // Check rate limit (30 per minute default)
     const now = Date.now();
-    const rateLimitWindow = 60000; // 1 minute
-    const maxPerMinute = WEBHOOK_RATE_LIMIT;
+    const rateLimitWindow = 60000;
+    const maxPerMinute = 30;
 
     const rateData = rateLimitStore.get("global") || { count: 0, resetTime: now + rateLimitWindow };
     if (now > rateData.resetTime) {
@@ -88,19 +68,19 @@ export async function POST(request: NextRequest) {
       // Geo lookup failed, continue without it
     }
 
-    // Build visitor log
+    // Build visitor log (all features enabled by default)
     const visitorLog = {
-      ip: INCLUDE_IP ? ip : "hidden",
-      country: INCLUDE_LOCATION ? geoData.country : undefined,
-      city: INCLUDE_LOCATION ? geoData.city : undefined,
-      browser: INCLUDE_BROWSER ? body.browser : undefined,
-      os: INCLUDE_OS ? body.os : undefined,
-      device: INCLUDE_DEVICE ? body.device : undefined,
-      screen: INCLUDE_SCREEN ? body.screen : undefined,
-      referrer: INCLUDE_REFERRER ? body.referrer : undefined,
-      page: INCLUDE_PAGE ? body.page : undefined,
-      language: INCLUDE_LANGUAGE ? body.language : undefined,
-      timezone: INCLUDE_TIMEZONE ? body.timezone : undefined,
+      ip,
+      country: geoData.country,
+      city: geoData.city,
+      browser: body.browser,
+      os: body.os,
+      device: body.device,
+      screen: body.screen,
+      referrer: body.referrer,
+      page: body.page,
+      language: body.language,
+      timezone: body.timezone,
       visitedAt: new Date(),
       webhookSent: false,
     };
@@ -108,83 +88,66 @@ export async function POST(request: NextRequest) {
     // Save to database
     const result = await db.collection("visitor_logs").insertOne(visitorLog);
 
-    // Build Discord embed fields
+    // Build Discord embed fields (all included by default)
     const fields: { name: string; value: string; inline: boolean }[] = [];
 
-    if (INCLUDE_IP && ip !== "unknown") {
+    if (ip !== "unknown") {
       fields.push({ name: "IP Address", value: `\`${ip}\``, inline: true });
     }
-    if (INCLUDE_LOCATION && (geoData.city || geoData.country)) {
+    if (geoData.city || geoData.country) {
       fields.push({
         name: "Location",
         value: [geoData.city, geoData.region, geoData.country].filter(Boolean).join(", ") || "Unknown",
         inline: true,
       });
     }
-    if (INCLUDE_BROWSER && body.browser) {
+    if (body.browser) {
       fields.push({ name: "Browser", value: body.browser, inline: true });
     }
-    if (INCLUDE_OS && body.os) {
+    if (body.os) {
       fields.push({ name: "Operating System", value: body.os, inline: true });
     }
-    if (INCLUDE_DEVICE && body.device) {
+    if (body.device) {
       fields.push({ name: "Device", value: body.device, inline: true });
     }
-    if (INCLUDE_SCREEN && body.screen) {
+    if (body.screen) {
       fields.push({ name: "Screen", value: body.screen, inline: true });
     }
-    if (INCLUDE_PAGE && body.page) {
+    if (body.page) {
       fields.push({ name: "Page Visited", value: body.page, inline: false });
     }
-    if (INCLUDE_REFERRER && body.referrer) {
+    if (body.referrer) {
       fields.push({ name: "Referrer", value: body.referrer || "Direct", inline: false });
     }
-    if (INCLUDE_LANGUAGE && body.language) {
+    if (body.language) {
       fields.push({ name: "Language", value: body.language, inline: true });
     }
-    if (INCLUDE_TIMEZONE && body.timezone) {
+    if (body.timezone) {
       fields.push({ name: "Timezone", value: body.timezone, inline: true });
     }
 
-    // Duration placeholder (will be updated on page unload)
     fields.push({ name: "Session Started", value: new Date().toLocaleString(), inline: false });
 
-    // Build embed
-    const embed: {
-      title: string;
-      color: number;
-      fields: typeof fields;
-      footer: { text: string; icon_url?: string };
-      timestamp: string;
-      thumbnail?: { url: string };
-    } = {
-      title: WEBHOOK_EMBED_TITLE,
-      color: parseInt(WEBHOOK_EMBED_COLOR.replace("#", ""), 16),
+    // Build embed with default styling
+    const embed = {
+      title: "New Visitor Alert",
+      color: 0xdc2626, // Red color
       fields,
       footer: {
-        text: WEBHOOK_EMBED_FOOTER,
+        text: "Delta Visitor Tracking",
       },
       timestamp: new Date().toISOString(),
     };
 
-    // Add thumbnail if configured
-    if (WEBHOOK_EMBED_THUMBNAIL) {
-      embed.thumbnail = { url: WEBHOOK_EMBED_THUMBNAIL };
-    }
-
-    // Send to Discord channel using Bot API
+    // Send to Discord webhook
     try {
-      const discordResponse = await fetch(
-        `https://discord.com/api/v10/channels/${DISCORD_CHANNEL_ID}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
-          },
-          body: JSON.stringify({ embeds: [embed] }),
-        }
-      );
+      const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ embeds: [embed] }),
+      });
 
       if (discordResponse.ok) {
         await db.collection("visitor_logs").updateOne(
@@ -193,7 +156,7 @@ export async function POST(request: NextRequest) {
         );
       }
     } catch {
-      // Discord API failed, but we still logged the visit
+      // Discord webhook failed, but we still logged the visit
     }
 
     return NextResponse.json({ success: true });
