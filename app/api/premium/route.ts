@@ -15,9 +15,9 @@ export async function GET() {
       .sort({ order: 1 })
       .toArray();
     
-    // Get plans
+    // Get plans from the same collection as admin (premium_plans_config)
     const plans = await db
-      .collection("premium_plans")
+      .collection("premium_plans_config")
       .find({})
       .sort({ order: 1 })
       .toArray();

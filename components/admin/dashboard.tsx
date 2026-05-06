@@ -39,7 +39,6 @@ import {
   Users,
   Handshake,
   Crown,
-  Webhook,
 } from "lucide-react";
 import Link from "next/link";
 import { NewsManager } from "./news-manager";
@@ -48,7 +47,6 @@ import { UpdatesManager } from "./updates-manager";
 import { TeamManager } from "./team-manager";
 import { PartnersManager } from "./partners-manager";
 import { PremiumManager } from "./premium-manager";
-import { WebhookSettings } from "./webhook-settings";
 
 interface AdminUser {
   discord_id: string;
@@ -228,10 +226,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
             <TabsTrigger value="premium" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
               <Crown className="h-4 w-4 text-yellow-500" />
               <span className="hidden sm:inline">Premium</span>
-            </TabsTrigger>
-            <TabsTrigger value="webhook" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
-              <Webhook className="h-4 w-4" />
-              <span className="hidden sm:inline">Webhook</span>
             </TabsTrigger>
           </TabsList>
 
@@ -472,10 +466,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
 
           <TabsContent value="premium">
             <PremiumManager />
-          </TabsContent>
-
-          <TabsContent value="webhook">
-            <WebhookSettings />
           </TabsContent>
         </Tabs>
       </main>
