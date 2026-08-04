@@ -13,23 +13,18 @@ export function HeroSection() {
 
       <div className="site-container hero-layout">
         <div className="hero-copy">
-          <div className="eyebrow reveal-one">
-            <span className="eyebrow-dot" />
-            Live in 10,000+ communities
-          </div>
-
-          <h1 className="hero-title reveal-two">
+          <h1 className="hero-title reveal-one">
             Your server.
             <span>Your soundtrack.</span>
           </h1>
 
-          <p className="hero-description reveal-three">
+          <p className="hero-description reveal-two">
             Delta turns every Discord room into a shared listening space with
             crisp audio, instant queues, and controls that never interrupt the
             conversation.
           </p>
 
-          <div className="hero-actions reveal-four">
+          <div className="hero-actions reveal-three">
             <a className="button-primary" href={inviteUrl}>
               <Play className="size-5" fill="currentColor" />
               Add Delta
