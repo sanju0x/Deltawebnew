@@ -29,8 +29,8 @@ export function proxy(request: NextRequest) {
         {
           error: "Admin access denied",
           message: allowedIps.length
-            ? "This IP address is not in ADMIN_ALLOWED_IPS."
-            : "ADMIN_ALLOWED_IPS is not configured.",
+            ? "Umb"
+            : "Umb.",
         },
         { status: 403 },
       );
