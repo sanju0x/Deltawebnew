@@ -8,6 +8,7 @@ import { BrandLogo } from "@/components/brand-logo";
 const navLinks = [
   { href: "/commands", label: "Commands" },
   { href: "/premium", label: "Premium" },
+  { href: "/bugreport", label: "Bug Report" },
   { href: "/status", label: "Status" },
   { href: "/updates", label: "Updates" },
   { href: "/support", label: "Support" },
