@@ -10,11 +10,10 @@ export default function Home() {
   return (
     <>
       <LoadingScreen />
-      <main className="min-h-screen">
+      <main id="main-content" className="min-h-screen overflow-hidden">
         <Header />
         <HeroSection />
         <FeaturesSection />
-        
         <StatsSection />
         <CTASection />
         <Footer />

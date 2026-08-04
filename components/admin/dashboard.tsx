@@ -27,7 +27,6 @@ import {
   Bug,
   CheckCircle,
   Clock,
-  LogOut,
   RefreshCw,
   Trash2,
   XCircle,
@@ -47,12 +46,6 @@ import { UpdatesManager } from "./updates-manager";
 import { TeamManager } from "./team-manager";
 import { PartnersManager } from "./partners-manager";
 import { PremiumManager } from "./premium-manager";
-
-interface AdminUser {
-  discord_id: string;
-  discord_username: string;
-  discord_avatar: string | null;
-}
 
 interface BugReport {
   id: string;
@@ -89,7 +82,7 @@ const statusIcons: Record<string, React.ReactNode> = {
   closed: <XCircle className="h-4 w-4" />,
 };
 
-export function AdminDashboard({ user }: { user: AdminUser }) {
+export function AdminDashboard() {
   const [reports, setReports] = useState<BugReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -137,11 +130,6 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/discord/logout", { method: "POST" });
-    window.location.href = "/admin/login";
-  };
-
   const stats = {
     total: reports.length,
     open: reports.filter((r) => r.status === "open").length,
@@ -155,43 +143,17 @@ export function AdminDashboard({ user }: { user: AdminUser }) {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                <svg
-                  className="h-6 w-6 text-primary-foreground"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5">
+                <img src="/icon.svg" alt="Delta" className="h-full w-full object-contain" />
               </div>
               <span className="text-xl font-bold">Delta Admin</span>
             </Link>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              {user.discord_avatar ? (
-                <img
-                  src={`https://cdn.discordapp.com/avatars/${user.discord_id}/${user.discord_avatar}.png`}
-                  alt={user.discord_username}
-                  className="h-8 w-8 rounded-full"
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-                  {user.discord_username[0].toUpperCase()}
-                </div>
-              )}
-              <span className="text-sm font-medium">{user.discord_username}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="rounded-xl"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <Badge variant="outline" className="rounded-full border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-400">
+              IP verified
+            </Badge>
           </div>
         </div>
       </header>
