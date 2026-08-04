@@ -1,7 +1,7 @@
 const stats = [
-  { value: "10K+", label: "active servers" },
+  { value: "1.5K+", label: "active servers" },
   { value: "500K", label: "listeners reached" },
-  { value: "50M+", label: "tracks played" },
+  { value: "1M+", label: "tracks played" },
   { value: "99.9%", label: "uptime target" },
 ];
 
