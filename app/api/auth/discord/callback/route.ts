@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     if (!userResponse.ok) return deny("Could not retrieve your Discord account.");
     const user = (await userResponse.json()) as DiscordUser;
     if (!user.id || !getAllowedDiscordUserIds().has(user.id)) return deny("Your Discord account is not authorized for admin access.");
+
     const response = NextResponse.redirect(new URL("/admin", request.url));
     response.cookies.set(ADMIN_SESSION_COOKIE, await createAdminSession(user.id), sessionCookieOptions());
     response.cookies.delete(DISCORD_OAUTH_STATE_COOKIE);
