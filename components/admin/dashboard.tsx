@@ -152,7 +152,7 @@ export function AdminDashboard() {
 
           <div className="flex items-center gap-4">
             <Badge variant="outline" className="rounded-full border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-400">
-              IP verified
+              Discord verified
             </Badge>
           </div>
         </div>
