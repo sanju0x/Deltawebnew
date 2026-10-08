@@ -11,7 +11,6 @@ export function StatsSection() {
       <div className="site-container">
         <div className="stats-panel">
           <div className="stats-intro">
-            <span className="section-kicker section-kicker-light">At full volume</span>
             <h2>One small bot. A lot of shared moments.</h2>
           </div>
           <div className="stats-grid">

@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   AudioLines,
   Check,
-  Crown,
   Gauge,
   Headphones,
   ListMusic,
@@ -61,10 +60,6 @@ export default function PremiumPage() {
       <section className="premium-hero">
         <div className="site-container premium-hero-grid">
           <div className="premium-copy premium-reveal">
-            <span className="section-kicker">
-              <Crown className="size-4" />
-              Delta Premium
-            </span>
             <h1>
               Premium is not a
               <span>paywall.</span>
@@ -120,7 +115,6 @@ export default function PremiumPage() {
       <section className="section-space premium-features">
         <div className="site-container">
           <div className="section-heading premium-section-heading">
-            <span className="section-kicker">The whole thing</span>
             <h2>Nothing important is locked away.</h2>
             <p>
               We would rather have more people making great rooms than more
@@ -146,7 +140,6 @@ export default function PremiumPage() {
 
           <div className="premium-banner premium-reveal">
             <div>
-              <span className="section-kicker section-kicker-light">One simple promise</span>
               <h2>Premium quality. Free access.</h2>
             </div>
             <div className="premium-banner-checks">

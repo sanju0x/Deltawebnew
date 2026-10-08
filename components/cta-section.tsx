@@ -13,7 +13,6 @@ export function CTASection() {
             <Image src="/icon.svg" alt="" width={160} height={160} />
           </div>
           <div className="cta-copy">
-            <span className="section-kicker">Your next favorite room</span>
             <h2>Press play. Delta handles the rest.</h2>
             <p>
               Add Delta in seconds, invite your people, and turn any voice

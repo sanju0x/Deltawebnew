@@ -63,10 +63,6 @@ export default function UpdatesPage() {
         <div className="relative mx-auto max-w-5xl">
           <section className="mb-12 grid items-end gap-8 border-b border-border pb-10 md:grid-cols-[1fr_auto]" aria-labelledby="updates-heading">
             <div className="max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-2 text-sm font-semibold text-primary">
-                <Sparkles className="size-4" aria-hidden="true" />
-                Product changelog
-              </div>
               <h1 id="updates-heading" className="text-4xl font-bold tracking-[-0.05em] sm:text-6xl">
                 What&apos;s new in Delta
               </h1>

@@ -9,7 +9,6 @@ import {
   Crown,
   ExternalLink,
   Palette,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { Header } from "@/components/header";
@@ -177,10 +176,6 @@ export default function TeamPage() {
         <div className="relative mx-auto max-w-6xl">
           <section className="grid items-end gap-10 border-b border-border pb-12 lg:grid-cols-[1fr_auto]" aria-labelledby="team-heading">
             <div className="max-w-3xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-2 text-sm font-semibold text-primary">
-                <Sparkles className="size-4" aria-hidden="true" />
-                The people behind the music
-              </div>
               <h1 id="team-heading" className="text-5xl font-bold tracking-[-0.055em] sm:text-7xl">
                 Small team.
                 <span className="block text-primary">Big sound.</span>

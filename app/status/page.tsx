@@ -98,10 +98,6 @@ export default function StatusPage() {
 
         <div className="relative mx-auto max-w-5xl">
           <section className="mx-auto mb-10 max-w-2xl text-center" aria-labelledby="status-heading">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-2 text-sm font-semibold shadow-sm backdrop-blur">
-              <Activity className="size-4 text-primary" aria-hidden="true" />
-              Live service health
-            </div>
             <h1 id="status-heading" className="text-4xl font-bold tracking-[-0.045em] sm:text-6xl">
               Delta status
             </h1>

@@ -63,7 +63,6 @@ export function FeaturesSection() {
     <section id="features" className="section-space">
       <div className="site-container">
         <div className="section-heading">
-          <span className="section-kicker">Built for the room</span>
           <h2>Less bot management. More music.</h2>
           <p>
             Every detail is designed to disappear into the conversation until
