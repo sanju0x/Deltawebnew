@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  ArrowUpRight,
   AudioLines,
   BriefcaseBusiness,
   Code2,
   Crown,
-  ExternalLink,
+  Headphones,
   Palette,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { Header } from "@/components/header";
@@ -71,7 +73,7 @@ const roleConfig: Record<TeamRoleCategory, RoleVisual> = {
   },
   "Creative Director": {
     icon: Palette,
-    description: "Shapes Delta’s visual language, personality, and creative direction.",
+    description: "Shapes Delta's visual language, personality, and creative direction.",
     gradient: "from-violet-500 to-fuchsia-500",
     iconSurface: "bg-violet-500/12",
     accent: "text-violet-700 dark:text-violet-400",
@@ -90,10 +92,7 @@ const roleConfig: Record<TeamRoleCategory, RoleVisual> = {
 };
 
 const defaultTeamRoles: Array<{ title: TeamRoleCategory; members: TeamMember[] }> = [
-  {
-    title: "Project Owner",
-    members: [{ name: "Delta", avatar: "DL", role: "Project Owner" }],
-  },
+  { title: "Project Owner", members: [{ name: "Delta", avatar: "DL", role: "Project Owner" }] },
   {
     title: "Lead Developer",
     members: [
@@ -169,16 +168,21 @@ export default function TeamPage() {
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <Header />
 
-      <main className="relative flex-1 overflow-hidden px-4 pb-24 pt-32 sm:px-6 sm:pt-36 lg:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[42rem] bg-[radial-gradient(circle_at_25%_0%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent_62%)]" aria-hidden="true" />
-        <div className="pointer-events-none absolute right-[-8rem] top-56 size-96 rounded-full bg-[#5865f2]/8 blur-3xl" aria-hidden="true" />
+      <main className="team-page relative flex-1 overflow-hidden px-4 pb-24 pt-32 sm:px-6 sm:pt-36 lg:px-8">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[44rem] bg-[radial-gradient(circle_at_18%_0%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_58%)]" aria-hidden="true" />
+        <div className="pointer-events-none absolute right-[-8rem] top-48 size-96 rounded-full bg-[#5865f2]/8 blur-3xl" aria-hidden="true" />
+        <div className="team-page-grid pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
 
         <div className="relative mx-auto max-w-6xl">
-          <section className="grid items-end gap-10 border-b border-border pb-12 lg:grid-cols-[1fr_auto]" aria-labelledby="team-heading">
+          <section className="team-hero grid items-end gap-10 border-b border-border/80 pb-12 lg:grid-cols-[1fr_auto]" aria-labelledby="team-heading">
             <div className="max-w-3xl">
-              <h1 id="team-heading" className="text-5xl font-bold tracking-[-0.055em] sm:text-7xl">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                <Sparkles className="size-3.5" aria-hidden="true" />
+                The people behind Delta
+              </div>
+              <h1 id="team-heading" className="text-5xl font-bold tracking-[-0.065em] sm:text-7xl lg:text-[5.4rem] lg:leading-[0.92]">
                 Small team.
-                <span className="block text-primary">Big sound.</span>
+                <span className="block bg-gradient-to-r from-primary via-red-500 to-orange-500 bg-clip-text text-transparent">Big sound.</span>
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
                 Meet the people shaping Delta—from product direction and engineering to the creative and audio systems behind every session.
@@ -188,12 +192,15 @@ export default function TeamPage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:w-80 lg:grid-cols-2">
               <HeroStat value={String(memberCount)} label="Team members" />
               <HeroStat value={String(TEAM_ROLE_CATEGORIES.length)} label="Disciplines" />
-              <div className="col-span-2 hidden rounded-2xl border border-border bg-card/80 p-4 shadow-sm backdrop-blur sm:block lg:block">
+              <div className="col-span-2 hidden rounded-2xl border border-border/80 bg-card/75 p-4 shadow-sm backdrop-blur-xl sm:block">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
                     <Users className="size-4.5" aria-hidden="true" />
                   </span>
-                  <p className="text-sm font-semibold">One team, one shared mission.</p>
+                  <div>
+                    <p className="text-sm font-semibold">Built together</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">One team, one shared mission.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -202,7 +209,7 @@ export default function TeamPage() {
           {loading ? (
             <TeamSkeleton />
           ) : (
-            <div className="mt-14 space-y-14 sm:mt-16 sm:space-y-20">
+            <div className="mt-14 space-y-16 sm:mt-16 sm:space-y-24">
               {sections.map((section, sectionIndex) => {
                 const config = roleConfig[section.title];
                 const RoleIcon = config.icon;
@@ -227,9 +234,15 @@ export default function TeamPage() {
                       </span>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {section.members.map((member) => (
-                        <MemberCard key={member._id || `${section.title}-${member.name}`} member={member} category={section.title} config={config} />
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      {section.members.map((member, memberIndex) => (
+                        <MemberCard
+                          key={member._id || `${section.title}-${member.name}`}
+                          member={member}
+                          category={section.title}
+                          config={config}
+                          index={sectionIndex * 2 + memberIndex}
+                        />
                       ))}
                     </div>
                   </section>
@@ -245,45 +258,61 @@ export default function TeamPage() {
   );
 }
 
-function MemberCard({ member, category, config }: { member: TeamMember; category: TeamRoleCategory; config: RoleVisual }) {
+function MemberCard({ member, category, config, index }: { member: TeamMember; category: TeamRoleCategory; config: RoleVisual; index: number }) {
   const RoleIcon = config.icon;
 
   return (
-    <article className={`group relative overflow-hidden rounded-[1.75rem] border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/5 ${config.border}`}>
-      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${config.gradient}`} aria-hidden="true" />
-      <div className={`pointer-events-none absolute -right-16 -top-16 size-40 rounded-full ${config.wash} blur-2xl`} aria-hidden="true" />
+    <article
+      className={`team-member-card group relative isolate grid min-h-44 grid-cols-[6.5rem_1fr] overflow-hidden rounded-[1.5rem] border bg-card/90 shadow-sm transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/8 sm:grid-cols-[8rem_1fr] ${config.border}`}
+      style={{ animationDelay: `${Math.min(index * 45, 315)}ms` }}
+    >
+      <div className={`pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${config.gradient}`} aria-hidden="true" />
+      <div className={`pointer-events-none absolute -right-14 -top-20 size-44 rounded-full ${config.wash} blur-2xl transition-transform duration-300 group-hover:scale-125`} aria-hidden="true" />
+      <div className="team-card-shine pointer-events-none absolute inset-0" aria-hidden="true" />
 
-      <div className="relative flex items-start justify-between gap-4">
+      <div className={`relative m-3 mr-0 min-h-36 overflow-hidden rounded-[1.15rem] border ${config.border} bg-secondary shadow-sm sm:m-4 sm:mr-0`}>
         {member.avatarUrl ? (
-          <div className={`size-16 overflow-hidden rounded-2xl border ${config.border} bg-secondary shadow-sm`}>
-            <Image src={member.avatarUrl} alt={`${member.name} portrait`} width={64} height={64} className="size-full object-cover" />
-          </div>
+          <Image src={member.avatarUrl} alt={`${member.name} portrait`} fill sizes="(max-width: 640px) 104px, 128px" className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
         ) : (
-          <div className={`grid size-16 place-items-center rounded-2xl bg-gradient-to-br ${config.gradient} text-lg font-bold tracking-tight text-white shadow-md`} aria-hidden="true">
-            {member.avatar || initialsFor(member.name)}
+          <div className={`grid size-full place-items-center bg-gradient-to-br ${config.gradient} text-2xl font-bold tracking-[-0.05em] text-white sm:text-3xl`} aria-hidden="true">
+            <span className="transition-transform duration-300 ease-out group-hover:scale-110">{member.avatar || initialsFor(member.name)}</span>
           </div>
         )}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/20 to-transparent" aria-hidden="true" />
+      </div>
 
-        {member.socialLink && (
+      <div className="relative flex min-w-0 flex-col justify-between p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.08em] ${config.border} ${config.iconSurface} ${config.accent}`}>
+            <RoleIcon className="size-3" aria-hidden="true" />
+            <span className="hidden min-[420px]:inline">{category}</span>
+            <span className="min-[420px]:hidden">Team</span>
+          </div>
+          <span className="font-mono text-[0.68rem] font-bold tabular-nums text-muted-foreground/65">{String(index + 1).padStart(2, "0")}</span>
+        </div>
+
+        <div className="my-4 min-w-0">
+          <h3 className="truncate text-xl font-bold tracking-[-0.035em] sm:text-2xl">{member.name}</h3>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">{member.role}</p>
+        </div>
+
+        {member.socialLink ? (
           <a
             href={member.socialLink}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Open ${member.name}'s profile`}
-            className="grid size-11 place-items-center rounded-xl border border-border bg-background text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group/link inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-border bg-background/80 px-3 text-xs font-bold text-muted-foreground transition-[background-color,border-color,color] duration-200 hover:border-primary/30 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ExternalLink className="size-4" aria-hidden="true" />
+            View profile
+            <ArrowUpRight className="size-4 transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden="true" />
           </a>
+        ) : (
+          <div className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-muted-foreground/75">
+            <Headphones className="size-4" aria-hidden="true" />
+            Building the sound
+          </div>
         )}
-      </div>
-
-      <div className="relative mt-5">
-        <h3 className="text-lg font-bold tracking-tight">{member.name}</h3>
-        <p className="mt-1 text-sm font-medium text-muted-foreground">{member.role}</p>
-        <div className={`mt-4 inline-flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-bold ${config.border} ${config.iconSurface} ${config.accent}`}>
-          <RoleIcon className="size-3.5" aria-hidden="true" />
-          {category}
-        </div>
       </div>
     </article>
   );
@@ -291,7 +320,7 @@ function MemberCard({ member, category, config }: { member: TeamMember; category
 
 function HeroStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4 shadow-sm backdrop-blur">
+    <div className="rounded-2xl border border-border/80 bg-card/75 p-4 shadow-sm backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5">
       <p className="font-mono text-2xl font-bold tabular-nums">{value}</p>
       <p className="mt-1 text-xs font-medium text-muted-foreground">{label}</p>
     </div>
@@ -310,8 +339,8 @@ function TeamSkeleton() {
               <div className="h-3 w-72 max-w-[70vw] rounded-full bg-muted" />
             </div>
           </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2].map((card) => <div key={card} className="h-56 rounded-[1.75rem] border border-border bg-card" />)}
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {[0, 1].map((card) => <div key={card} className="h-44 rounded-[1.5rem] border border-border bg-card" />)}
           </div>
         </div>
       ))}

@@ -1508,3 +1508,53 @@
     will-change: auto;
   }
 }
+
+/* Team page: editorial roster cards and motion */
+.team-page-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 34%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 26%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
+}
+
+.team-hero {
+  animation: team-reveal 600ms cubic-bezier(.2, .75, .2, 1) both;
+}
+
+.team-member-card {
+  opacity: 0;
+  animation: team-card-in 520ms cubic-bezier(.2, .75, .2, 1) forwards;
+}
+
+.team-card-shine {
+  background: linear-gradient(112deg, transparent 25%, color-mix(in oklab, white 48%, transparent) 48%, transparent 68%);
+  opacity: 0;
+  transform: translateX(-35%);
+  transition: opacity 300ms ease, transform 450ms ease;
+}
+
+.team-member-card:hover .team-card-shine {
+  opacity: .3;
+  transform: translateX(38%);
+}
+
+@keyframes team-reveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes team-card-in {
+  from { opacity: 0; transform: translateY(18px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team-member-card {
+    opacity: 1;
+  }
+
+  .team-card-shine {
+    display: none;
+  }
+}
