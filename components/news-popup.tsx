@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X, Newspaper } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 interface NewsItem {
   _id: string;
@@ -11,11 +12,14 @@ interface NewsItem {
 }
 
 export function NewsPopup() {
+  const pathname = usePathname();
   const [news, setNews] = useState<NewsItem | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
+    if (pathname.startsWith("/admin")) return;
+
     const fetchNews = async () => {
       try {
         const response = await fetch("/api/news");
@@ -37,7 +41,7 @@ export function NewsPopup() {
     };
 
     fetchNews();
-  }, []);
+  }, [pathname]);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -50,7 +54,7 @@ export function NewsPopup() {
     }, 200);
   };
 
-  if (!news || !isVisible) return null;
+  if (pathname.startsWith("/admin") || !news || !isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

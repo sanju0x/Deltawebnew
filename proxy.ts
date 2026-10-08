@@ -6,6 +6,10 @@ import {
 } from "@/lib/admin-auth";
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/admin/login") {
+    return NextResponse.next();
+  }
+
   const userId = await getAdminSessionUserId(
     request.cookies.get(ADMIN_SESSION_COOKIE)?.value,
   );
@@ -23,7 +27,7 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  return NextResponse.redirect(new URL("/api/auth/discord/login", request.url));
+  return NextResponse.redirect(new URL("/admin/login", request.url));
 }
 
 export const config = {

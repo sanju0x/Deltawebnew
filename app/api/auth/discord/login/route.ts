@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DISCORD_OAUTH_STATE_COOKIE, createSignedValue, getAdminSessionSecret, getDiscordRedirectUri } from "@/lib/admin-auth";
+import { DISCORD_OAUTH_STATE_COOKIE, createSignedValue, getAdminSessionSecret, getDiscordAuthConfiguration, getDiscordClientId, getDiscordRedirectUri } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
-  const clientId = process.env.DISCORD_CLIENT_ID;
+  const clientId = getDiscordClientId();
   const secret = getAdminSessionSecret();
-  if (!clientId || !secret) return NextResponse.json({ error: "Discord admin authentication is not configured." }, { status: 503 });
+  const configuration = getDiscordAuthConfiguration();
+  if (!configuration.configured || !clientId || !secret) {
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("error", "configuration");
+    loginUrl.searchParams.set("missing", configuration.missing.join(","));
+    return NextResponse.redirect(loginUrl);
+  }
 
   const state = crypto.randomUUID();
   const signedState = await createSignedValue({ state, expiresAt: Date.now() + 10 * 60 * 1000 }, secret);

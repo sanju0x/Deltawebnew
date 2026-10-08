@@ -28,14 +28,40 @@ function signaturesMatch(left: string, right: string) {
   return difference === 0;
 }
 
-export function getAdminSessionSecret() { return process.env.ADMIN_SESSION_SECRET || ""; }
+function envValue(...values: Array<string | undefined>) {
+  for (const candidate of values) {
+    const value = candidate?.trim();
+    if (value) return value;
+  }
+  return "";
+}
+
+export function getDiscordClientId() {
+  return envValue(process.env.DISCORD_CLIENT_ID, process.env.DISCORD_OAUTH_CLIENT_ID);
+}
+
+export function getDiscordClientSecret() {
+  return envValue(process.env.DISCORD_CLIENT_SECRET, process.env.DISCORD_OAUTH_CLIENT_SECRET);
+}
+
+export function getAdminSessionSecret() {
+  return envValue(process.env.ADMIN_SESSION_SECRET, process.env.AUTH_SECRET) || getDiscordClientSecret();
+}
 
 export function getAllowedDiscordUserIds() {
-  return new Set((process.env.ADMIN_ALLOWED_DISCORD_USER_IDS || "").split(",").map((id) => id.trim()).filter(Boolean));
+  return new Set(envValue(process.env.ADMIN_ALLOWED_DISCORD_USER_IDS, process.env.ADMIN_DISCORD_USER_IDS, process.env.ALLOWED_DISCORD_USER_IDS).split(",").map((id) => id.trim()).filter(Boolean));
 }
 
 export function getDiscordRedirectUri(origin: string) {
-  return process.env.DISCORD_REDIRECT_URI || `${origin}/api/auth/discord/callback`;
+  return envValue(process.env.DISCORD_REDIRECT_URI, process.env.DISCORD_OAUTH_REDIRECT_URI, process.env.DISCORD_REDIRECT_URL) || `${origin}/api/auth/discord/callback`;
+}
+
+export function getDiscordAuthConfiguration() {
+  const missing: string[] = [];
+  if (!getDiscordClientId()) missing.push("DISCORD_CLIENT_ID");
+  if (!getDiscordClientSecret()) missing.push("DISCORD_CLIENT_SECRET");
+  if (!getAllowedDiscordUserIds().size) missing.push("ADMIN_ALLOWED_DISCORD_USER_IDS");
+  return { configured: missing.length === 0, missing };
 }
 
 export async function createSignedValue(payload: Record<string, unknown>, secret = getAdminSessionSecret()) {
