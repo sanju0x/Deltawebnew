@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, RefreshCw, Trash2, Edit, Users, AlertTriangle, ExternalLink } from "lucide-react";
 import Image from "next/image";
+import { TEAM_ROLE_CATEGORIES, getTeamRoleCategoryOrder, normalizeTeamRoleCategory } from "@/lib/team-roles";
 
 interface TeamMember {
   _id: string;
@@ -46,15 +47,6 @@ interface TeamMember {
   order: number;
 }
 
-const roleCategories = [
-  "Founder",
-  "Owner",
-  "Developer",
-  "Assistant Developer",
-  "Council",
-  "Audio Server Manager",
-];
-
 export function TeamManager() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +57,7 @@ export function TeamManager() {
     avatar: "",
     avatarUrl: "",
     role: "",
-    roleCategory: "Developer",
+    roleCategory: "Lead Developer",
     socialLink: "",
     order: 0,
   });
@@ -126,7 +118,7 @@ export function TeamManager() {
       avatar: "",
       avatarUrl: "",
       role: "",
-      roleCategory: "Developer",
+      roleCategory: "Lead Developer",
       socialLink: "",
       order: 0,
     });
@@ -140,7 +132,7 @@ export function TeamManager() {
       avatar: member.avatar,
       avatarUrl: member.avatarUrl || "",
       role: member.role,
-      roleCategory: member.roleCategory,
+      roleCategory: normalizeTeamRoleCategory(member.roleCategory),
       socialLink: member.socialLink || "",
       order: member.order,
     });
@@ -148,10 +140,11 @@ export function TeamManager() {
   };
 
   const groupedMembers = members.reduce((acc, member) => {
-    if (!acc[member.roleCategory]) {
-      acc[member.roleCategory] = [];
+    const category = normalizeTeamRoleCategory(member.roleCategory);
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[member.roleCategory].push(member);
+    acc[category].push(member);
     return acc;
   }, {} as Record<string, TeamMember[]>);
 
@@ -237,7 +230,7 @@ export function TeamManager() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {roleCategories.map((cat) => (
+                          {TEAM_ROLE_CATEGORIES.map((cat) => (
                             <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                           ))}
                         </SelectContent>
@@ -283,7 +276,9 @@ export function TeamManager() {
             </div>
           ) : (
             <div className="space-y-6">
-              {Object.entries(groupedMembers).map(([category, categoryMembers]) => (
+              {Object.entries(groupedMembers)
+                .sort(([left], [right]) => getTeamRoleCategoryOrder(left) - getTeamRoleCategoryOrder(right))
+                .map(([category, categoryMembers]) => (
                 <div key={category}>
                   <h3 className="text-lg font-semibold mb-3 text-foreground">{category}</h3>
                   <div className="grid gap-3">

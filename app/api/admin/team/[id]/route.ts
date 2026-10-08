@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
+import { normalizeTeamRoleCategory } from "@/lib/team-roles";
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -29,7 +30,7 @@ export async function PATCH(
     if (avatar !== undefined) updateData.avatar = avatar;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
     if (role !== undefined) updateData.role = role;
-    if (roleCategory !== undefined) updateData.roleCategory = roleCategory;
+    if (roleCategory !== undefined) updateData.roleCategory = normalizeTeamRoleCategory(roleCategory);
     if (socialLink !== undefined) updateData.socialLink = socialLink;
     if (order !== undefined) updateData.order = order;
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getDb } from "@/lib/mongodb";
+import { normalizeTeamRoleCategory } from "@/lib/team-roles";
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       avatar: avatar || name.substring(0, 2).toUpperCase(),
       avatarUrl: avatarUrl || null,
       role,
-      roleCategory,
+      roleCategory: normalizeTeamRoleCategory(roleCategory),
       socialLink: socialLink || null,
       order: order || 0,
       createdAt: new Date(),
