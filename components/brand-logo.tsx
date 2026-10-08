@@ -23,8 +23,8 @@ export function BrandLogo({ compact = false, className = "" }: BrandLogoProps) {
           Delta
         </span>
         <BadgeCheck
-          className={compact ? "size-4 text-[#5865f2]" : "size-5 text-[#5865f2]"}
-          fill="currentColor"
+          className={compact ? "size-4 shrink-0 text-white drop-shadow-sm" : "size-5 shrink-0 text-white drop-shadow-sm"}
+          fill="#5865f2"
           strokeWidth={2.4}
           aria-label="Verified on Discord"
         />

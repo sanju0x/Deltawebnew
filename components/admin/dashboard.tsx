@@ -40,6 +40,7 @@ import {
   Crown,
 } from "lucide-react";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { NewsManager } from "./news-manager";
 import { StatusManager } from "./status-manager";
 import { UpdatesManager } from "./updates-manager";
@@ -142,11 +143,11 @@ export function AdminDashboard() {
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5">
-                <img src="/icon.svg" alt="Delta" className="h-full w-full object-contain" />
-              </div>
-              <span className="text-xl font-bold">Delta Admin</span>
+            <Link href="/" className="flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+              <BrandLogo compact />
+              <span className="hidden border-l border-border pl-3 text-sm font-medium text-muted-foreground sm:inline">
+                Admin
+              </span>
             </Link>
           </div>
 

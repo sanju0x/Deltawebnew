@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { getDiscordAuthConfiguration } from "@/lib/admin-auth";
 
 export const metadata: Metadata = {
@@ -68,12 +68,11 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-8">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="grid size-11 place-items-center rounded-2xl bg-white shadow-sm">
-                  <Image src="/icon.svg" alt="" width={34} height={34} priority />
-                </span>
                 <div>
-                  <p className="font-semibold leading-tight">Delta</p>
-                  <p className="text-sm text-muted-foreground">Administration</p>
+                  <BrandLogo compact />
+                  <p className="mt-0.5 pl-[3.25rem] text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                    Administration
+                  </p>
                 </div>
               </div>
               <span className="grid size-10 place-items-center rounded-full border border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" title="Protected admin area">
