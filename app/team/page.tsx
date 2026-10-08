@@ -10,13 +10,10 @@ import {
   Crown,
   Headphones,
   Palette,
-  Sparkles,
-  Users,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import {
-  TEAM_ROLE_CATEGORIES,
   getTeamRoleCategoryOrder,
   normalizeTeamRoleCategory,
 } from "@/lib/team-roles";
@@ -162,8 +159,6 @@ export default function TeamPage() {
       }));
   }, [teamMembers]);
 
-  const memberCount = sections.reduce((total, section) => total + section.members.length, 0);
-
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <Header />
@@ -174,12 +169,8 @@ export default function TeamPage() {
         <div className="team-page-grid pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
 
         <div className="relative mx-auto max-w-6xl">
-          <section className="team-hero grid items-end gap-10 border-b border-border/80 pb-12 lg:grid-cols-[1fr_auto]" aria-labelledby="team-heading">
+          <section className="team-hero border-b border-border/80 pb-12" aria-labelledby="team-heading">
             <div className="max-w-3xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary">
-                <Sparkles className="size-3.5" aria-hidden="true" />
-                The people behind Delta
-              </div>
               <h1 id="team-heading" className="text-5xl font-bold tracking-[-0.065em] sm:text-7xl lg:text-[5.4rem] lg:leading-[0.92]">
                 Small team.
                 <span className="block bg-gradient-to-r from-primary via-red-500 to-orange-500 bg-clip-text text-transparent">Big sound.</span>
@@ -187,22 +178,6 @@ export default function TeamPage() {
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
                 Meet the people shaping Delta—from product direction and engineering to the creative and audio systems behind every session.
               </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:w-80 lg:grid-cols-2">
-              <HeroStat value={String(memberCount)} label="Team members" />
-              <HeroStat value={String(TEAM_ROLE_CATEGORIES.length)} label="Disciplines" />
-              <div className="col-span-2 hidden rounded-2xl border border-border/80 bg-card/75 p-4 shadow-sm backdrop-blur-xl sm:block">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <Users className="size-4.5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold">Built together</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">One team, one shared mission.</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </section>
 
@@ -216,7 +191,7 @@ export default function TeamPage() {
 
                 return (
                   <section key={section.title} aria-labelledby={`role-${sectionIndex}`}>
-                    <div className="mb-6 grid gap-5 md:grid-cols-[auto_1fr_auto] md:items-center">
+                    <div className="mb-6 grid gap-5 md:grid-cols-[auto_1fr] md:items-center">
                       <span className={`grid size-14 place-items-center rounded-2xl border ${config.border} ${config.iconSurface} ${config.accent} shadow-sm`}>
                         <RoleIcon className="size-6" strokeWidth={2} aria-hidden="true" />
                       </span>
@@ -228,10 +203,6 @@ export default function TeamPage() {
                         </div>
                         <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">{config.description}</p>
                       </div>
-
-                      <span className={`hidden rounded-full border px-3 py-1.5 text-xs font-bold md:inline-flex ${config.border} ${config.iconSurface} ${config.accent}`}>
-                        {section.members.length} {section.members.length === 1 ? "member" : "members"}
-                      </span>
                     </div>
 
                     <div className="grid gap-4 lg:grid-cols-2">
@@ -315,15 +286,6 @@ function MemberCard({ member, category, config, index }: { member: TeamMember; c
         )}
       </div>
     </article>
-  );
-}
-
-function HeroStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-border/80 bg-card/75 p-4 shadow-sm backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5">
-      <p className="font-mono text-2xl font-bold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs font-medium text-muted-foreground">{label}</p>
-    </div>
   );
 }
 
