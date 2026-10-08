@@ -32,9 +32,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, RefreshCw, Trash2, Edit, Users, AlertTriangle, ExternalLink } from "lucide-react";
+import { ArrowDown, ArrowUp, CheckCircle2, Plus, RefreshCw, Trash2, Edit, Users, AlertTriangle, ExternalLink, GripVertical } from "lucide-react";
 import Image from "next/image";
-import { TEAM_ROLE_CATEGORIES, getTeamRoleCategoryOrder, normalizeTeamRoleCategory } from "@/lib/team-roles";
+import { TEAM_ROLE_CATEGORIES, normalizeTeamRoleCategory } from "@/lib/team-roles";
+import type { TeamRoleCategory } from "@/lib/team-roles";
 
 interface TeamMember {
   _id: string;
@@ -52,6 +53,10 @@ export function TeamManager() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [draggedMemberId, setDraggedMemberId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
+  const [reorderState, setReorderState] = useState<"idle" | "saved" | "error">("idle");
   const [formData, setFormData] = useState({
     name: "",
     avatar: "",
@@ -69,6 +74,7 @@ export function TeamManager() {
       if (response.ok) {
         const data = await response.json();
         setMembers(data.data || []);
+        setReorderState("idle");
       }
     } catch (error) {
       console.error("Error fetching team:", error);
@@ -112,6 +118,78 @@ export function TeamManager() {
     }
   };
 
+  const createGroups = (source: TeamMember[]) => {
+    const groups = Object.fromEntries(
+      TEAM_ROLE_CATEGORIES.map((category) => [category, [] as TeamMember[]]),
+    ) as Record<TeamRoleCategory, TeamMember[]>;
+
+    source.forEach((member) => {
+      groups[normalizeTeamRoleCategory(member.roleCategory)].push(member);
+    });
+    Object.values(groups).forEach((group) => group.sort((left, right) => left.order - right.order));
+    return groups;
+  };
+
+  const saveGroups = async (groups: Record<TeamRoleCategory, TeamMember[]>, previousMembers: TeamMember[]) => {
+    const nextMembers = TEAM_ROLE_CATEGORIES.flatMap((category) =>
+      groups[category].map((member, order) => ({ ...member, roleCategory: category, order })),
+    );
+
+    setMembers(nextMembers);
+    setReordering(true);
+    setReorderState("idle");
+
+    try {
+      const response = await fetch("/api/admin/team/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          members: nextMembers.map((member) => ({ id: member._id, roleCategory: member.roleCategory, order: member.order })),
+        }),
+      });
+      if (!response.ok) throw new Error("Could not save team order");
+      setReorderState("saved");
+    } catch (error) {
+      console.error("Error reordering team:", error);
+      setMembers(previousMembers);
+      setReorderState("error");
+    } finally {
+      setReordering(false);
+      setDraggedMemberId(null);
+      setDropTarget(null);
+    }
+  };
+
+  const moveMember = (memberId: string, targetCategory: TeamRoleCategory, targetMemberId?: string) => {
+    if (reordering) return;
+    if (targetMemberId === memberId) return;
+    const previousMembers = members;
+    const groups = createGroups(members);
+    const sourceCategory = TEAM_ROLE_CATEGORIES.find((category) => groups[category].some((member) => member._id === memberId));
+    if (!sourceCategory) return;
+
+    const sourceIndex = groups[sourceCategory].findIndex((member) => member._id === memberId);
+    const [member] = groups[sourceCategory].splice(sourceIndex, 1);
+    const targetIndex = targetMemberId
+      ? groups[targetCategory].findIndex((item) => item._id === targetMemberId)
+      : groups[targetCategory].length;
+    groups[targetCategory].splice(targetIndex < 0 ? groups[targetCategory].length : targetIndex, 0, member);
+    void saveGroups(groups, previousMembers);
+  };
+
+  const moveMemberBy = (memberId: string, offset: -1 | 1) => {
+    if (reordering) return;
+    const previousMembers = members;
+    const groups = createGroups(members);
+    const category = TEAM_ROLE_CATEGORIES.find((item) => groups[item].some((member) => member._id === memberId));
+    if (!category) return;
+    const index = groups[category].findIndex((member) => member._id === memberId);
+    const nextIndex = index + offset;
+    if (nextIndex < 0 || nextIndex >= groups[category].length) return;
+    [groups[category][index], groups[category][nextIndex]] = [groups[category][nextIndex], groups[category][index]];
+    void saveGroups(groups, previousMembers);
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -139,27 +217,20 @@ export function TeamManager() {
     setDialogOpen(true);
   };
 
-  const groupedMembers = members.reduce((acc, member) => {
-    const category = normalizeTeamRoleCategory(member.roleCategory);
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(member);
-    return acc;
-  }, {} as Record<string, TeamMember[]>);
+  const groupedMembers = createGroups(members);
 
   return (
     <div className="space-y-6">
       <Card className="bg-card border-border">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
                 Team Management
               </CardTitle>
               <CardDescription>
-                Manage team members with custom avatars and roles
+                Drag members to reorder them or move them between role categories
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -276,20 +347,94 @@ export function TeamManager() {
             </div>
           ) : (
             <div className="space-y-6">
-              {Object.entries(groupedMembers)
-                .sort(([left], [right]) => getTeamRoleCategoryOrder(left) - getTeamRoleCategoryOrder(right))
-                .map(([category, categoryMembers]) => (
-                <div key={category}>
-                  <h3 className="text-lg font-semibold mb-3 text-foreground">{category}</h3>
+              <div id="team-reorder-help" className="flex flex-col gap-3 rounded-xl border border-border bg-secondary/30 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <p>Drag a member by the handle to reorder or move them to another role. Use the arrows to reorder on touch devices, or Edit to change roles.</p>
+                </div>
+                <div className="min-h-5 shrink-0" aria-live="polite">
+                  {reordering && <span className="inline-flex items-center gap-2 font-medium text-foreground"><RefreshCw className="h-4 w-4 animate-spin" />Saving order...</span>}
+                  {reorderState === "saved" && <span className="inline-flex items-center gap-2 font-medium text-emerald-600"><CheckCircle2 className="h-4 w-4" />Order saved</span>}
+                  {reorderState === "error" && <span className="font-medium text-destructive">Could not save. Order restored.</span>}
+                </div>
+              </div>
+
+              {TEAM_ROLE_CATEGORIES.map((category) => {
+                  const categoryMembers = groupedMembers[category];
+                  return (
+                <section
+                  key={category}
+                  className={`rounded-2xl border p-3 transition-colors sm:p-4 ${dropTarget === `category:${category}` ? "border-primary bg-primary/5" : "border-border/70"}`}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    setDropTarget(`category:${category}`);
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const memberId = draggedMemberId || event.dataTransfer.getData("text/plain");
+                    if (memberId) moveMember(memberId, category);
+                  }}
+                >
+                  <div className="mb-3 flex items-center justify-between gap-3 px-1">
+                    <h3 className="text-base font-semibold text-foreground sm:text-lg">{category}</h3>
+                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">{categoryMembers.length}</span>
+                  </div>
                   <div className="grid gap-3">
-                    {categoryMembers.map((member) => (
+                    {categoryMembers.length === 0 && (
+                      <div className={`grid min-h-20 place-items-center rounded-xl border border-dashed text-sm transition-colors ${dropTarget === `category:${category}` ? "border-primary text-primary" : "border-border text-muted-foreground"}`}>
+                        Drop a member here
+                      </div>
+                    )}
+                    {categoryMembers.map((member, index) => (
                       <div
                         key={member._id}
-                        className="flex items-center justify-between p-4 border border-border rounded-xl bg-secondary/20"
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          event.dataTransfer.dropEffect = "move";
+                          setDropTarget(`member:${member._id}`);
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          const memberId = draggedMemberId || event.dataTransfer.getData("text/plain");
+                          if (memberId) moveMember(memberId, category, member._id);
+                        }}
+                        className={`flex flex-col gap-3 rounded-xl border bg-card p-3 transition-[border-color,box-shadow,opacity] sm:flex-row sm:items-center sm:justify-between sm:p-4 ${draggedMemberId === member._id ? "opacity-40" : "opacity-100"} ${dropTarget === `member:${member._id}` ? "border-primary shadow-md shadow-primary/10" : "border-border"}`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                          <span
+                            draggable={!reordering}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Drag ${member.name} to reorder`}
+                            aria-describedby="team-reorder-help"
+                            onDragStart={(event) => {
+                              setDraggedMemberId(member._id);
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", member._id);
+                            }}
+                            onDragEnd={() => {
+                              setDraggedMemberId(null);
+                              setDropTarget(null);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "ArrowUp") {
+                                event.preventDefault();
+                                moveMemberBy(member._id, -1);
+                              }
+                              if (event.key === "ArrowDown") {
+                                event.preventDefault();
+                                moveMemberBy(member._id, 1);
+                              }
+                            }}
+                            className="grid size-11 shrink-0 cursor-grab place-items-center rounded-xl border border-border bg-secondary text-muted-foreground outline-none transition-colors hover:border-primary/30 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                          >
+                            <GripVertical className="h-5 w-5" />
+                          </span>
                           {member.avatarUrl ? (
-                            <div className="h-12 w-12 rounded-xl overflow-hidden">
+                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
                               <Image
                                 src={member.avatarUrl}
                                 alt={member.name}
@@ -299,28 +444,51 @@ export function TeamManager() {
                               />
                             </div>
                           ) : (
-                            <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 font-bold text-primary">
                               {member.avatar}
                             </div>
                           )}
-                          <div>
+                          <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-foreground">{member.name}</span>
+                              <span className="truncate font-medium text-foreground">{member.name}</span>
                               {member.socialLink && (
-                                <a href={member.socialLink} target="_blank" rel="noopener noreferrer">
+                                <a href={member.socialLink} target="_blank" rel="noopener noreferrer" aria-label={`Open ${member.name}'s profile`}>
                                   <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-primary" />
                                 </a>
                               )}
                             </div>
-                            <span className="text-sm text-muted-foreground">{member.role}</span>
+                            <span className="block truncate text-sm text-muted-foreground">{member.role}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-end gap-2">
                           <Button
                             variant="outline"
                             size="icon"
-                            className="rounded-xl"
+                            className="size-11 rounded-xl"
+                            onClick={() => moveMemberBy(member._id, -1)}
+                            disabled={reordering || index === 0}
+                            aria-label={`Move ${member.name} up`}
+                            title="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="size-11 rounded-xl"
+                            onClick={() => moveMemberBy(member._id, 1)}
+                            disabled={reordering || index === categoryMembers.length - 1}
+                            aria-label={`Move ${member.name} down`}
+                            title="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="size-11 rounded-xl"
                             onClick={() => openEditDialog(member)}
+                            aria-label={`Edit ${member.name}`}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -329,7 +497,8 @@ export function TeamManager() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="rounded-xl text-destructive hover:bg-destructive/10"
+                                className="size-11 rounded-xl text-destructive hover:bg-destructive/10"
+                                aria-label={`Delete ${member.name}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -359,8 +528,9 @@ export function TeamManager() {
                       </div>
                     ))}
                   </div>
-                </div>
-              ))}
+                </section>
+              );
+              })}
             </div>
           )}
         </CardContent>
