@@ -204,6 +204,7 @@
 }
 
 .desktop-nav a,
+.desktop-nav button,
 .footer-links a {
   color: #625a52;
   font-size: 0.875rem;
@@ -212,6 +213,7 @@
 }
 
 .desktop-nav a:hover,
+.desktop-nav button:hover,
 .footer-links a:hover {
   color: #d82d25;
 }
@@ -269,7 +271,7 @@
   font-weight: 700;
 }
 
-.mobile-nav a:last-child {
+.mobile-nav > a:last-child {
   background: #d83229;
   color: white;
   text-align: center;
