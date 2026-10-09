@@ -9,10 +9,14 @@ import {
   Code2,
   Crown,
   Headphones,
+  Music2,
   Palette,
+  Sparkles,
+  UsersRound,
 } from "lucide-react";
-import { Header } from "@/components/header";
+
 import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 import {
   getTeamRoleCategoryOrder,
   normalizeTeamRoleCategory,
@@ -33,58 +37,46 @@ interface TeamMember {
 type RoleVisual = {
   icon: typeof Crown;
   description: string;
-  gradient: string;
-  iconSurface: string;
-  accent: string;
-  border: string;
-  wash: string;
+  badge: string;
+  portrait: string;
+  kicker: string;
 };
 
 const roleConfig: Record<TeamRoleCategory, RoleVisual> = {
   "Project Owner": {
     icon: Crown,
-    description: "Sets the vision and keeps Delta moving in the right direction.",
-    gradient: "from-amber-400 to-orange-500",
-    iconSurface: "bg-amber-500/12",
-    accent: "text-amber-700 dark:text-amber-400",
-    border: "border-amber-500/25",
-    wash: "bg-amber-500/5",
+    description: "Protecting the vision and deciding what Delta becomes next.",
+    badge: "bg-primary text-primary-foreground",
+    portrait: "from-[#ef554a] to-[#bd261f]",
+    kicker: "Direction",
   },
   "Lead Developer": {
     icon: Code2,
-    description: "Builds the systems that keep every command fast and reliable.",
-    gradient: "from-blue-500 to-cyan-500",
-    iconSurface: "bg-blue-500/12",
-    accent: "text-blue-700 dark:text-blue-400",
-    border: "border-blue-500/25",
-    wash: "bg-blue-500/5",
+    description: "Turning ambitious ideas into systems that stay fast and reliable.",
+    badge: "bg-foreground text-background",
+    portrait: "from-[#413a34] to-[#181512]",
+    kicker: "Engineering",
   },
   "Project Manager": {
     icon: BriefcaseBusiness,
-    description: "Turns ideas into plans and keeps every release on track.",
-    gradient: "from-emerald-500 to-teal-500",
-    iconSurface: "bg-emerald-500/12",
-    accent: "text-emerald-700 dark:text-emerald-400",
-    border: "border-emerald-500/25",
-    wash: "bg-emerald-500/5",
+    description: "Keeping people, priorities, and every release moving in rhythm.",
+    badge: "bg-amber-300 text-stone-950",
+    portrait: "from-[#f5ca58] to-[#de8f24]",
+    kicker: "Operations",
   },
   "Creative Director": {
     icon: Palette,
-    description: "Shapes Delta's visual language, personality, and creative direction.",
-    gradient: "from-violet-500 to-fuchsia-500",
-    iconSurface: "bg-violet-500/12",
-    accent: "text-violet-700 dark:text-violet-400",
-    border: "border-violet-500/25",
-    wash: "bg-violet-500/5",
+    description: "Giving Delta its voice, visual language, and unmistakable character.",
+    badge: "bg-rose-200 text-stone-950",
+    portrait: "from-[#f7a69d] to-[#dd554a]",
+    kicker: "Creative",
   },
   "Audio Server Manager": {
     icon: AudioLines,
-    description: "Keeps the audio infrastructure tuned for smooth listening.",
-    gradient: "from-orange-500 to-red-500",
-    iconSurface: "bg-orange-500/12",
-    accent: "text-orange-700 dark:text-orange-400",
-    border: "border-orange-500/25",
-    wash: "bg-orange-500/5",
+    description: "Tuning the infrastructure behind smooth, shared listening sessions.",
+    badge: "bg-orange-200 text-stone-950",
+    portrait: "from-[#ee9a53] to-[#cf482d]",
+    kicker: "Audio systems",
   },
 };
 
@@ -120,25 +112,36 @@ const defaultTeamRoles: Array<{ title: TeamRoleCategory; members: TeamMember[] }
   },
 ];
 
+const waveform = [34, 58, 82, 48, 72, 96, 64, 42, 76, 54, 88, 68, 38, 62, 92, 56, 78, 44];
+
 export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchTeam = async () => {
       try {
-        const response = await fetch("/api/team", { cache: "no-store" });
+        const response = await fetch("/api/team", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
         if (!response.ok) return;
+
         const data = await response.json();
         if (Array.isArray(data.data)) setTeamMembers(data.data);
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch team:", error);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     fetchTeam();
+    return () => controller.abort();
   }, []);
 
   const sections = useMemo(() => {
@@ -159,69 +162,150 @@ export default function TeamPage() {
       }));
   }, [teamMembers]);
 
+  const memberCount = sections.reduce((total, section) => total + section.members.length, 0);
+
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <Header />
 
-      <main className="team-page relative flex-1 overflow-hidden px-4 pb-24 pt-32 sm:px-6 sm:pt-36 lg:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[44rem] bg-[radial-gradient(circle_at_18%_0%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_58%)]" aria-hidden="true" />
-        <div className="pointer-events-none absolute right-[-8rem] top-48 size-96 rounded-full bg-[#5865f2]/8 blur-3xl" aria-hidden="true" />
-        <div className="team-page-grid pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
+      <main id="main-content" className="team-page flex-1 overflow-hidden">
+        <section className="team-studio-hero" aria-labelledby="team-heading">
+          <div className="team-paper-grid" aria-hidden="true" />
+          <div className="team-orb team-orb-one" aria-hidden="true" />
+          <div className="team-orb team-orb-two" aria-hidden="true" />
 
-        <div className="relative mx-auto max-w-6xl">
-          <section className="team-hero border-b border-border/80 pb-12" aria-labelledby="team-heading">
-            <div className="max-w-3xl">
-              <h1 id="team-heading" className="text-5xl font-bold tracking-[-0.065em] sm:text-7xl lg:text-[5.4rem] lg:leading-[0.92]">
-                Small team.
-                <span className="block bg-gradient-to-r from-primary via-red-500 to-orange-500 bg-clip-text text-transparent">Big sound.</span>
+          <div className="site-container team-hero-layout">
+            <div className="team-hero-copy">
+              <div className="team-eyebrow">
+                <Music2 className="size-4" aria-hidden="true" />
+                Behind the playback
+              </div>
+              <h1 id="team-heading">
+                Meet the people
+                <span>behind the beat.</span>
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                Meet the people shaping Delta—from product direction and engineering to the creative and audio systems behind every session.
+              <p>
+                A compact crew of builders, listeners, and creative minds making every Delta session feel effortless.
+              </p>
+
+              <div className="team-hero-meta" aria-label="Team overview">
+                <div>
+                  <strong>{String(memberCount).padStart(2, "0")}</strong>
+                  <span>People</span>
+                </div>
+                <div>
+                  <strong>{String(sections.length).padStart(2, "0")}</strong>
+                  <span>Disciplines</span>
+                </div>
+                <div>
+                  <strong>01</strong>
+                  <span>Shared rhythm</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="team-console" aria-label="Delta studio: one team, always listening">
+              <div className="team-console-topline">
+                <span><i aria-hidden="true" /> Delta studio</span>
+                <span>Live roster</span>
+              </div>
+              <div className="team-console-copy">
+                <p>One team</p>
+                <strong>Always listening.</strong>
+              </div>
+              <div className="team-sound-wave" aria-hidden="true">
+                {waveform.map((height, index) => (
+                  <span key={index} style={{ height: `${height}%` }} />
+                ))}
+              </div>
+              <div className="team-console-footer">
+                <div className="team-avatar-stack" aria-hidden="true">
+                  {sections.slice(0, 4).map((section, index) => (
+                    <span key={section.title}>{section.members[0]?.avatar || String(index + 1).padStart(2, "0")}</span>
+                  ))}
+                </div>
+                <span>Built by listeners, for listeners.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="team-roster-section" aria-labelledby="roster-heading">
+          <div className="site-container">
+            <div className="team-section-intro">
+              <div>
+                <p className="team-section-index">01 / The roster</p>
+                <h2 id="roster-heading">Different roles.<br />One frequency.</h2>
+              </div>
+              <p>
+                Delta is shaped by people with distinct crafts and one shared standard: make listening together feel simple, fast, and alive.
               </p>
             </div>
-          </section>
 
-          {loading ? (
-            <TeamSkeleton />
-          ) : (
-            <div className="mt-14 space-y-16 sm:mt-16 sm:space-y-24">
-              {sections.map((section, sectionIndex) => {
-                const config = roleConfig[section.title];
-                const RoleIcon = config.icon;
+            {loading ? (
+              <TeamSkeleton />
+            ) : (
+              <div className="team-roster">
+                {sections.map((section, sectionIndex) => {
+                  const config = roleConfig[section.title];
+                  const RoleIcon = config.icon;
 
-                return (
-                  <section key={section.title} aria-labelledby={`role-${sectionIndex}`}>
-                    <div className="mb-6 grid gap-5 md:grid-cols-[auto_1fr] md:items-center">
-                      <span className={`grid size-14 place-items-center rounded-2xl border ${config.border} ${config.iconSurface} ${config.accent} shadow-sm`}>
-                        <RoleIcon className="size-6" strokeWidth={2} aria-hidden="true" />
-                      </span>
-
-                      <div>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <p className="font-mono text-xs font-bold tracking-[0.18em] text-muted-foreground">{String(sectionIndex + 1).padStart(2, "0")}</p>
-                          <h2 id={`role-${sectionIndex}`} className="text-2xl font-bold tracking-tight sm:text-3xl">{section.title}</h2>
+                  return (
+                    <section
+                      key={section.title}
+                      className="team-role-row"
+                      aria-labelledby={`role-${sectionIndex}`}
+                    >
+                      <div className="team-role-heading">
+                        <div className={`team-role-icon ${config.badge}`}>
+                          <RoleIcon className="size-6" strokeWidth={2} aria-hidden="true" />
                         </div>
-                        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">{config.description}</p>
+                        <p className="team-role-number">{String(sectionIndex + 1).padStart(2, "0")}</p>
+                        <p className="team-role-kicker">{config.kicker}</p>
+                        <h3 id={`role-${sectionIndex}`}>{section.title}</h3>
+                        <p className="team-role-description">{config.description}</p>
+                        <p className="team-role-count">
+                          {section.members.length} {section.members.length === 1 ? "person" : "people"}
+                        </p>
                       </div>
-                    </div>
 
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      {section.members.map((member, memberIndex) => (
-                        <MemberCard
-                          key={member._id || `${section.title}-${member.name}`}
-                          member={member}
-                          category={section.title}
-                          config={config}
-                          index={sectionIndex * 2 + memberIndex}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
+                      <div className="team-members-grid">
+                        {section.members.map((member, memberIndex) => (
+                          <MemberCard
+                            key={member._id || `${section.title}-${member.name}`}
+                            member={member}
+                            category={section.title}
+                            config={config}
+                            index={sectionIndex * 3 + memberIndex}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="team-closing-section">
+          <div className="site-container">
+            <div className="team-closing-card">
+              <div className="team-closing-icon" aria-hidden="true">
+                <UsersRound className="size-8" />
+              </div>
+              <p className="team-section-index">02 / Our thing</p>
+              <h2>Small team.<br /><span>Big sound.</span></h2>
+              <p className="team-closing-copy">
+                We care about the details you notice, the ones you never should, and the moments music makes better.
+              </p>
+              <div className="team-closing-note">
+                <Sparkles className="size-5" aria-hidden="true" />
+                Made with care, tuned together.
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
@@ -229,42 +313,46 @@ export default function TeamPage() {
   );
 }
 
-function MemberCard({ member, category, config, index }: { member: TeamMember; category: TeamRoleCategory; config: RoleVisual; index: number }) {
-  const RoleIcon = config.icon;
-
+function MemberCard({
+  member,
+  category,
+  config,
+  index,
+}: {
+  member: TeamMember;
+  category: TeamRoleCategory;
+  config: RoleVisual;
+  index: number;
+}) {
   return (
     <article
-      className={`team-member-card group relative isolate grid min-h-44 grid-cols-[6.5rem_1fr] overflow-hidden rounded-[1.5rem] border bg-card/90 shadow-sm transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/8 sm:grid-cols-[8rem_1fr] ${config.border}`}
+      className="team-profile-card"
       style={{ animationDelay: `${Math.min(index * 45, 315)}ms` }}
     >
-      <div className={`pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${config.gradient}`} aria-hidden="true" />
-      <div className={`pointer-events-none absolute -right-14 -top-20 size-44 rounded-full ${config.wash} blur-2xl transition-transform duration-300 group-hover:scale-125`} aria-hidden="true" />
-      <div className="team-card-shine pointer-events-none absolute inset-0" aria-hidden="true" />
-
-      <div className={`relative m-3 mr-0 min-h-36 overflow-hidden rounded-[1.15rem] border ${config.border} bg-secondary shadow-sm sm:m-4 sm:mr-0`}>
+      <div className="team-profile-portrait">
         {member.avatarUrl ? (
-          <Image src={member.avatarUrl} alt={`${member.name} portrait`} fill sizes="(max-width: 640px) 104px, 128px" className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+          <Image
+            src={member.avatarUrl}
+            alt={`${member.name} portrait`}
+            fill
+            sizes="(max-width: 767px) calc(100vw - 2.5rem), (max-width: 1199px) 40vw, 360px"
+            className="object-cover"
+          />
         ) : (
-          <div className={`grid size-full place-items-center bg-gradient-to-br ${config.gradient} text-2xl font-bold tracking-[-0.05em] text-white sm:text-3xl`} aria-hidden="true">
-            <span className="transition-transform duration-300 ease-out group-hover:scale-110">{member.avatar || initialsFor(member.name)}</span>
+          <div className={`team-profile-fallback bg-gradient-to-br ${config.portrait}`} aria-hidden="true">
+            <span>{member.avatar || initialsFor(member.name)}</span>
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/20 to-transparent" aria-hidden="true" />
+
+        <span className="team-profile-sequence">{String(index + 1).padStart(2, "0")}</span>
+        <span className={`team-profile-category ${config.badge}`}>{config.kicker}</span>
       </div>
 
-      <div className="relative flex min-w-0 flex-col justify-between p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.08em] ${config.border} ${config.iconSurface} ${config.accent}`}>
-            <RoleIcon className="size-3" aria-hidden="true" />
-            <span className="hidden min-[420px]:inline">{category}</span>
-            <span className="min-[420px]:hidden">Team</span>
-          </div>
-          <span className="font-mono text-[0.68rem] font-bold tabular-nums text-muted-foreground/65">{String(index + 1).padStart(2, "0")}</span>
-        </div>
-
-        <div className="my-4 min-w-0">
-          <h3 className="truncate text-xl font-bold tracking-[-0.035em] sm:text-2xl">{member.name}</h3>
-          <p className="mt-1 text-sm font-medium text-muted-foreground">{member.role}</p>
+      <div className="team-profile-body">
+        <div>
+          <p>{category}</p>
+          <h4>{member.name}</h4>
+          <span>{member.role}</span>
         </div>
 
         {member.socialLink ? (
@@ -272,14 +360,14 @@ function MemberCard({ member, category, config, index }: { member: TeamMember; c
             href={member.socialLink}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Open ${member.name}'s profile`}
-            className="group/link inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-border bg-background/80 px-3 text-xs font-bold text-muted-foreground transition-[background-color,border-color,color] duration-200 hover:border-primary/30 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`Open ${member.name}'s profile in a new tab`}
+            className="team-profile-link"
           >
-            View profile
-            <ArrowUpRight className="size-4 transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden="true" />
+            Profile
+            <ArrowUpRight className="size-4" aria-hidden="true" />
           </a>
         ) : (
-          <div className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-muted-foreground/75">
+          <div className="team-profile-status">
             <Headphones className="size-4" aria-hidden="true" />
             Building the sound
           </div>
@@ -291,18 +379,17 @@ function MemberCard({ member, category, config, index }: { member: TeamMember; c
 
 function TeamSkeleton() {
   return (
-    <div className="mt-16 space-y-16" aria-label="Loading team members">
+    <div className="team-skeleton" role="status" aria-live="polite">
+      <span className="sr-only">Loading team members</span>
       {[0, 1].map((section) => (
-        <div key={section} className="animate-pulse">
-          <div className="flex items-center gap-4">
-            <div className="size-14 rounded-2xl bg-muted" />
-            <div className="space-y-2">
-              <div className="h-6 w-48 rounded-full bg-muted" />
-              <div className="h-3 w-72 max-w-[70vw] rounded-full bg-muted" />
-            </div>
+        <div key={section} className="team-skeleton-row">
+          <div className="team-skeleton-heading">
+            <div />
+            <span />
+            <span />
           </div>
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            {[0, 1].map((card) => <div key={card} className="h-44 rounded-[1.5rem] border border-border bg-card" />)}
+          <div className="team-skeleton-cards">
+            {[0, 1].map((card) => <div key={card} />)}
           </div>
         </div>
       ))}
@@ -311,5 +398,10 @@ function TeamSkeleton() {
 }
 
 function initialsFor(name: string) {
-  return name.split(/\s+/).map((part) => part[0]).join("").slice(0, 3).toUpperCase();
+  return name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 3)
+    .toUpperCase();
 }
