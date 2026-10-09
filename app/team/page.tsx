@@ -9,7 +9,6 @@ import {
   Code2,
   Crown,
   Headphones,
-  Music2,
   Palette,
   Sparkles,
   UsersRound,
@@ -176,10 +175,6 @@ export default function TeamPage() {
 
           <div className="site-container team-hero-layout">
             <div className="team-hero-copy">
-              <div className="team-eyebrow">
-                <Music2 className="size-4" aria-hidden="true" />
-                Behind the playback
-              </div>
               <h1 id="team-heading">
                 Meet the people
                 <span>behind the beat.</span>

@@ -1599,29 +1599,9 @@
   animation: team-reveal 600ms cubic-bezier(.2, .75, .2, 1) both;
 }
 
-.team-eyebrow {
-  display: inline-flex;
-  min-height: 2.25rem;
-  align-items: center;
-  gap: 0.5rem;
-  border: 1px solid rgba(60, 45, 34, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 252, 246, 0.7);
-  padding: 0.35rem 0.85rem;
-  color: #6f645b;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.team-eyebrow svg {
-  color: #d83229;
-}
-
 .team-hero-copy h1 {
   max-width: 9.5ch;
-  margin-top: 1.5rem;
+  margin-top: 0;
   color: #1d1a17;
   font-size: clamp(4rem, 7.6vw, 7.75rem);
   font-weight: 780;

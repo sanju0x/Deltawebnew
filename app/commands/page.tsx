@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clipboard, Command, Crown, ListMusic, Music, Search, Settings, Sliders, Sparkles, X } from "lucide-react";
+import { Check, Clipboard, Crown, ListMusic, Music, Search, Settings, Sliders, Sparkles, X } from "lucide-react";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
@@ -80,8 +80,7 @@ export default function CommandsPage() {
         <div className="site-container relative">
           <section className="grid items-center gap-10 border-b border-[#3d2f25]/15 pb-14 lg:grid-cols-[1.05fr_.75fr] lg:gap-20" aria-labelledby="commands-heading">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-[#3d2f25]/15 bg-[#fffaf2]/70 px-3 py-2 text-xs font-extrabold uppercase tracking-[.16em] text-[#746a61]"><Command className="size-4 text-primary" aria-hidden="true" />Command desk</p>
-              <h1 id="commands-heading" className="mt-5 max-w-[9ch] text-6xl font-bold leading-[.88] tracking-[-.075em] text-[#1d1a17] sm:text-7xl lg:text-[6.7rem]">Your shortcut to <span className="text-primary">every sound.</span></h1>
+              <h1 id="commands-heading" className="max-w-[9ch] text-6xl font-bold leading-[.88] tracking-[-.075em] text-[#1d1a17] sm:text-7xl lg:text-[6.7rem]">Your shortcut to <span className="text-primary">every sound.</span></h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-[#675e56] sm:text-lg">Search the complete Delta command library, find the right syntax, and copy it straight into Discord.</p>
             </div>
             <div className="rotate-[1.5deg] overflow-hidden rounded-[2.25rem] bg-[#1d1a17] p-6 text-[#fff8ed] shadow-[0_30px_70px_rgba(62,35,20,.22)] sm:p-8">
