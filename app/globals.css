@@ -1509,6 +1509,35 @@
   }
 }
 
+/* Shared field styling for the guided bug report form. */
+.delta-field {
+  width: 100%;
+  min-height: 3.25rem;
+  border: 1px solid rgba(61, 47, 37, 0.16);
+  border-radius: 1rem;
+  background: rgba(255, 253, 248, 0.9);
+  padding: 0.85rem 1rem;
+  color: #2c2520;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.delta-field::placeholder {
+  color: #9a8e84;
+}
+
+.delta-field:hover {
+  border-color: rgba(216, 50, 41, 0.3);
+}
+
+.delta-field:focus {
+  border-color: rgba(216, 50, 41, 0.65);
+  background: #fffdf8;
+  box-shadow: 0 0 0 4px rgba(216, 50, 41, 0.1);
+  outline: none;
+}
+
 /* Team page: warm studio roster */
 .team-page {
   background:
