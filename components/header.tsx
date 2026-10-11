@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Handshake, Menu, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +71,10 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>
+
+          <div className="header-theme-toggle">
+            <ThemeToggle />
+          </div>
 
           <a className="nav-cta" href={inviteUrl}>
             Add to Discord
