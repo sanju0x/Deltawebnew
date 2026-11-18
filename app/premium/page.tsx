@@ -66,7 +66,8 @@ export default function PremiumPage() {
             </h1>
             <p>
               Delta is the premium bot because every server gets the full
-              experience. No tiers, no trials, no subscription fatigue.
+              experience. No server tiers or subscription fatigue. Personal
+              no-prefix trial offers are available separately.
             </p>
             <div className="premium-actions">
               <a className="button-primary" href={inviteUrl}>

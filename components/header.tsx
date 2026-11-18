@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Handshake, Menu, Users, X } from "lucide-react";
+import { ChevronDown, Handshake, Menu, Sparkles, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -22,6 +22,7 @@ const navLinks = [
 ];
 
 const otherLinks = [
+  { href: "/trial", label: "No-Prefix Trial", description: "Claim your personal 30-day offer", icon: Sparkles },
   { href: "/team", label: "Team", description: "Meet the people behind Delta", icon: Users },
   { href: "/partners", label: "Partners", description: "Explore our trusted partners", icon: Handshake },
 ];
