@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "@/components/header";
+import { PageBanner } from "@/components/page-banner";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Book, Mail, ExternalLink, HelpCircle, FileText, Zap } from "lucide-react";
@@ -62,14 +63,8 @@ export default function SupportPage() {
       
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Get <span className="text-primary">Support</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Need help? We&apos;re here for you. Choose your preferred way to get assistance.
-            </p>
-          </div>
+          <PageBanner icon={MessageCircle} title="Delta support"
+            description="Get help from the community, browse the guides, or contact the team." />
 
           {/* Support Options */}
           <div className="grid md:grid-cols-3 gap-6 mb-20">

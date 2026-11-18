@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BrandLogo } from "@/components/brand-logo";
+import Image from "next/image";
 
 const footerLinks = [
   { href: "/commands", label: "Commands" },
@@ -13,12 +13,13 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="site-container footer-layout">
-        <div>
-          <Link href="/" aria-label="Delta home">
-            <BrandLogo />
-          </Link>
-          <p className="footer-note">Make the room sound better.</p>
-        </div>
+        <Link href="/" aria-label="Delta home" className="footer-banner" dir="ltr">
+          <Image src="/icon.svg" alt="" width={56} height={56} />
+          <span>
+            <strong>Delta Music</strong>
+            <span>Make the room sound better.</span>
+          </span>
+        </Link>
 
         <nav className="footer-links" aria-label="Footer navigation">
           {footerLinks.map((link) => (
