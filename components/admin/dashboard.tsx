@@ -47,6 +47,8 @@ import { UpdatesManager } from "./updates-manager";
 import { TeamManager } from "./team-manager";
 import { PartnersManager } from "./partners-manager";
 import { PremiumManager } from "./premium-manager";
+import { TrialsManager } from "./trials-manager";
+import { MaintenanceToggle } from "./maintenance-toggle";
 
 interface BugReport {
   id: string;
@@ -160,6 +162,7 @@ export function AdminDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <MaintenanceToggle />
         <Tabs defaultValue="bugs" className="space-y-6">
           <TabsList className="flex flex-wrap justify-start gap-1 rounded-xl bg-secondary/50 p-1 h-auto">
             <TabsTrigger value="bugs" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
@@ -190,7 +193,10 @@ export function AdminDashboard() {
               <Crown className="h-4 w-4 text-yellow-500" />
               <span className="hidden sm:inline">Premium</span>
             </TabsTrigger>
+            <TabsTrigger value="trials" className="rounded-lg px-3 py-2">No-Prefix trials</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="trials"><TrialsManager /></TabsContent>
 
           <TabsContent value="bugs" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

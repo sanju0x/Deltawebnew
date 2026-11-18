@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { NewsPopup } from '@/components/news-popup'
 import { VisitorTracker } from '@/components/visitor-tracker'
 import { ThemeProvider } from '@/components/theme-provider'
+import { MaintenanceGate } from '@/components/maintenance-gate'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -22,8 +23,10 @@ export default function RootLayout({
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <NewsPopup />
+          <MaintenanceGate>
+            {children}
+            <NewsPopup />
+          </MaintenanceGate>
           <VisitorTracker />
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </ThemeProvider>

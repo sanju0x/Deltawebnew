@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDiscordClientId, getDiscordClientSecret, readSignedValue } from "@/lib/admin-auth";
 import { TRIAL_SESSION_COOKIE, TRIAL_STATE_COOKIE, createTrialSession, trialCookieOptions, trialOrigin, trialRedirectUri, trialSecret } from "@/lib/trial-auth";
+import { claimTrial } from "@/lib/trials";
+
+export const runtime = "nodejs";
 
 function finish(request: NextRequest, query: string) {
   const response = NextResponse.redirect(new URL(`/trial${query}`, trialOrigin(request)));
@@ -10,7 +13,7 @@ function finish(request: NextRequest, query: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    const saved = await readSignedValue<{ purpose?: string; state?: string; user?: string; expiresAt?: number }>(request.cookies.get(TRIAL_STATE_COOKIE)?.value, trialSecret());
+    const saved = await readSignedValue<{ purpose?: string; state?: string; expiresAt?: number }>(request.cookies.get(TRIAL_STATE_COOKIE)?.value, trialSecret());
     const code = request.nextUrl.searchParams.get("code");
     const state = request.nextUrl.searchParams.get("state");
     if (!code || !state || saved?.purpose !== "trial-oauth" || saved.state !== state || typeof saved.expiresAt !== "number" || saved.expiresAt <= Date.now()) return finish(request, "?error=login");
@@ -26,7 +29,10 @@ export async function GET(request: NextRequest) {
     if (!profile.ok) return finish(request, "?error=login");
     const user = await profile.json() as { id?: string };
     if (!user.id || !/^\d{17,20}$/.test(user.id)) return finish(request, "?error=login");
-    const response = finish(request, saved.user ? `?user=${encodeURIComponent(saved.user)}` : "");
+    // Identity always comes from Discord, never a query string or submitted user ID.
+    let claimError = false;
+    try { await claimTrial(user.id); } catch { claimError = true; }
+    const response = finish(request, claimError ? "?error=claim" : "");
     response.cookies.set(TRIAL_SESSION_COOKIE, await createTrialSession(user.id), trialCookieOptions);
     return response;
   } catch { return finish(request, "?error=login"); }
