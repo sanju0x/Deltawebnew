@@ -53,8 +53,8 @@ export default function TrialPage() {
   return <main className="premium-page">
     <Header />
     <section className="site-container py-20 sm:py-28">
-      <div className="mx-auto max-w-2xl rounded-3xl border border-current/10 bg-background p-7 shadow-sm sm:p-12">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#d83229]">Free for 1 month</p>
+      <div className="mx-auto max-w-2xl rounded-md border border-current/10 bg-background p-7 shadow-sm sm:p-12">
+        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-primary">Free for 1 month</p>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Your music.<br />Without the prefix.</h1>
         <p className="mt-6 leading-relaxed opacity-75">Authorize with Discord to connect your account and claim 30 days of no-prefix commands. One free trial per account. No payment required.</p>
         <p className="my-7 text-sm opacity-75">Access ends automatically after 30 days. Delta will send you a DM when your trial ends, if your Discord settings allow messages.</p>

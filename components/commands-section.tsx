@@ -77,7 +77,7 @@ export function CommandsSection() {
           {commandCategories[activeCategory].commands.map((command, index) => (
             <div
               key={index}
-              className="rounded-[1.5rem] bg-card border border-border p-6 hover:border-primary/50 transition-all duration-300"
+              className="rounded-md bg-card border border-border p-6 hover:border-primary/50 transition-all duration-300"
             >
               <code className="text-primary font-mono text-lg font-semibold">
                 {command.cmd}

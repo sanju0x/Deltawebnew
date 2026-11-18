@@ -364,7 +364,7 @@ export function TeamManager() {
                   return (
                 <section
                   key={category}
-                  className={`rounded-2xl border p-3 transition-colors sm:p-4 ${dropTarget === `category:${category}` ? "border-primary bg-primary/5" : "border-border/70"}`}
+                  className={`rounded-md border p-3 transition-colors sm:p-4 ${dropTarget === `category:${category}` ? "border-primary bg-primary/5" : "border-border/70"}`}
                   onDragOver={(event) => {
                     event.preventDefault();
                     event.dataTransfer.dropEffect = "move";
