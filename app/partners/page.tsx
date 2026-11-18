@@ -27,7 +27,7 @@ const defaultMainPartners = [
     name: "Endercloud",
     description: "Premium Minecraft and Discord bot hosting solutions with 99.9% uptime guarantee. Trusted by thousands of communities worldwide.",
     logo: "EC",
-    color: "from-emerald-500 to-green-600",
+    color: "from-red-800 to-neutral-950",
     website: "https://endercloud.com",
     features: ["24/7 Support", "DDoS Protection", "Auto Scaling"],
     stats: { servers: "50K+", users: "2M+" },
@@ -36,7 +36,7 @@ const defaultMainPartners = [
     name: "CloudNode",
     description: "Enterprise-grade cloud infrastructure for bots and applications. Lightning-fast performance with global edge locations.",
     logo: "CN",
-    color: "from-blue-500 to-cyan-500",
+    color: "from-red-800 to-neutral-950",
     website: "#",
     features: ["Global CDN", "Auto Backups", "API Access"],
     stats: { servers: "30K+", users: "1.5M+" },
@@ -45,7 +45,7 @@ const defaultMainPartners = [
     name: "BotList Hub",
     description: "The largest Discord bot listing platform. Discover, vote, and share amazing bots with millions of users.",
     logo: "BH",
-    color: "from-purple-500 to-pink-500",
+    color: "from-red-800 to-neutral-950",
     website: "#",
     features: ["Bot Analytics", "Vote Rewards", "Premium Listing"],
     stats: { servers: "100K+", users: "5M+" },
@@ -64,49 +64,49 @@ const defaultCommunityPartners = [
     name: "Gaming Central",
     description: "One of the largest gaming communities on Discord.",
     logo: "GC",
-    color: "from-orange-500 to-amber-500",
+    color: "from-red-800 to-neutral-950",
     members: "150K+",
   },
   {
     name: "Tech Talk",
     description: "Developers and tech enthusiasts discussing the latest trends.",
     logo: "TT",
-    color: "from-indigo-500 to-violet-500",
+    color: "from-red-800 to-neutral-950",
     members: "80K+",
   },
   {
     name: "Chill Zone",
     description: "A relaxed community for hanging out and making friends.",
     logo: "CZ",
-    color: "from-teal-500 to-cyan-500",
+    color: "from-red-800 to-neutral-950",
     members: "45K+",
   },
   {
     name: "Anime Hub",
     description: "The ultimate destination for anime fans and discussions.",
     logo: "AH",
-    color: "from-pink-500 to-rose-500",
+    color: "from-red-800 to-neutral-950",
     members: "200K+",
   },
   {
     name: "Creative Corner",
     description: "Artists, designers, and creators sharing their work.",
     logo: "CC",
-    color: "from-yellow-500 to-orange-500",
+    color: "from-red-800 to-neutral-950",
     members: "60K+",
   },
 ];
 
 const colorPalette = [
-  "from-emerald-500 to-green-600",
-  "from-blue-500 to-cyan-500",
-  "from-purple-500 to-pink-500",
+  "from-red-800 to-neutral-950",
+  "from-red-800 to-neutral-950",
+  "from-red-800 to-neutral-950",
   "from-primary to-red-700",
-  "from-orange-500 to-amber-500",
-  "from-indigo-500 to-violet-500",
-  "from-teal-500 to-cyan-500",
-  "from-pink-500 to-rose-500",
-  "from-yellow-500 to-orange-500",
+  "from-red-800 to-neutral-950",
+  "from-red-800 to-neutral-950",
+  "from-red-800 to-neutral-950",
+  "from-red-800 to-neutral-950",
+  "from-red-800 to-neutral-950",
 ];
 
 export default function PartnersPage() {
@@ -175,7 +175,7 @@ export default function PartnersPage() {
                     {featuredPartners.map((partner, index) => (
                       <div
                         key={partner._id}
-                        className="group bg-card border border-border rounded-3xl overflow-hidden hover:border-primary/50 transition-all duration-300"
+                        className="group bg-card border border-border rounded-md overflow-hidden hover:border-primary/50 transition-all duration-300"
                       >
                         {/* Banner */}
                         {partner.bannerUrl && (
@@ -193,7 +193,7 @@ export default function PartnersPage() {
                         <div className={`p-8 ${partner.bannerUrl ? "-mt-12 relative z-10" : ""}`}>
                           <div className="flex items-center gap-4 mb-6">
                             {partner.iconUrl ? (
-                              <div className="h-16 w-16 rounded-2xl overflow-hidden ring-4 ring-card">
+                              <div className="h-16 w-16 rounded-md overflow-hidden ring-4 ring-card">
                                 <Image
                                   src={partner.iconUrl}
                                   alt={partner.name}
@@ -203,7 +203,7 @@ export default function PartnersPage() {
                                 />
                               </div>
                             ) : (
-                              <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${getColor(index)} flex items-center justify-center text-white font-bold text-xl`}>
+                              <div className={`h-16 w-16 rounded-md bg-gradient-to-br ${getColor(index)} flex items-center justify-center text-white font-bold text-xl`}>
                                 {partner.logo}
                               </div>
                             )}
@@ -277,7 +277,7 @@ export default function PartnersPage() {
                     {communityPartners.map((partner, index) => (
                       <div
                         key={partner._id}
-                        className="group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all"
+                        className="group bg-card border border-border rounded-md overflow-hidden hover:border-primary/50 transition-all"
                       >
                         {/* Mini Banner */}
                         {partner.bannerUrl && (
@@ -347,10 +347,10 @@ export default function PartnersPage() {
                   {defaultMainPartners.map((partner) => (
                     <div
                       key={partner.name}
-                      className="bg-card border border-border rounded-3xl p-8 hover:border-primary/50 transition-all duration-300 group"
+                      className="bg-card border border-border rounded-md p-8 hover:border-primary/50 transition-all duration-300 group"
                     >
                       <div className="flex items-center gap-4 mb-6">
-                        <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${partner.color} flex items-center justify-center text-white font-bold text-xl`}>
+                        <div className={`h-16 w-16 rounded-md bg-gradient-to-br ${partner.color} flex items-center justify-center text-white font-bold text-xl`}>
                           {partner.logo}
                         </div>
                         <div>
@@ -406,7 +406,7 @@ export default function PartnersPage() {
                   {defaultCommunityPartners.map((partner) => (
                     <div
                       key={partner.name}
-                      className="bg-card border border-border rounded-2xl p-5 hover:border-primary/50 transition-all group flex items-center gap-4"
+                      className="bg-card border border-border rounded-md p-5 hover:border-primary/50 transition-all group flex items-center gap-4"
                     >
                       <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${partner.color} flex items-center justify-center text-white font-bold shrink-0`}>
                         {partner.logo}
@@ -426,7 +426,7 @@ export default function PartnersPage() {
           )}
 
           {/* Become a Partner */}
-          <div className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded-3xl p-10 text-center">
+          <div className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded-md p-10 text-center">
             <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-foreground mb-4">Become a Partner</h2>
             <p className="text-muted-foreground max-w-xl mx-auto mb-8">

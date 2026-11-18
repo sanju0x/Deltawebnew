@@ -5,6 +5,7 @@ import { VisitorTracker } from '@/components/visitor-tracker'
 import { ThemeProvider } from '@/components/theme-provider'
 import { MaintenanceGate } from '@/components/maintenance-gate'
 import './globals.css'
+import './cinematic.css'
 
 export const metadata: Metadata = {
   title: 'Delta | Your server, your soundtrack',
@@ -22,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <MaintenanceGate>
             {children}
             <NewsPopup />

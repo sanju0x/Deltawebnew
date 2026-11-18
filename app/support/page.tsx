@@ -12,7 +12,7 @@ const supportOptions = [
     icon: MessageCircle,
     action: "Join Server",
     href: "#",
-    color: "bg-[#5865F2]",
+    color: "bg-[#981724]",
   },
   {
     title: "Documentation",
@@ -76,9 +76,9 @@ export default function SupportPage() {
             {supportOptions.map((option) => (
               <div
                 key={option.title}
-                className="bg-card border border-border rounded-3xl p-8 hover:border-primary/50 transition-all duration-300 group"
+                className="bg-card border border-border rounded-md p-8 hover:border-primary/50 transition-all duration-300 group"
               >
-                <div className={`${option.color} h-14 w-14 rounded-2xl flex items-center justify-center mb-6`}>
+                <div className={`${option.color} h-14 w-14 rounded-md flex items-center justify-center mb-6`}>
                   <option.icon className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-foreground mb-2">{option.title}</h3>
@@ -100,7 +100,7 @@ export default function SupportPage() {
           <div className="grid md:grid-cols-3 gap-4 mb-20">
             <a
               href="#"
-              className="flex items-center gap-4 bg-card border border-border rounded-2xl p-5 hover:border-primary/50 transition-all group"
+              className="flex items-center gap-4 bg-card border border-border rounded-md p-5 hover:border-primary/50 transition-all group"
             >
               <div className="p-3 rounded-xl bg-secondary group-hover:bg-primary/20 transition-colors">
                 <HelpCircle className="h-5 w-5 text-primary" />
@@ -112,7 +112,7 @@ export default function SupportPage() {
             </a>
             <a
               href="#"
-              className="flex items-center gap-4 bg-card border border-border rounded-2xl p-5 hover:border-primary/50 transition-all group"
+              className="flex items-center gap-4 bg-card border border-border rounded-md p-5 hover:border-primary/50 transition-all group"
             >
               <div className="p-3 rounded-xl bg-secondary group-hover:bg-primary/20 transition-colors">
                 <FileText className="h-5 w-5 text-primary" />
@@ -124,7 +124,7 @@ export default function SupportPage() {
             </a>
             <a
               href="#"
-              className="flex items-center gap-4 bg-card border border-border rounded-2xl p-5 hover:border-primary/50 transition-all group"
+              className="flex items-center gap-4 bg-card border border-border rounded-md p-5 hover:border-primary/50 transition-all group"
             >
               <div className="p-3 rounded-xl bg-secondary group-hover:bg-primary/20 transition-colors">
                 <Zap className="h-5 w-5 text-primary" />
@@ -145,7 +145,7 @@ export default function SupportPage() {
               {faqs.map((faq, index) => (
                 <div
                   key={index}
-                  className="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-colors"
+                  className="bg-card border border-border rounded-md p-6 hover:border-primary/30 transition-colors"
                 >
                   <h3 className="font-semibold text-foreground mb-2 flex items-start gap-3">
                     <HelpCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />

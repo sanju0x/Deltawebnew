@@ -145,7 +145,7 @@ export function RubberLogo() {
             <span className="rubber-name">
               Delta
               <BadgeCheck
-                className="size-6 text-[#5865f2]"
+                className="size-6 text-primary"
                 fill="currentColor"
                 aria-label="Verified on Discord"
               />
