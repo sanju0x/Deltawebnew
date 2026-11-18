@@ -75,7 +75,7 @@
 }
 
 @theme inline {
-  --font-sans: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-sans: "DM Sans", "Segoe UI", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -121,7 +121,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    font-family: "DM Sans", "Segoe UI", Arial, sans-serif;
     background-image:
       radial-gradient(circle at 15% 0%, rgba(240, 75, 63, 0.08), transparent 32rem),
       linear-gradient(180deg, #f8f0e4 0%, #f4ecdf 100%);

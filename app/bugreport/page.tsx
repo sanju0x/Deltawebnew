@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AlertCircle, ArrowRight, Bug, Check, CheckCircle2, ChevronDown, Loader2, ShieldCheck } from "lucide-react";
+import { PageBanner } from "@/components/page-banner";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
@@ -52,11 +53,8 @@ export default function BugReportPage() {
       <main id="main-content" className="relative flex-1 overflow-hidden pb-24 pt-32 sm:pt-36">
         <div className="pointer-events-none absolute -left-32 top-20 size-[30rem] rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
         <div className="site-container relative">
-          <section className="mb-12 max-w-4xl" aria-labelledby="bug-heading">
-            <p className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.16em] text-primary"><Bug className="size-4" aria-hidden="true" />Bug report</p>
-            <h1 id="bug-heading" className="mt-5 max-w-[11ch] text-6xl font-bold leading-[.88] tracking-[-.075em] text-foreground sm:text-7xl lg:text-[6.5rem]">Found a glitch? <span className="text-primary">Let’s squash it.</span></h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">Tell us what happened and how to reproduce it. Clear details help the team move from report to fix much faster.</p>
-          </section>
+          <PageBanner icon={Bug} headingId="bug-heading" title="Bug report"
+            description="Tell us what happened, what you expected, and how to reproduce it." />
 
           <div className="grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-8">
             <aside className="overflow-hidden rounded-md bg-[#24191c] p-6 text-white shadow-[0_24px_60px_rgba(65,43,27,.18)] lg:sticky lg:top-28 sm:p-7" aria-label="How bug reports work">

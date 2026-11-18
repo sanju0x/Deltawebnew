@@ -65,12 +65,12 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
         </Link>
 
         <div className="overflow-hidden rounded-md border border-border/80 bg-card/95 shadow-2xl shadow-foreground/10 backdrop-blur-xl">
-          <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-8">
+          <div className="admin-login-banner border-b px-6 py-5 sm:px-8">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div>
                   <BrandLogo compact />
-                  <p className="mt-0.5 pl-[3.25rem] text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="mt-0.5 pl-[3.25rem] text-xs font-medium uppercase tracking-[0.16em] text-white/75">
                     Administration
                   </p>
                 </div>
@@ -112,7 +112,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             {configuration.configured ? (
               <a
                 href="/api/auth/discord/login"
-                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#981724] px-5 text-sm font-semibold text-white shadow-lg shadow-[#5865f2]/20 transition-[background-color,box-shadow] hover:bg-[#78121d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5865f2] focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#981724] px-5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-[background-color,box-shadow] hover:bg-[#78121d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
                 <DiscordMark />
                 Continue with Discord
