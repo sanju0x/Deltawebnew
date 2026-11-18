@@ -22,7 +22,7 @@ const navLinks = [
 ];
 
 const otherLinks = [
-  { href: "/trial", label: "No-Prefix Trial", description: "Claim your personal 30-day offer", icon: Sparkles },
+  { href: "/trial", label: "No-Prefix Trial", description: "Claim your free month with Discord", icon: Sparkles },
   { href: "/team", label: "Team", description: "Meet the people behind Delta", icon: Users },
   { href: "/partners", label: "Partners", description: "Explore our trusted partners", icon: Handshake },
 ];
