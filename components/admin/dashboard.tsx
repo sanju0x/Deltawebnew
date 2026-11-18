@@ -48,7 +48,10 @@ import { TeamManager } from "./team-manager";
 import { PartnersManager } from "./partners-manager";
 import { PremiumManager } from "./premium-manager";
 import { TrialsManager } from "./trials-manager";
+<<<<<<< HEAD
 import { MaintenanceToggle } from "./maintenance-toggle";
+=======
+>>>>>>> 73cf97957c21f4f56ee1edb4c1f725a283924c2c
 
 interface BugReport {
   id: string;

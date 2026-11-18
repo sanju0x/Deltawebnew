@@ -5,8 +5,11 @@ type Claim = {
   _id: string; claimed: boolean; disabled?: boolean; claimedAt?: number;
   endsAt?: number | null; notifiedAt?: number | null; notifyAfter?: number | null;
   notifyLease?: string; notifyError?: string; updatedBy?: string; updatedAt?: number;
+<<<<<<< HEAD
   startNotificationPending?: boolean; startNotifiedAt?: number | null;
   startNotifyAfter?: number | null; startNotifyLease?: string; startNotifyError?: string;
+=======
+>>>>>>> 73cf97957c21f4f56ee1edb4c1f725a283924c2c
 };
 let connection: Promise<MongoClient> | undefined;
 export async function trialDb() {
@@ -37,8 +40,13 @@ export async function claimTrial(userId: string) {
   try {
     // Discord ID is the primary key. A competing claim cannot insert or update it again.
     const result = await claims.updateOne({ _id: userId, claimed: { $ne: true }, disabled: { $ne: true } }, {
+<<<<<<< HEAD
       $set: { claimed: true, claimedAt: now, endsAt: now + 30 * 86_400_000, notifiedAt: null, notifyAfter: null, startNotificationPending: true, startNotifiedAt: null, startNotifyAfter: null },
       $unset: { notifyLease: "", notifyError: "", startNotifyLease: "", startNotifyError: "" }
+=======
+      $set: { claimed: true, claimedAt: now, endsAt: now + 30 * 86_400_000, notifiedAt: null, notifyAfter: null },
+      $unset: { notifyLease: "", notifyError: "" }
+>>>>>>> 73cf97957c21f4f56ee1edb4c1f725a283924c2c
     }, { upsert: true });
     return { ok: !!(result.upsertedCount || result.modifiedCount), ...await getTrialStatus(userId) };
   } catch (error) {

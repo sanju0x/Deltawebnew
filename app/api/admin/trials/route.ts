@@ -38,7 +38,11 @@ export async function POST(request: NextRequest) {
       await settings.updateOne({ _id: "trials" }, { $set: { enabled: action === "enable", ...audit } }, { upsert: true });
     } else if (action === "reset") {
       // Keep any user block; enabling that user is a separate, explicit action.
+<<<<<<< HEAD
       await claims.updateOne({ _id: userId }, { $set: { claimed: false, endsAt: null, notifiedAt: null, notifyAfter: null, startNotificationPending: false, ...audit }, $unset: { notifyLease: "", notifyError: "", claimedAt: "", startNotifyLease: "", startNotifyError: "", startNotifiedAt: "", startNotifyAfter: "" } }, { upsert: true });
+=======
+      await claims.updateOne({ _id: userId }, { $set: { claimed: false, endsAt: null, notifiedAt: null, notifyAfter: null, ...audit }, $unset: { notifyLease: "", notifyError: "", claimedAt: "" } }, { upsert: true });
+>>>>>>> 73cf97957c21f4f56ee1edb4c1f725a283924c2c
     } else {
       await claims.updateOne({ _id: userId }, {
         $set: { disabled: action === "disable-user", ...(action === "enable-user" ? { notifiedAt: null, notifyAfter: null } : {}), ...audit },
