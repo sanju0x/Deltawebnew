@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
 import { trialOrigin } from "@/lib/trial-auth";
 import { trialCollections } from "@/lib/trials";
@@ -29,10 +29,14 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
   if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   const { action, userId } = body;
-  if (!["enable", "disable", "reset", "enable-user", "disable-user"].includes(action)) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  if (!["enable", "disable"].includes(action) && (typeof userId !== "string" || !/^\d{17,20}$/.test(userId))) return NextResponse.json({ error: "Enter a valid Discord user ID" }, { status: 400 });
+  if (!["enable", "disable", "reset", "reset-all", "enable-user", "disable-user"].includes(action)) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  if (!["enable", "disable", "reset-all"].includes(action) && (typeof userId !== "string" || !/^\d{17,20}$/.test(userId))) return NextResponse.json({ error: "Enter a valid Discord user ID" }, { status: 400 });
   try {
     const { claims, settings } = await trialCollections();
+    if (action === "reset-all") {
+      const result = await claims.deleteMany({});
+      return NextResponse.json({ ok: true, deletedCount: result.deletedCount }, { headers: { "Cache-Control": "no-store" } });
+    }
     const audit = { updatedBy: id, updatedAt: Date.now() };
     if (action === "enable" || action === "disable") {
       await settings.updateOne({ _id: "trials" }, { $set: { enabled: action === "enable", ...audit } }, { upsert: true });
