@@ -83,7 +83,7 @@ export async function createAdminSession(userId: string) {
 
 export async function getAdminSessionUserId(value: string | undefined) {
   const session = await readSignedValue<{ userId?: string; expiresAt?: number }>(value);
-  if (!session?.userId || !session.expiresAt || session.expiresAt < Date.now()) return null;
+  if (typeof session?.userId !== "string" || !session.userId || typeof session.expiresAt !== "number" || !Number.isFinite(session.expiresAt) || session.expiresAt <= Date.now()) return null;
   return session.userId;
 }
 

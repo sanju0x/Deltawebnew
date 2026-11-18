@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,20 +8,30 @@ export function MaintenanceToggle() {
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const pending = useRef(false);
 
   async function load() {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(true);
     try {
       const response = await fetch("/api/maintenance", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load maintenance status");
+      if (typeof data?.enabled !== "boolean") throw new Error("Invalid maintenance status. Refresh to try again.");
       setEnabled(data.enabled);
       setError("");
-    } catch (error) { setError(error instanceof Error ? error.message : "Could not load maintenance status"); }
+    } catch (error) {
+      setEnabled(null);
+      setError(error instanceof Error ? error.message : "Could not load maintenance status");
+    } finally { pending.current = false; setBusy(false); }
   }
 
   useEffect(() => { void load(); }, []);
 
   async function toggle() {
+    if (enabled === null || pending.current) return;
+    pending.current = true;
     setBusy(true);
     setError("");
     try {
@@ -31,9 +41,12 @@ export function MaintenanceToggle() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not update maintenance mode");
+      if (typeof data?.enabled !== "boolean") throw new Error("Invalid maintenance status. Refresh to try again.");
       setEnabled(data.enabled);
-    } catch (error) { setError(error instanceof Error ? error.message : "Could not update maintenance mode"); }
-    finally { setBusy(false); }
+    } catch (error) {
+      setEnabled(null);
+      setError(error instanceof Error ? error.message : "Could not update maintenance mode");
+    } finally { pending.current = false; setBusy(false); }
   }
 
   return (
@@ -41,14 +54,14 @@ export function MaintenanceToggle() {
       <div>
         <p className="flex items-center gap-2 font-semibold"><Wrench className="h-4 w-4" /> Website maintenance</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {enabled === null ? "Loading status…" : enabled ? "Enabled — visitors see a blurred page and maintenance notice." : "Disabled — the website is available to visitors."}
+          {enabled === null ? (error ? "Status unavailable. Refresh to try again." : "Loading status…") : enabled ? "Enabled — visitors see a blurred page and maintenance notice." : "Disabled — the website is available to visitors."}
         </p>
         {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
       </div>
       <div className="flex gap-2">
-        {error && <Button variant="outline" onClick={load}>Refresh status</Button>}
+        {error && <Button variant="outline" disabled={busy} onClick={load}>Refresh status</Button>}
         <Button variant={enabled ? "outline" : "default"} disabled={enabled === null || busy} onClick={toggle} aria-pressed={enabled === true}>
-          {busy ? "Saving…" : enabled ? "Disable maintenance" : "Enable maintenance"}
+          {busy ? (enabled === null ? "Loading…" : "Saving…") : enabled ? "Disable maintenance" : "Enable maintenance"}
         </Button>
       </div>
     </div>

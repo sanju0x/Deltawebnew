@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,10 +48,7 @@ import { TeamManager } from "./team-manager";
 import { PartnersManager } from "./partners-manager";
 import { PremiumManager } from "./premium-manager";
 import { TrialsManager } from "./trials-manager";
-<<<<<<< HEAD
 import { MaintenanceToggle } from "./maintenance-toggle";
-=======
->>>>>>> 73cf97957c21f4f56ee1edb4c1f725a283924c2c
 
 interface BugReport {
   id: string;
@@ -93,48 +90,55 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [error, setError] = useState("");
+  const [pendingReport, setPendingReport] = useState<string | null>(null);
+  const requestVersion = useRef(0);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
+    const version = ++requestVersion.current;
     setLoading(true);
+    setError("");
     const params = new URLSearchParams({
       status: statusFilter,
       severity: severityFilter,
     });
-    const response = await fetch(`/api/admin/bug-reports?${params.toString()}`);
-    const payload = await response.json();
-    if (!response.ok) {
-      console.error("Error fetching reports:", payload.error);
-    } else {
-      setReports(payload.data || []);
+    try {
+      const response = await fetch(`/api/admin/bug-reports?${params.toString()}`, { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(response.status === 401 ? "Your session expired. Sign in again to manage reports." : payload.error || "Could not load bug reports.");
+      if (version === requestVersion.current) setReports(payload.data || []);
+    } catch (error) {
+      if (version === requestVersion.current) setError(error instanceof Error ? error.message : "Could not load bug reports.");
+    } finally {
+      if (version === requestVersion.current) setLoading(false);
     }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchReports();
   }, [statusFilter, severityFilter]);
 
-  const updateStatus = async (id: string, newStatus: string) => {
-    const response = await fetch(`/api/admin/bug-reports/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (!response.ok) {
-      console.error("Error updating status");
-    } else {
-      fetchReports();
+  useEffect(() => {
+    void fetchReports();
+    return () => { requestVersion.current += 1; };
+  }, [fetchReports]);
+
+  const mutateReport = async (id: string, method: "PATCH" | "DELETE", status?: string) => {
+    setPendingReport(id);
+    setError("");
+    try {
+      const response = await fetch(`/api/admin/bug-reports/${id}`, {
+        method,
+        ...(method === "PATCH" ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) } : {}),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(response.status === 401 ? "Your session expired. Sign in again to manage reports." : payload.error || "Could not save bug report changes.");
+      await fetchReports();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not save bug report changes.");
+    } finally {
+      setPendingReport(null);
     }
   };
 
-  const deleteReport = async (id: string) => {
-    const response = await fetch(`/api/admin/bug-reports/${id}`, { method: "DELETE" });
-    if (!response.ok) {
-      console.error("Error deleting report");
-    } else {
-      fetchReports();
-    }
-  };
+  const updateStatus = (id: string, status: string) => mutateReport(id, "PATCH", status);
+  const deleteReport = (id: string) => mutateReport(id, "DELETE");
 
   const stats = {
     total: reports.length,
@@ -202,6 +206,7 @@ export function AdminDashboard() {
           <TabsContent value="trials"><TrialsManager /></TabsContent>
 
           <TabsContent value="bugs" className="space-y-6">
+        {error && <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error} <Link href="/admin/login" className="underline">Sign in</Link></div>}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-card border-border">
             <CardContent className="p-4">
@@ -256,7 +261,7 @@ export function AdminDashboard() {
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Filters:</span>
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={setStatusFilter} disabled={pendingReport !== null}>
                 <SelectTrigger className="w-40 rounded-xl">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -268,7 +273,7 @@ export function AdminDashboard() {
                   <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <Select value={severityFilter} onValueChange={setSeverityFilter} disabled={pendingReport !== null}>
                 <SelectTrigger className="w-40 rounded-xl">
                   <SelectValue placeholder="Severity" />
                 </SelectTrigger>
@@ -284,6 +289,7 @@ export function AdminDashboard() {
                 variant="outline"
                 size="sm"
                 onClick={fetchReports}
+                disabled={loading || pendingReport !== null}
                 className="rounded-xl"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -308,6 +314,8 @@ export function AdminDashboard() {
               <div className="flex items-center justify-center py-12">
                 <RefreshCw className="h-8 w-8 animate-spin text-primary" />
               </div>
+            ) : reports.length === 0 && error ? (
+              <p className="py-12 text-center text-muted-foreground">Reports could not be loaded. Use Refresh to try again.</p>
             ) : reports.length === 0 ? (
               <div className="text-center py-12">
                 <Bug className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -360,6 +368,7 @@ export function AdminDashboard() {
                       <div className="flex items-center gap-2">
                         <Select
                           value={report.status}
+                          disabled={pendingReport !== null}
                           onValueChange={(value) => updateStatus(report.id, value)}
                         >
                           <SelectTrigger className="w-32 rounded-xl">
@@ -377,6 +386,8 @@ export function AdminDashboard() {
                             <Button
                               variant="outline"
                               size="icon"
+                              disabled={pendingReport !== null}
+                              aria-label={`Delete report: ${report.title}`}
                               className="rounded-xl text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="h-4 w-4" />
