@@ -51,7 +51,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
     <main className="relative grid min-h-dvh place-items-center overflow-hidden bg-background px-4 py-10 sm:px-6">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute -left-24 top-[-8rem] size-80 rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute -right-24 bottom-[-9rem] size-96 rounded-full bg-[#5865f2]/15 blur-3xl" />
+        <div className="absolute -right-24 bottom-[-9rem] size-96 rounded-full bg-[#981724]/15 blur-3xl" />
         <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] [background-size:40px_40px]" />
       </div>
 
@@ -64,13 +64,13 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           Back to Delta
         </Link>
 
-        <div className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-2xl shadow-foreground/10 backdrop-blur-xl">
-          <div className="border-b border-border/70 bg-secondary/35 px-6 py-5 sm:px-8">
+        <div className="overflow-hidden rounded-md border border-border/80 bg-card/95 shadow-2xl shadow-foreground/10 backdrop-blur-xl">
+          <div className="admin-login-banner border-b px-6 py-5 sm:px-8">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div>
                   <BrandLogo compact />
-                  <p className="mt-0.5 pl-[3.25rem] text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="mt-0.5 pl-[3.25rem] text-xs font-medium uppercase tracking-[0.16em] text-white/75">
                     Administration
                   </p>
                 </div>
@@ -83,7 +83,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
 
           <div className="px-6 py-8 sm:px-8 sm:py-9">
             <div className="mb-7">
-              <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <div className="mb-4 grid size-12 place-items-center rounded-md bg-primary/10 text-primary">
                 <LockKeyhole className="size-6" aria-hidden="true" />
               </div>
               <h1 id="login-heading" className="text-3xl font-bold tracking-tight">Welcome back</h1>
@@ -93,7 +93,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             </div>
 
             {displayedError && (
-              <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/8 p-4" role="alert">
+              <div className="mb-6 rounded-md border border-destructive/30 bg-destructive/8 p-4" role="alert">
                 <div className="flex gap-3">
                   <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden="true" />
                   <div>
@@ -112,7 +112,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             {configuration.configured ? (
               <a
                 href="/api/auth/discord/login"
-                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#5865f2] px-5 text-sm font-semibold text-white shadow-lg shadow-[#5865f2]/20 transition-[background-color,box-shadow] hover:bg-[#4752c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5865f2] focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#981724] px-5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-[background-color,box-shadow] hover:bg-[#78121d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
                 <DiscordMark />
                 Continue with Discord
@@ -121,7 +121,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
               <button
                 type="button"
                 disabled
-                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#5865f2]/50 px-5 text-sm font-semibold text-white opacity-60"
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#981724]/50 px-5 text-sm font-semibold text-white opacity-60"
               >
                 <DiscordMark />
                 Continue with Discord

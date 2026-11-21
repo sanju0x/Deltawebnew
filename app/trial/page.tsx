@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
+import { PageBanner } from "@/components/page-banner";
 import { Footer } from "@/components/footer";
+import { Ticket } from "lucide-react";
 import type { TrialStatus } from "@/lib/trial-types";
 
 export default function TrialPage() {
@@ -52,11 +54,12 @@ export default function TrialPage() {
   };
   return <main className="premium-page">
     <Header />
-    <section className="site-container py-20 sm:py-28">
-      <div className="mx-auto max-w-2xl rounded-3xl border border-current/10 bg-background p-7 shadow-sm sm:p-12">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#d83229]">Free for 1 month</p>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Your music.<br />Without the prefix.</h1>
-        <p className="mt-6 leading-relaxed opacity-75">Authorize with Discord to connect your account and claim 30 days of no-prefix commands. One free trial per account. No payment required.</p>
+    <section className="site-container pb-20 pt-28" aria-labelledby="trial-title">
+      <PageBanner icon={Ticket} title="No-Prefix Trial" headingId="trial-title"
+        description="Play music without typing a command prefix. Your first 30 days are free." />
+      <div className="trial-claim-panel">
+        <h2>Claim your free month</h2>
+        <p className="mt-3 text-muted-foreground">Authorize with Discord to claim your trial. Each account can claim once. No payment required.</p>
         <p className="my-7 text-sm opacity-75">Access ends automatically after 30 days. Delta will send you a DM when your trial ends, if your Discord settings allow messages.</p>
         <div aria-live="polite" className="space-y-5 border-t border-current/10 pt-6">
           {loading ? <p>Checking your trial…</p> : status ? <>

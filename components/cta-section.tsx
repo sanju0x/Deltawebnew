@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { RubberLogo } from "@/components/rubber-logo";
 import Link from "next/link";
 import { ArrowUpRight, MessageCircle } from "lucide-react";
 
@@ -9,9 +9,7 @@ export function CTASection() {
     <section className="section-space">
       <div className="site-container">
         <div className="cta-panel">
-          <div className="cta-logo" aria-hidden="true">
-            <Image src="/icon.svg" alt="" width={160} height={160} />
-          </div>
+          <RubberLogo />
           <div className="cta-copy">
             <h2>Press play. Delta handles the rest.</h2>
             <p>
