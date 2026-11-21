@@ -44,7 +44,7 @@ export function MaintenanceGate({ children }: { children: ReactNode }) {
       <div inert={blocked} aria-hidden={blocked || undefined} className={blocked ? "pointer-events-none select-none blur-md" : undefined}>{children}</div>
       {blocked && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/70 p-6 backdrop-blur-sm" role="alert">
-          <div className="w-full max-w-md rounded-md border border-border bg-card p-8 text-center shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-2xl">
             <Wrench className="mx-auto mb-5 h-10 w-10 text-primary" aria-hidden="true" />
             <h1 className="text-2xl font-bold">Under maintenance</h1>
             <p className="mt-3 text-muted-foreground">We’re making improvements to the Delta website. Please check back soon.</p>

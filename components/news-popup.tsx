@@ -90,7 +90,7 @@ export function NewsPopup() {
     >
       <DialogContent
         showCloseButton={false}
-        className="w-[calc(100%-1.25rem)] max-w-2xl gap-0 overflow-hidden rounded-md border-primary/20 bg-card p-0 text-card-foreground shadow-[0_32px_90px_rgba(62,31,18,0.32)] sm:max-w-2xl"
+        className="w-[calc(100%-1.25rem)] max-w-2xl gap-0 overflow-hidden rounded-[2rem] border-primary/20 bg-card p-0 text-card-foreground shadow-[0_32px_90px_rgba(62,31,18,0.32)] sm:max-w-2xl"
       >
         <header className="relative overflow-hidden bg-primary px-5 py-5 text-primary-foreground sm:px-8 sm:py-7">
           <div
@@ -103,7 +103,7 @@ export function NewsPopup() {
           />
 
           <div className="relative flex items-center gap-3 pr-12">
-            <span className="grid size-11 shrink-0 place-items-center rounded-md border border-white/20 bg-white/15 shadow-inner">
+            <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/15 shadow-inner">
               <Newspaper aria-hidden="true" className="size-5" strokeWidth={2} />
             </span>
             <div>

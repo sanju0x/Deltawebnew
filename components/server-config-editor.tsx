@@ -37,7 +37,10 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not check sync status.");
         // Preserve local edits and only accept status for the saved revision.
-        setConfig((current) => current?.revision === data.config.revision ? { ...current, status: data.config.status, error: data.config.error } : current);
+        setConfig((current) => {
+          if (!current || current.revision !== data.config.revision) return current;
+          return { ...current, status: data.config.status, error: data.config.error };
+        });
       } catch (e) { if (!controller.signal.aborted) setNotice(e instanceof Error ? e.message : "Could not check sync status."); }
     }, 15000);
     return () => { clearInterval(timer); controller.abort(); };

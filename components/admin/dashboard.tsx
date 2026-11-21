@@ -38,13 +38,9 @@ import {
   Users,
   Handshake,
   Crown,
-  Ticket,
-  PanelsTopLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
-import { PageBanner } from "@/components/page-banner";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { NewsManager } from "./news-manager";
 import { StatusManager } from "./status-manager";
 import { UpdatesManager } from "./updates-manager";
@@ -89,19 +85,7 @@ const statusIcons: Record<string, React.ReactNode> = {
   closed: <XCircle className="h-4 w-4" />,
 };
 
-const sections = [
-  { value: "bugs", label: "Bug reports", icon: Bug },
-  { value: "news", label: "News", icon: Newspaper },
-  { value: "status", label: "Bot status", icon: Activity },
-  { value: "updates", label: "Updates", icon: Sparkles },
-  { value: "team", label: "Team", icon: Users },
-  { value: "partners", label: "Partners", icon: Handshake },
-  { value: "premium", label: "Premium", icon: Crown },
-  { value: "trials", label: "No-Prefix trials", icon: Ticket },
-];
-
 export function AdminDashboard() {
-  const isMobile = useIsMobile();
   const [reports, setReports] = useState<BugReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -166,7 +150,7 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl">
-        <div className="site-container py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
               <BrandLogo compact />
@@ -184,36 +168,91 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      <main className="site-container admin-workspace">
-        <PageBanner icon={PanelsTopLeft} title="Site administration"
-          description="Manage reports, service status, community pages, and access to Delta." />
+      <main className="container mx-auto px-4 py-8">
         <MaintenanceToggle />
-        <Tabs defaultValue="bugs" className="admin-tabs" orientation={isMobile ? "horizontal" : "vertical"}>
-          <TabsList className="admin-sections" aria-label="Administration sections">
-            {sections.map(({ value, label, icon: Icon }) => (
-              <TabsTrigger key={value} value={value}>
-                <Icon aria-hidden="true" />{label}
-              </TabsTrigger>
-            ))}
+        <Tabs defaultValue="bugs" className="space-y-6">
+          <TabsList className="flex flex-wrap justify-start gap-1 rounded-xl bg-secondary/50 p-1 h-auto">
+            <TabsTrigger value="bugs" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Bug className="h-4 w-4" />
+              <span className="hidden sm:inline">Bugs</span>
+            </TabsTrigger>
+            <TabsTrigger value="news" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Newspaper className="h-4 w-4" />
+              <span className="hidden sm:inline">News</span>
+            </TabsTrigger>
+            <TabsTrigger value="status" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Status</span>
+            </TabsTrigger>
+            <TabsTrigger value="updates" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Updates</span>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Team</span>
+            </TabsTrigger>
+            <TabsTrigger value="partners" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Handshake className="h-4 w-4" />
+              <span className="hidden sm:inline">Partners</span>
+            </TabsTrigger>
+            <TabsTrigger value="premium" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+              <Crown className="h-4 w-4 text-yellow-500" />
+              <span className="hidden sm:inline">Premium</span>
+            </TabsTrigger>
+            <TabsTrigger value="trials" className="rounded-lg px-3 py-2">No-Prefix trials</TabsTrigger>
           </TabsList>
 
           <TabsContent value="trials"><TrialsManager /></TabsContent>
 
           <TabsContent value="bugs" className="space-y-6">
         {error && <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error} <Link href="/admin/login" className="underline">Sign in</Link></div>}
-        <dl className="report-summary" aria-label="Report counts">
-          {[
-            { label: "Total reports", value: stats.total, icon: Bug },
-            { label: "Open", value: stats.open, icon: Clock },
-            { label: "In progress", value: stats.inProgress, icon: RefreshCw },
-            { label: "Resolved", value: stats.resolved, icon: CheckCircle },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label}>
-              <dt><Icon size={15} aria-hidden="true" />{label}</dt>
-              <dd>{loading || error ? "—" : value}</dd>
-            </div>
-          ))}
-        </dl>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Reports</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+                <Bug className="h-8 w-8 text-primary opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Open</p>
+                  <p className="text-2xl font-bold text-yellow-500">{stats.open}</p>
+                </div>
+                <Clock className="h-8 w-8 text-yellow-500 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">In Progress</p>
+                  <p className="text-2xl font-bold text-blue-500">{stats.inProgress}</p>
+                </div>
+                <RefreshCw className="h-8 w-8 text-blue-500 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Resolved</p>
+                  <p className="text-2xl font-bold text-green-500">{stats.resolved}</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-500 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="bg-card border-border mb-6">
           <CardContent className="p-4">

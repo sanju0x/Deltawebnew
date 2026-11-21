@@ -1,4 +1,3 @@
-import { ArrowUpRight, Ticket } from "lucide-react";
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
 import { FeaturesSection } from "@/components/features-section";
@@ -14,15 +13,14 @@ export default function Home() {
       <main id="main-content" className="min-h-screen overflow-hidden">
         <Header />
         <HeroSection />
-        <section className="site-container trial-strip" aria-labelledby="trial-heading">
-          <div className="trial-panel">
-            <Ticket className="trial-icon" aria-hidden="true" />
+        <section className="site-container py-12" aria-labelledby="trial-heading">
+          <div className="flex flex-col gap-6 rounded-3xl border border-current/10 bg-card p-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">No-prefix trial</p>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#d83229]">Free for 1 month</p>
               <h2 id="trial-heading" className="text-3xl font-bold">No prefix. Just play.</h2>
               <p className="mt-3 max-w-xl text-muted-foreground">Claim 30 days of no-prefix commands. One free trial per Discord account. No payment required.</p>
             </div>
-            <a className="button-primary shrink-0" href="/api/trial/login">Claim free trial <ArrowUpRight size={16} /></a>
+            <a className="button-primary shrink-0" href="/api/trial/login">Claim now with Discord</a>
           </div>
         </section>
         <FeaturesSection />
