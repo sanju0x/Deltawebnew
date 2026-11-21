@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/site-activity";
 import { MongoClient } from "mongodb";
 import type { TrialStatus } from "./trial-types";
 
@@ -36,7 +37,20 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
   return { code, eligible: code === "eligible", active, endsAt: row?.endsAt || null };
 }
 export async function claimTrial(userId: string) {
+  await recordActivity("Trial", "Requested no-prefix trial", userId);
+  try {
+    const result = await applyTrialClaim(userId);
+    await recordActivity("Trial", result.ok ? "Activated 30-day no-prefix trial" : "Claim declined · " + result.code, userId);
+    return result;
+  } catch (error) {
+    await recordActivity("Trial", "Claim service failed", userId);
+    throw error;
+  }
+}
+
+async function applyTrialClaim(userId: string) {
   const status = await getTrialStatus(userId);
+  await recordActivity("Trial", "Checked eligibility · " + status.code, userId);
   if (!status.eligible) return { ok: false, ...status };
   const { claims } = await trialCollections();
   const now = Date.now();

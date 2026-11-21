@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { createSignedValue, getDiscordClientId, getDiscordClientSecret } from "@/lib/admin-auth";
 import { TRIAL_STATE_COOKIE, trialCookieOptions, trialOrigin, trialRedirectUri, trialSecret } from "@/lib/trial-auth";
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
     url.search = new URLSearchParams({ client_id: clientId, redirect_uri: trialRedirectUri(request), response_type: "code", scope: "identify", state, prompt: "consent" }).toString();
     const response = NextResponse.redirect(url);
     response.cookies.set(TRIAL_STATE_COOKIE, value, { ...trialCookieOptions, path: "/api/trial", maxAge: 600 });
+    await recordActivity("Trial", "Started Discord sign-in");
     return response;
   } catch {
     return NextResponse.redirect(new URL("/trial?error=configuration", trialOrigin(request)));

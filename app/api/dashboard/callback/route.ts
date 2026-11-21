@@ -1,9 +1,11 @@
+import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { getDiscordClientId, getDiscordClientSecret, readSignedValue } from "@/lib/admin-auth";
 import { cookieOptions, createSession, DASHBOARD_COOKIE, redirectUri, siteOrigin, STATE_COOKIE } from "@/lib/dashboard-auth";
 
 export async function GET(request: NextRequest) {
-  const finish = (error = "") => {
+  const finish = async (error = "") => {
+    if (error) await recordActivity("Dashboard", "Discord sign-in did not complete");
     const response = NextResponse.redirect(new URL(`/dashboard${error ? `?error=${error}` : ""}`, siteOrigin(request)));
     response.cookies.set(STATE_COOKIE, "", { ...cookieOptions, path: "/api/dashboard", maxAge: 0 });
     return response;
@@ -21,8 +23,9 @@ export async function GET(request: NextRequest) {
     if (!profileResponse.ok) return finish("login");
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
-    const response = finish();
+    const response = await finish();
     response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...cookieOptions, maxAge: Math.min(token.expires_in, 86400) });
+    await recordActivity("Dashboard", "Signed in with Discord", user.id);
     return response;
   } catch { return finish("login"); }
 }

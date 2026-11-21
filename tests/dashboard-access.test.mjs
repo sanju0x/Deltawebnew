@@ -21,6 +21,7 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
     }
   });
   const deps = {
+    "@/lib/site-activity": { recordActivity: async () => {} },
     "node:crypto": { createHash, randomBytes, randomUUID },
     "next/server": { NextRequest: class {}, NextResponse: { json: (body, init) => Response.json(body, init) } },
     "@/lib/admin-auth": { getDiscordClientId: () => "client", ADMIN_SESSION_COOKIE: "admin_session", getAdminSessionUserId: async () => adminId, getAllowedDiscordUserIds: () => new Set(allowAdmin && adminId ? [adminId] : []) },

@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { createSignedValue, getDiscordClientId, getDiscordClientSecret } from "@/lib/admin-auth";
 import { cookieOptions, redirectUri, siteOrigin, STATE_COOKIE } from "@/lib/dashboard-auth";
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     url.search = new URLSearchParams({ client_id: getDiscordClientId(), redirect_uri: redirectUri(request), response_type: "code", scope: "identify guilds", state }).toString();
     const response = NextResponse.redirect(url);
     response.cookies.set(STATE_COOKIE, signed, { ...cookieOptions, path: "/api/dashboard", maxAge: 600 });
+    await recordActivity("Dashboard", "Started Discord sign-in");
     return response;
   } catch { return NextResponse.redirect(new URL("/dashboard?error=configuration", siteOrigin(request))); }
 }

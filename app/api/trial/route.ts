@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { trialOrigin, trialUserId } from "@/lib/trial-auth";
 import { claimTrial, getTrialStatus } from "@/lib/trials";
@@ -10,6 +11,7 @@ async function handle(request: NextRequest, claim: boolean) {
     const userId = await trialUserId(request);
     if (!userId) return NextResponse.json({ error: "Sign in with Discord first" }, { status: 401 });
     const result = claim ? await claimTrial(userId) : await getTrialStatus(userId);
+    if (!claim) await recordActivity("Trial", `Viewed trial status · ${result.code}`, userId);
     return NextResponse.json({ ...result, userId }, { status: "ok" in result && !result.ok ? 409 : 200, headers: { "Cache-Control": "no-store" } });
   } catch { return NextResponse.json({ error: "Trial service unavailable. Please try again shortly." }, { status: 503 }); }
 }

@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { SuggestionPrompt } from "@/components/suggestion-prompt"
 import { NewsPopup } from '@/components/news-popup'
 import { VisitorTracker } from '@/components/visitor-tracker'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -26,6 +27,7 @@ export default function RootLayout({
           <MaintenanceGate>
             {children}
             <NewsPopup />
+            <SuggestionPrompt />
           </MaintenanceGate>
           <VisitorTracker />
           {process.env.NODE_ENV === 'production' && <Analytics />}

@@ -26,7 +26,7 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setConfig(null); setDirty(false); setError(""); setNotice("");
-    fetch(endpoint, { cache: "no-store", signal: controller.signal }).then(async (response) => {
+    fetch(endpoint, { headers: { "x-editor-open": "1" }, cache: "no-store", signal: controller.signal }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load settings.");
       setConfig(data.config); setCommands(data.commands); setServerName(data.serverName);

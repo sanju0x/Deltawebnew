@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/site-activity";
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
@@ -5,9 +6,11 @@ import { authorizeGuild, DashboardError, dashboardError, requireSameOrigin } fro
 import { validateServerConfig } from "@/lib/server-config-schema";
 
 export async function handleServerConfig(request: NextRequest, guildId: string, admin = false) {
+  let actor: string | undefined;
   try {
     if (request.method === "PATCH") requireSameOrigin(request);
     const { userId, presence } = await authorizeGuild(request, guildId, admin);
+    actor = userId;
     const collection = (await getDb()).collection("server_configs");
     await collection.createIndex({ guildId: 1 }, { unique: true });
     const commands = (presence.configurableCommands || []) as string[];
@@ -29,6 +32,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
         if ((error as { code?: number }).code === 11000) throw new DashboardError("Settings changed in another dashboard. Reload before saving.", 409);
         throw error;
       }
+      await recordActivity("Dashboard", "Saved settings for bot sync", userId, guildId);
     }
     const config = await collection.findOne({ guildId }, { projection: { _id: 0, language: 0, languageRevision: 0 } });
     const settings = config || {
@@ -36,7 +40,11 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       customBot: false, nickname: "", bio: "", avatar: "", banner: "", status: "applied"
     };
     const disabledCommands = (settings.disabledCommands || []).filter((name: string) => commands.includes(name));
+    if (request.method === "GET" && request.headers.get("x-editor-open") === "1") await recordActivity("Dashboard", "Opened server configuration", userId, guildId);
     return NextResponse.json({ config: { ...settings, disabledCommands }, commands, serverName: presence.name },
       { headers: { "Cache-Control": "no-store" } });
-  } catch (error) { return dashboardError(error); }
+  } catch (error) {
+    if (actor && request.method === "PATCH") await recordActivity("Dashboard", "Settings request failed", actor, guildId);
+    return dashboardError(error);
+  }
 }

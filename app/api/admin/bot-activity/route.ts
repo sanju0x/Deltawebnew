@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
@@ -12,6 +13,16 @@ export async function GET(request: NextRequest) {
     await authorize(request);
     const db = await getDb();
     const section = request.nextUrl.searchParams.get("section");
+    if (section === "website") {
+      const category = request.nextUrl.searchParams.get("category");
+      const before = request.nextUrl.searchParams.get("before");
+      if (category && !["Trial", "Dashboard", "Suggestion"].includes(category)) throw new DashboardError("Unknown category.");
+      if (before && !/^[a-f0-9]{24}$/.test(before)) throw new DashboardError("Invalid cursor.");
+      const collection = db.collection("site_activity");
+      const rows = await collection.find({ ...(category && { category }), ...(before && { _id: { $lt: new ObjectId(before) } }) })
+        .sort({ _id: -1 }).limit(26).toArray();
+      return NextResponse.json({ rows: rows.slice(0, 25), more: rows.length > 25 }, { headers: { "Cache-Control": "no-store" } });
+    }
     if (section === "analytics") {
       const groups = await Promise.all(["user", "command", "song", "server"].map(async kind => [
         kind, await db.collection("bot_usage").find({ kind }).sort({ count: -1, _id: 1 }).limit(10).toArray()
