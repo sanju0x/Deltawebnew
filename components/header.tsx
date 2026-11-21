@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Handshake, Menu, Sparkles, Users, X } from "lucide-react";
@@ -31,8 +31,17 @@ const otherLinks = [
 
 const inviteUrl = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "/support";
 
-export function Header({ showTrial = true }: { showTrial?: boolean }) {
-  const menuLinks = otherLinks.filter(link => showTrial || link.href !== "/trial");
+export function Header({ showTrial }: { showTrial?: boolean }) {
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    if (showTrial !== undefined) return;
+    const controller = new AbortController();
+    fetch("/api/trial/availability", { cache: "no-store", signal: controller.signal })
+      .then(response => response.json()).then(data => { if (!controller.signal.aborted) setEnabled(data.enabled === true); })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [showTrial]);
+  const menuLinks = otherLinks.filter(link => (showTrial ?? enabled) || link.href !== "/trial");
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

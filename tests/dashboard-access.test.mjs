@@ -9,7 +9,7 @@ import schema from "../lib/server-config-schema.js";
 const guildId = "111111111111111111";
 const userId = "222222222222222222";
 const token = "a".repeat(64);
-const valid = { source: "spsearch", disabledCommands: ["play"], customBot: false, nickname: "", bio: "", avatar: "", banner: "" };
+const valid = { source: "spsearch", disabledCommands: ["warn"], customBot: false, nickname: "", bio: "", avatar: "", banner: "" };
 async function setup({ signedIn = true, permissions = "32", adminId = null, allowAdmin = false, offline = false, discordStatus = 200, guilds, presentIds = [guildId] } = {}) {
   let saved = null, writes = 0, permissionChecks = 0;
   const session = { userId, username: "Listener", avatar: "avatar-hash", accessToken: "server-only-token", expiresAt: new Date(Date.now() + 60000) };
@@ -28,7 +28,7 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
     "@/lib/mongodb": { getDb: async () => ({ collection: (name) => {
       if (name === "bot_blacklist") return { findOne: async () => null };
       if (name === "dashboard_sessions") return { findOne: async (filter) => signedIn && filter.tokenHash === createHash("sha256").update(token).digest("hex") ? session : null };
-      if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", commands: ["play"], source: "ytsearch", disabledCommands: [] } };
+      if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", configurableCommands: ["warn"], source: "ytsearch", disabledCommands: [] } };
       if (name === "server_configs") return { createIndex: async () => {}, findOne: async () => saved,
         updateOne: async (filter, update) => { writes++; assert.equal(filter.guildId, guildId); saved = { ...update.$set, ...update.$setOnInsert }; } };
       throw new Error(`Unexpected collection ${name}`);

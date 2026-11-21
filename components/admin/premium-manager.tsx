@@ -94,8 +94,12 @@ function GuildPicker({ guilds, value, onSelect, label }: { guilds: Guild[]; valu
   </Select>;
 }
 export function PremiumManager() {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [configServer, setConfigServer] = useState<{ serverId: string } | null>(null);
   const [guilds, setGuilds] = useState<Guild[]>([]);
+  const query = search.trim().toLowerCase();
+  const matchingGuilds = guilds.filter(guild => guild.name.toLowerCase().includes(query) || guild.guildId.includes(query));
   const [users, setUsers] = useState<PremiumUser[]>([]);
   const [servers, setServers] = useState<PremiumServer[]>([]);
   const [plans, setPlans] = useState<PremiumPlan[]>([]);
@@ -222,25 +226,18 @@ export function PremiumManager() {
 
   // Server handlers
   const handleServerSubmit = async () => {
+    if (!editingServer) return;
     try {
       const payload = {
         ...serverFormData,
         features: serverFormData.features.split(",").map((f) => f.trim()).filter(Boolean),
       };
 
-      if (editingServer) {
-        await fetch(`/api/admin/premium-management/servers/${editingServer._id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        await fetch("/api/admin/premium-management/servers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      }
+      await fetch(`/api/admin/premium-management/servers/${editingServer._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       setServerDialogOpen(false);
       resetServerForm();
       fetchData();
@@ -559,23 +556,31 @@ export function PremiumManager() {
 
                 {/* Servers Tab */}
                 <TabsContent value="servers" className="space-y-4">
-                  <Label>Customize server profile</Label><GuildPicker guilds={guilds} value="" label="Select a server to customize" onSelect={g => setConfigServer({ serverId: g.guildId })} />
+                  <div className="flex justify-center">
+                    <Dialog open={pickerOpen} onOpenChange={open => { setPickerOpen(open); setSearch(""); }}>
+                      <DialogTrigger asChild><Button className="rounded-xl bg-gradient-to-r from-pink-600 to-blue-600 px-6 text-white">Select a server to customize</Button></DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader><DialogTitle>Select a server to customize</DialogTitle></DialogHeader>
+                        <Input aria-label="Search servers" placeholder="Search by server name or ID" value={search} onChange={event => setSearch(event.target.value)} />
+                        <div className="max-h-72 space-y-1 overflow-y-auto">
+                          {matchingGuilds.map(guild => <Button key={guild.guildId} variant="ghost" className="h-auto w-full justify-start" onClick={() => { setPickerOpen(false); setConfigServer({ serverId: guild.guildId }); }}>
+                            <span className="text-left">{guild.name}<small className="block text-muted-foreground">{guild.guildId}</small></span>
+                          </Button>)}
+                          {!matchingGuilds.length && <p role="status">No matching servers.</p>}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <div className="flex justify-end">
                     <Dialog open={serverDialogOpen} onOpenChange={(open) => {
                       setServerDialogOpen(open);
                       if (!open) resetServerForm();
                     }}>
-                      <DialogTrigger asChild>
-                        <Button size="sm" className="rounded-xl">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Premium Server
-                        </Button>
-                      </DialogTrigger>
                       <DialogContent className="max-w-md">
                         <DialogHeader>
-                          <DialogTitle>{editingServer ? "Edit" : "Add"} Premium Server</DialogTitle>
+                          <DialogTitle>Edit Premium Server</DialogTitle>
                           <DialogDescription>
-                            Grant premium access to a Discord server
+                            Update premium access for this server
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -641,7 +646,7 @@ export function PremiumManager() {
                         <DialogFooter>
                           <Button variant="outline" onClick={() => setServerDialogOpen(false)}>Cancel</Button>
                           <Button onClick={handleServerSubmit}>
-                            {editingServer ? "Save Changes" : "Add Server"}
+                            Save Changes
                           </Button>
                         </DialogFooter>
                       </DialogContent>

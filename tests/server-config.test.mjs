@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import schema from "../lib/server-config-schema.js";
@@ -21,4 +22,15 @@ test("disabling customization preserves editable fields but clears toggle", () =
   const result = validateServerConfig({ ...valid, customBot: false, disabledCommands: [] }, ["play"]);
   assert.equal(result.customBot, false);
   assert.deepEqual(result.disabledCommands, []);
+});
+
+test("dashboard accepts every translated music locale and rejects unknown language tags", () => {
+  const music = JSON.parse(readFileSync(new URL("../../src/settings/music-locales.json", import.meta.url), "utf8"));
+  assert.deepEqual(schema.LANGUAGES.map(language => language.value).sort(), Object.keys(music).sort());
+  for (const { value } of schema.LANGUAGES) {
+    assert.equal(validateServerConfig({ ...valid, language: value }, ["play"]).language, value);
+    assert.deepEqual(Object.keys(music[value]).sort(), Object.keys(music.en).sort());
+    assert.ok(music[value]["music.nowPlaying"].includes("{title}"));
+  }
+  assert.throws(() => validateServerConfig({ ...valid, language: "unsupported" }, ["play"]));
 });

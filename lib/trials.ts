@@ -22,6 +22,12 @@ export async function trialCollections() {
   const db = await trialDb();
   return { claims: db.collection<Claim>("claims"), settings: db.collection<{ _id: string; enabled: boolean; updatedBy?: string; updatedAt?: number }>("settings") };
 }
+export async function trialClaimsEnabled() {
+  try {
+    const { settings } = await trialCollections();
+    return (await settings.findOne({ _id: "trials" }))?.enabled !== false;
+  } catch { return false; }
+}
 export async function getTrialStatus(userId: string): Promise<TrialStatus> {
   const { claims, settings } = await trialCollections();
   const [row, config] = await Promise.all([claims.findOne({ _id: userId }), settings.findOne({ _id: "trials" })]);

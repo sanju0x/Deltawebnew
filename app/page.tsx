@@ -7,13 +7,11 @@ import { CTASection } from "@/components/cta-section";
 import { Footer } from "@/components/footer";
 import { LoadingScreen } from "@/components/loading-screen";
 
-import { trialCollections } from "@/lib/trials";
+import { trialClaimsEnabled } from "@/lib/trials";
 
 export const dynamic = "force-dynamic";
 export default async function Home() {
-  const claimsEnabled = await trialCollections().then(async ({ settings }) =>
-    (await settings.findOne({ _id: "trials" }))?.enabled !== false
-  ).catch(() => false);
+  const claimsEnabled = await trialClaimsEnabled();
   return (
     <>
       <LoadingScreen />
