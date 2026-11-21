@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { LANGUAGES, MUSIC_SOURCES, IMAGE_HOSTS } from "@/lib/server-config-schema";
+import { MUSIC_SOURCES, IMAGE_HOSTS } from "@/lib/server-config-schema";
 
-type ServerConfig = { language: string; source: string; disabledCommands: string[]; customBot: boolean; nickname: string; bio: string; avatar: string; banner: string; status: string; error?: string | null; revision?: string };
+type ServerConfig = { source: string; disabledCommands: string[]; customBot: boolean; nickname: string; bio: string; avatar: string; banner: string; status: string; error?: string | null; revision?: string };
 function previewImage(value: string) {
   try { const url = new URL(value); return url.protocol === "https:" && IMAGE_HOSTS.includes(url.hostname) ? value : ""; }
   catch { return ""; }
@@ -20,13 +20,12 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
   const [serverName, setServerName] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [languageEdited, setLanguageEdited] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setConfig(null); setDirty(false); setLanguageEdited(false); setError(""); setNotice("");
+    setLoading(true); setConfig(null); setDirty(false); setError(""); setNotice("");
     fetch(endpoint, { cache: "no-store", signal: controller.signal }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load settings.");
@@ -52,10 +51,10 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     if (!config || busy) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify({ ...config, language: languageEdited ? config.language : undefined }) });
+      const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify(config) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not save settings.");
-      setConfig(data.config); setLanguageEdited(false); setDirty(false); setNotice("Saved. Delta usually applies changes within 15 seconds.");
+      setConfig(data.config); setDirty(false); setNotice("Saved. Delta usually applies changes within 15 seconds.");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not save settings."); }
     finally { setBusy(false); }
   }
@@ -64,12 +63,6 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     {loading ? <p role="status">Loading server settings…</p> : config && <>
       <div><h2 className="text-2xl font-bold">{serverName || "Server settings"}</h2><p className="mt-1 break-all text-sm text-muted-foreground">{guildId}</p></div>
       <fieldset disabled={busy} className="space-y-6 disabled:opacity-70">
-        <section className="space-y-3 rounded-2xl border border-border p-5">
-          <Label htmlFor={`${prefix}-language`}>Bot reply language</Label>
-          <select id={`${prefix}-language`} className="h-11 w-full rounded-lg border border-input bg-background px-3" value={config.language} onChange={event => { setLanguageEdited(true); change({ language: event.target.value }); }}>
-            {LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.name}</option>)}
-          </select>
-        </section>
         <section className="space-y-3 rounded-2xl border border-border p-5">
           <h3 className="text-lg font-semibold">Music source</h3>
           <Label htmlFor={`${prefix}-source`}>Default search provider</Label>

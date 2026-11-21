@@ -39,7 +39,6 @@ const commandCategories = [
   { id: "settings", name: "Settings", icon: Settings, commands: [
     { name: "/settings", description: "View the current bot settings", usage: "/settings" },
     { name: "/prefix", description: "Change the bot prefix", usage: "/prefix <new prefix>" },
-    { name: "/language", description: "Change the bot language", usage: "/language <code>" },
     { name: "/dj", description: "Set a DJ role for restricted commands", usage: "/dj <role>" },
     { name: "/announce", description: "Toggle now-playing announcements", usage: "/announce <on/off>" },
     { name: "/autoplay", description: "Toggle autoplay for related tracks", usage: "/autoplay <on/off>" },

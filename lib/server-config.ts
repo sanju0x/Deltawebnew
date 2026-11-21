@@ -21,7 +21,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       const filter = expected === "initial" ? { guildId, revision: { $exists: false } } : expected ? { guildId, revision: expected } : { guildId };
       try {
         const result = await collection.updateOne(filter, {
-          $set: { ...input, ...(input.language ? { languageRevision: revision } : {}), revision, updatedBy: userId, updatedAt: new Date(), status: "pending", error: null },
+          $set: { ...input, revision, updatedBy: userId, updatedAt: new Date(), status: "pending", error: null },
           $setOnInsert: { guildId }
         }, { upsert: !expected || expected === "initial" });
         if (expected && !result.matchedCount && !result.upsertedCount) throw new DashboardError("Settings changed in another dashboard. Reload before saving.", 409);
@@ -30,15 +30,13 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
         throw error;
       }
     }
-    const config = await collection.findOne({ guildId }, { projection: { _id: 0 } });
-    const language = config?.languageRevision && config.languageRevision !== presence.languageRevision
-      ? config.language : presence.language || "en";
+    const config = await collection.findOne({ guildId }, { projection: { _id: 0, language: 0, languageRevision: 0 } });
     const settings = config || {
       source: presence.source || "ytsearch", disabledCommands: presence.disabledCommands || [],
       customBot: false, nickname: "", bio: "", avatar: "", banner: "", status: "applied"
     };
     const disabledCommands = (settings.disabledCommands || []).filter((name: string) => commands.includes(name));
-    return NextResponse.json({ config: { ...settings, language, disabledCommands }, commands, serverName: presence.name },
+    return NextResponse.json({ config: { ...settings, disabledCommands }, commands, serverName: presence.name },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return dashboardError(error); }
 }
