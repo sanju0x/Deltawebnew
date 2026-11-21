@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ServerConfigEditor } from "@/components/server-config-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,6 +85,7 @@ interface PremiumPlan {
 }
 
 export function PremiumManager() {
+  const [configServer, setConfigServer] = useState<PremiumServer | null>(null);
   const [users, setUsers] = useState<PremiumUser[]>([]);
   const [servers, setServers] = useState<PremiumServer[]>([]);
   const [plans, setPlans] = useState<PremiumPlan[]>([]);
@@ -340,6 +342,12 @@ export function PremiumManager() {
 
   return (
     <div className="space-y-6">
+      <Dialog open={!!configServer} onOpenChange={(open) => { if (!open) setConfigServer(null); }}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader><DialogTitle>Configure server</DialogTitle><DialogDescription>Manage the music source, commands and custom bot profile.</DialogDescription></DialogHeader>
+          {configServer && <ServerConfigEditor key={configServer.serverId} guildId={configServer.serverId} admin />}
+        </DialogContent>
+      </Dialog>
       <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -669,6 +677,7 @@ export function PremiumManager() {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
+                            <Button variant="outline" className="rounded-xl" onClick={() => setConfigServer(server)}><Settings className="mr-2 h-4 w-4" />Configure</Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="outline" size="icon" className="rounded-xl text-destructive hover:bg-destructive/10">
