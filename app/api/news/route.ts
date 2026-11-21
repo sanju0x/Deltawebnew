@@ -7,6 +7,7 @@ export async function GET() {
     const news = await db
       .collection("news")
       .find({ active: true })
+      .project({ title: 1, content: 1, active: 1, createdAt: 1, updatedAt: 1 })
       .sort({ createdAt: -1 })
       .limit(1)
       .toArray();

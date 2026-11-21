@@ -86,7 +86,7 @@ export function VisitorTracker() {
           os: getOSInfo(),
           device: getDeviceType(),
           screen: `${window.screen.width}x${window.screen.height}`,
-          referrer: document.referrer || "Direct",
+          referrer: document.referrer ? new URL(document.referrer).origin : "Direct",
           page: pathname,
           language: navigator.language,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

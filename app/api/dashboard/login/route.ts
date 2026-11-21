@@ -1,9 +1,14 @@
+import { submissionLimit } from "@/lib/public-submission";
 import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { createSignedValue, getDiscordClientId, getDiscordClientSecret } from "@/lib/admin-auth";
 import { cookieOptions, redirectUri, siteOrigin, STATE_COOKIE } from "@/lib/dashboard-auth";
 
+const limit = submissionLimit(30, 600);
+
 export async function GET(request: NextRequest) {
+  const limited = limit(request.headers);
+  if (limited) return limited;
   try {
     if (!getDiscordClientId() || !getDiscordClientSecret()) throw new Error("Discord is not configured");
     const state = crypto.randomUUID();

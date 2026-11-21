@@ -1,5 +1,7 @@
 "use client";
 
+import { webLink } from "@/lib/web-link";
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -240,7 +242,7 @@ export default function PartnersPage() {
                                 className="flex-1 rounded-full bg-secondary hover:bg-primary text-foreground hover:text-primary-foreground transition-all"
                                 asChild
                               >
-                                <a href={partner.website} target="_blank" rel="noopener noreferrer">
+                                <a href={webLink(partner.website)} target="_blank" rel="noopener noreferrer">
                                   Website
                                   <ExternalLink className="ml-2 h-4 w-4" />
                                 </a>
@@ -251,7 +253,7 @@ export default function PartnersPage() {
                                 className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all"
                                 asChild
                               >
-                                <a href={partner.inviteLink} target="_blank" rel="noopener noreferrer">
+                                <a href={webLink(partner.inviteLink)} target="_blank" rel="noopener noreferrer">
                                   Join Server
                                   <Server className="ml-2 h-4 w-4" />
                                 </a>
@@ -319,7 +321,7 @@ export default function PartnersPage() {
                           </div>
                           {partner.inviteLink && (
                             <a
-                              href={partner.inviteLink}
+                              href={webLink(partner.inviteLink)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-muted-foreground hover:text-primary transition-colors"
@@ -385,7 +387,7 @@ export default function PartnersPage() {
                         className="w-full rounded-full bg-secondary hover:bg-primary text-foreground hover:text-primary-foreground transition-all"
                         asChild
                       >
-                        <a href={partner.website} target="_blank" rel="noopener noreferrer">
+                        <a href={webLink(partner.website)} target="_blank" rel="noopener noreferrer">
                           Visit Website
                           <ExternalLink className="ml-2 h-4 w-4" />
                         </a>

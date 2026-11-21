@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
+import { openDiscordToken, sealDiscordToken } from "@/lib/dashboard-token";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
 import { canManageGuild } from "@/lib/server-config-schema";
 
@@ -22,7 +23,7 @@ export async function createSession(userId: string, username: string, accessToke
   const token = randomBytes(32).toString("hex");
   const db = await getDb();
   await db.collection("dashboard_sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, avatar, accessToken,
+  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, avatar, sealedAccessToken: sealDiscordToken(accessToken, token),
     expiresAt: new Date(Date.now() + Math.min(expiresIn, 86400) * 1000) });
   return token;
 }
@@ -31,6 +32,11 @@ export async function dashboardSession(request: NextRequest) {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) throw new DashboardError("Sign in with Discord to continue.", 401);
   const session = await (await getDb()).collection("dashboard_sessions").findOne({ tokenHash: sessionHash(token), expiresAt: { $gt: new Date() } });
   if (!session) throw new DashboardError("Your session expired. Sign in again.", 401);
+  // Older sessions expire within one day. New sessions store only the sealed token.
+  if (session.sealedAccessToken !== undefined) {
+    try { session.accessToken = openDiscordToken(session.sealedAccessToken, token); }
+    catch { throw new DashboardError("Your session expired. Sign in again.", 401); }
+  }
   return session;
 }
 export type DiscordGuild = { id: string; name: string; icon: string | null; owner: boolean; permissions: string };

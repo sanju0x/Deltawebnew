@@ -3,13 +3,16 @@ import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import { test } from "node:test";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
+import * as submissions from "../lib/public-submission.ts";
 
 test("suggestions validate origin and text, then write one private activity entry", async () => {
   const entries = [];
-  const context = createContext({});
+  const context = createContext({ Response });
   const source = await readFile(new URL("../app/api/suggestions/route.ts", import.meta.url), "utf8");
   const route = new SourceTextModule(stripTypeScriptTypes(source), { context });
   const dependencies = {
+    "@/lib/public-submission": submissions,
+    "@/lib/submission-quota": { submissionQuota: async () => undefined },
     "next/server": { NextRequest: Request, NextResponse: Response },
     "@/lib/dashboard-auth": {
       DashboardError: Error,
@@ -29,10 +32,10 @@ test("suggestions validate origin and text, then write one private activity entr
   });
   await route.evaluate();
   const send = (message, origin = "https://delta.example") => route.namespace.POST(new Request("https://delta.example/api/suggestions", {
-    method: "POST", headers: { origin }, body: JSON.stringify({ message, userId: "spoofed" })
+    method: "POST", headers: { origin, "Content-Type": "application/json" }, body: JSON.stringify({ message, userId: "spoofed" })
   }));
   for (const message of ["   ", 123, "x".repeat(2001)]) assert.equal((await send(message)).status, 400);
-  assert.equal((await send("More playlists", "https://other.example")).status, 400);
+  assert.equal((await send("More playlists", "https://other.example")).status, 403);
   assert.equal((await send("  More playlists  ")).status, 201);
   assert.equal(entries.length, 1);
   assert.equal(entries[0].message, "More playlists");

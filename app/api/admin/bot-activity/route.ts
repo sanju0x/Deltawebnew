@@ -1,3 +1,4 @@
+import { readJsonObject } from "@/lib/request-json.js";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
@@ -41,8 +42,10 @@ export async function POST(request: NextRequest) {
   try {
     await authorize(request);
     requireSameOrigin(request);
-    const { action, kind, id } = await request.json();
-    if (!["add", "remove"].includes(action) || !["user", "server"].includes(kind) || typeof id !== "string" || !/^\d{17,20}$/.test(id)) throw new DashboardError("Choose a user or server and enter a valid Discord ID.");
+    const body = await readJsonObject(request, 4096);
+    if (body instanceof Response) return body;
+    const { action, kind, id } = body;
+    if (typeof action !== "string" || typeof kind !== "string" || !["add", "remove"].includes(action) || !["user", "server"].includes(kind) || typeof id !== "string" || !/^\d{17,20}$/.test(id)) throw new DashboardError("Choose a user or server and enter a valid Discord ID.");
     const db = await getDb();
     const key = { _id: kind + ":" + id };
     const entries = db.collection<{ _id: string; kind: string; id: string; name: string; username: string; image: string; lookupAfter?: Date }>("bot_blacklist");

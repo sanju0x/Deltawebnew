@@ -1,9 +1,14 @@
+import { submissionLimit } from "@/lib/public-submission";
 import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { getDiscordClientId, getDiscordClientSecret, readSignedValue } from "@/lib/admin-auth";
 import { cookieOptions, createSession, DASHBOARD_COOKIE, redirectUri, siteOrigin, STATE_COOKIE } from "@/lib/dashboard-auth";
 
+const limit = submissionLimit(30, 600);
+
 export async function GET(request: NextRequest) {
+  const limited = limit(request.headers);
+  if (limited) return limited;
   const finish = async (error = "") => {
     if (error) await recordActivity("Dashboard", "Discord sign-in did not complete");
     const response = NextResponse.redirect(new URL(`/dashboard${error ? `?error=${error}` : ""}`, siteOrigin(request)));

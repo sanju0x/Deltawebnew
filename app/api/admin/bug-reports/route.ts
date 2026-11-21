@@ -1,7 +1,9 @@
+import { verifyAdmin } from "@/lib/admin-access";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 
 export async function GET(request: NextRequest) {
+  if (!(await verifyAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");

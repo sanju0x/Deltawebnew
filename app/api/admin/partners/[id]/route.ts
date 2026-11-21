@@ -1,25 +1,21 @@
+import { readAdminInput, partnerInput } from "@/lib/admin-input";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { adminWriteError } from "@/lib/admin-access";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
-
-async function verifyAdmin() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("admin_session");
-  return !!session?.value;
-}
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
 
   try {
     const { id } = await params;
-    const body = await request.json();
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+    const body = await readAdminInput(request, partnerInput.partial());
+    if (body instanceof Response) return body;
 
     const db = await getDb();
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
@@ -36,7 +32,7 @@ export async function PATCH(
       "type",
       "features",
       "order",
-    ];
+    ] as const;
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
@@ -63,12 +59,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
 
   try {
     const { id } = await params;
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     const db = await getDb();
     await db.collection("partners").deleteOne({ _id: new ObjectId(id) });
 

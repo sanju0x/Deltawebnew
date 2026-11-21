@@ -15,7 +15,13 @@ export async function proxy(request: NextRequest) {
   );
   const isAllowed = !!userId && getAllowedDiscordUserIds().has(userId);
 
-  if (isAllowed) return NextResponse.next();
+  if (isAllowed) {
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method) &&
+        request.headers.get("origin") !== new URL(process.env.WEBSITE_URL || request.nextUrl.origin).origin) {
+      return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
+    }
+    return NextResponse.next();
+  }
 
   if (request.nextUrl.pathname.startsWith("/api/admin")) {
     return NextResponse.json(

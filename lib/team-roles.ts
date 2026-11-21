@@ -21,7 +21,7 @@ export function normalizeTeamRoleCategory(category: string): TeamRoleCategory {
     return category as TeamRoleCategory;
   }
 
-  return legacyRoleCategories[category] || "Project Manager";
+  return Object.hasOwn(legacyRoleCategories, category) ? legacyRoleCategories[category] : "Project Manager";
 }
 
 export function getTeamRoleCategoryOrder(category: string) {

@@ -1,5 +1,7 @@
 "use client";
 
+import { webLink } from "@/lib/web-link";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -452,7 +454,7 @@ export function TeamManager() {
                             <div className="flex items-center gap-2">
                               <span className="truncate font-medium text-foreground">{member.name}</span>
                               {member.socialLink && (
-                                <a href={member.socialLink} target="_blank" rel="noopener noreferrer" aria-label={`Open ${member.name}'s profile`}>
+                                <a href={webLink(member.socialLink)} target="_blank" rel="noopener noreferrer" aria-label={`Open ${member.name}'s profile`}>
                                   <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-primary" />
                                 </a>
                               )}

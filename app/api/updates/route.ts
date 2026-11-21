@@ -29,6 +29,7 @@ export async function GET() {
     const updates = await db
       .collection("updates")
       .find({})
+      .project({ title: 1, content: 1, version: 1, createdAt: 1, updatedAt: 1 })
       .sort({ createdAt: -1 })
       .toArray();
 

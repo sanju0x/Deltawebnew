@@ -13,7 +13,7 @@ export interface BotStatus {
 export async function GET() {
   try {
     const db = await getDb();
-    const status = await db.collection("bot_status").findOne({});
+    const status = await db.collection("bot_status").findOne({}, { projection: { status: 1, message: 1, updatedAt: 1 } });
 
     if (!status) {
       // Return default status if none exists

@@ -1,3 +1,4 @@
+import { submissionLimit } from "@/lib/public-submission";
 import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { getDiscordClientId, getDiscordClientSecret, readSignedValue } from "@/lib/admin-auth";
@@ -13,7 +14,11 @@ async function finish(request: NextRequest, query: string) {
   return response;
 }
 
+const limit = submissionLimit(30, 600);
+
 export async function GET(request: NextRequest) {
+  const limited = limit(request.headers);
+  if (limited) return limited;
   try {
     const saved = await readSignedValue<{ purpose?: string; state?: string; expiresAt?: number }>(request.cookies.get(TRIAL_STATE_COOKIE)?.value, trialSecret());
     const code = request.nextUrl.searchParams.get("code");

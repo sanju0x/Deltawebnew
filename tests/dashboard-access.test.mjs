@@ -1,3 +1,4 @@
+import { readJsonObject } from "../lib/request-json.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
@@ -5,6 +6,7 @@ import { test } from "node:test";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import schema from "../lib/server-config-schema.js";
+import * as dashboardToken from "../lib/dashboard-token.ts";
 
 const guildId = "111111111111111111";
 const userId = "222222222222222222";
@@ -13,7 +15,7 @@ const valid = { source: "spsearch", disabledCommands: ["warn"], customBot: false
 async function setup({ signedIn = true, permissions = "32", adminId = null, allowAdmin = false, offline = false, discordStatus = 200, guilds, presentIds = [guildId] } = {}) {
   let saved = null, writes = 0, permissionChecks = 0;
   const session = { userId, username: "Listener", avatar: "avatar-hash", accessToken: "server-only-token", expiresAt: new Date(Date.now() + 60000) };
-  const context = createContext({ URL, Date, Headers, AbortSignal, console: { error() {} }, process: { env: { WEBSITE_URL: "https://delta.example" } },
+  const context = createContext({ Response, URL, Date, Headers, AbortSignal, console: { error() {} }, process: { env: { WEBSITE_URL: "https://delta.example" } },
     fetch: async (url, options) => {
       permissionChecks++;
       assert.equal(options.headers.Authorization, "Bearer server-only-token");
@@ -21,8 +23,10 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
     }
   });
   const deps = {
+    "@/lib/dashboard-token": dashboardToken,
     "@/lib/site-activity": { recordActivity: async () => {} },
     "node:crypto": { createHash, randomBytes, randomUUID },
+    "@/lib/request-json.js": { readJsonObject },
     "next/server": { NextRequest: class {}, NextResponse: { json: (body, init) => Response.json(body, init) } },
     "@/lib/admin-auth": { getDiscordClientId: () => "client", ADMIN_SESSION_COOKIE: "admin_session", getAdminSessionUserId: async () => adminId, getAllowedDiscordUserIds: () => new Set(allowAdmin && adminId ? [adminId] : []) },
     "@/lib/server-config-schema": schema,
@@ -55,7 +59,7 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
       return route.namespace.GET({ cookies: { get: () => ({ value: token }) } });
     },
     request: (body = valid, { admin = false, origin = "https://delta.example", method = "PATCH", cookie = token } = {}) => entry.namespace.handleServerConfig({
-      method, nextUrl: { origin: "https://delta.example" }, cookies: { get: () => cookie ? { value: cookie } : undefined }, headers: new Headers({ origin }), json: async () => body,
+      method, nextUrl: { origin: "https://delta.example" }, cookies: { get: () => cookie ? { value: cookie } : undefined }, headers: new Headers({ origin, "content-type": "application/json" }), body: new Response(JSON.stringify(body)).body,
     }, guildId, admin),
     get writes() { return writes; }, get saved() { return saved; }, get permissionChecks() { return permissionChecks; }
   };

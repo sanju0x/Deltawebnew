@@ -1,20 +1,15 @@
+import { readAdminInput, updateSettingsInput } from "@/lib/admin-input";
 import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/lib/mongodb";
-import { cookies } from "next/headers";
-
-async function isAuthenticated() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("admin_session");
-  return !!session?.value;
-}
+import { adminWriteError } from "@/lib/admin-access";
 
 export async function PUT(request: NextRequest) {
-  if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
 
   try {
-    const body = await request.json();
+    const body = await readAdminInput(request, updateSettingsInput);
+    if (body instanceof Response) return body;
     const { pageEnabled } = body;
 
     const db = await getDb();

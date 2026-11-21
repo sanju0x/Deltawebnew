@@ -1,7 +1,12 @@
+import { submissionLimit } from "@/lib/public-submission";
 import { NextRequest, NextResponse } from "next/server";
 import { DISCORD_OAUTH_STATE_COOKIE, createSignedValue, getAdminSessionSecret, getDiscordAuthConfiguration, getDiscordClientId, getDiscordRedirectUri } from "@/lib/admin-auth";
 
+const limit = submissionLimit(30, 600);
+
 export async function GET(request: NextRequest) {
+  const limited = limit(request.headers);
+  if (limited) return limited;
   const clientId = getDiscordClientId();
   const secret = getAdminSessionSecret();
   const configuration = getDiscordAuthConfiguration();
@@ -13,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   const state = crypto.randomUUID();
-  const signedState = await createSignedValue({ state, expiresAt: Date.now() + 10 * 60 * 1000 }, secret);
+  const signedState = await createSignedValue({ purpose: "admin-oauth", state, expiresAt: Date.now() + 10 * 60 * 1000 }, secret);
   const authorizeUrl = new URL("https://discord.com/api/oauth2/authorize");
   authorizeUrl.searchParams.set("client_id", clientId);
   authorizeUrl.searchParams.set("redirect_uri", getDiscordRedirectUri(request.nextUrl.origin));

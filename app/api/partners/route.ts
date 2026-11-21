@@ -7,6 +7,8 @@ export async function GET() {
     const partners = await db
       .collection("partners")
       .find({})
+      .project({ name: 1, description: 1, logo: 1, iconUrl: 1, bannerUrl: 1, website: 1,
+        inviteLink: 1, members: 1, type: 1, features: 1, order: 1, createdAt: 1 })
       .sort({ order: 1, createdAt: -1 })
       .toArray();
 

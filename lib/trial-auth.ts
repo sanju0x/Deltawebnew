@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createSignedValue, readSignedValue } from "@/lib/admin-auth";
+import { createSignedValue, readSignedValue, validSigningKey } from "@/lib/admin-auth";
 
 export const TRIAL_SESSION_COOKIE = "delta_trial_session";
 export const TRIAL_STATE_COOKIE = "delta_trial_oauth_state";
@@ -7,7 +7,7 @@ export const trialCookieOptions = { httpOnly: true, sameSite: "lax" as const, se
 
 export function trialSecret() {
   const secret = process.env.TRIAL_SESSION_SECRET?.trim();
-  if (!secret) throw new Error("TRIAL_SESSION_SECRET is missing");
+  if (!secret || !validSigningKey(secret)) throw new Error("TRIAL_SESSION_SECRET needs a strong signing key");
   return secret;
 }
 

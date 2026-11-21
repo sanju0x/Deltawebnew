@@ -1,3 +1,4 @@
+import { readJsonObject } from "../lib/request-json.js";
 // Run: node --experimental-vm-modules --test tests/admin-trials.test.mjs
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -11,8 +12,9 @@ async function setup({ userId = "123456789012345678", allowed = true, count = 15
   let records = Array.from({ length: count }, (_, index) => ({ _id: String(index), claimed: true }));
   let deleteCalls = 0;
   let settingsCalls = 0;
-  const context = createContext({});
+  const context = createContext({ Response });
   const dependencies = {
+    "@/lib/request-json.js": { readJsonObject },
     "next/server": { NextResponse: { json: (body, init) => Response.json(body, init) } },
     "@/lib/admin-auth": {
       ADMIN_SESSION_COOKIE: "admin_session",
@@ -50,8 +52,8 @@ async function setup({ userId = "123456789012345678", allowed = true, count = 15
   return {
     post: (body = { action: "reset-all" }, origin = "https://delta.example") => route.namespace.POST({
       cookies: { get: () => ({ value: "session" }) },
-      headers: new Headers({ origin }),
-      json: async () => body,
+      headers: new Headers({ origin, "content-type": "application/json" }),
+      body: new Response(JSON.stringify(body)).body,
     }),
     get records() { return records; },
     get deleteCalls() { return deleteCalls; },

@@ -1,27 +1,17 @@
+import { readJsonObject } from "@/lib/request-json.js";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { adminWriteError } from "@/lib/admin-access";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
 import { normalizeTeamRoleCategory } from "@/lib/team-roles";
 
-type ReorderItem = {
-  id?: string;
-  roleCategory?: string;
-  order?: number;
-};
-
-async function verifyAdmin() {
-  const cookieStore = await cookies();
-  return Boolean(cookieStore.get("admin_session")?.value);
-}
-
 export async function POST(request: NextRequest) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
 
   try {
-    const body = (await request.json()) as { members?: ReorderItem[] };
+    const body = await readJsonObject(request, 65536);
+    if (body instanceof Response) return body;
     if (!Array.isArray(body.members) || body.members.length === 0 || body.members.length > 250) {
       return NextResponse.json({ error: "A valid member order is required" }, { status: 400 });
     }

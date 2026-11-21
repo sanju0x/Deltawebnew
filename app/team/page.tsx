@@ -1,5 +1,7 @@
 "use client";
 
+import { webLink } from "@/lib/web-link";
+
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
@@ -352,7 +354,7 @@ function MemberCard({
 
         {member.socialLink ? (
           <a
-            href={member.socialLink}
+            href={webLink(member.socialLink)}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Open ${member.name}'s profile in a new tab`}

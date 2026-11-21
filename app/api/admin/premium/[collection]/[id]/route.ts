@@ -1,13 +1,8 @@
+import { readAdminInput, premiumItemInput } from "@/lib/admin-input";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { adminWriteError } from "@/lib/admin-access";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
-
-async function verifyAdmin() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("admin_session");
-  return !!session?.value;
-}
 
 const collectionMap: Record<string, string> = {
   features: "premium_features",
@@ -19,19 +14,20 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ collection: string; id: string }> }
 ) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
 
   try {
     const { collection, id } = await params;
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     const collectionName = collectionMap[collection];
 
-    if (!collectionName) {
+    if (!Object.hasOwn(collectionMap, collection)) {
       return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
     }
 
-    const body = await request.json();
+    const body = await readAdminInput(request, premiumItemInput);
+    if (body instanceof Response) return body;
     const db = await getDb();
 
     await db.collection(collectionName).updateOne(
@@ -50,15 +46,15 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ collection: string; id: string }> }
 ) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
 
   try {
     const { collection, id } = await params;
+    if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     const collectionName = collectionMap[collection];
 
-    if (!collectionName) {
+    if (!Object.hasOwn(collectionMap, collection)) {
       return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
     }
 

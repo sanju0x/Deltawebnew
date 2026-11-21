@@ -1,9 +1,14 @@
+import { submissionLimit } from "@/lib/public-submission";
 import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
 import { createSignedValue, getDiscordClientId, getDiscordClientSecret } from "@/lib/admin-auth";
 import { TRIAL_STATE_COOKIE, trialCookieOptions, trialOrigin, trialRedirectUri, trialSecret } from "@/lib/trial-auth";
 
+const limit = submissionLimit(30, 600);
+
 export async function GET(request: NextRequest) {
+  const limited = limit(request.headers);
+  if (limited) return limited;
   try {
     const clientId = getDiscordClientId();
     if (!clientId || !getDiscordClientSecret()) throw new Error("Discord login is not configured");

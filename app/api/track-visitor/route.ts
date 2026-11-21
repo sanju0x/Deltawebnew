@@ -1,11 +1,10 @@
+import { submissionQuota } from "@/lib/submission-quota";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 
-// Rate limiting in-memory store
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-const ipCooldownStore = new Map<string, number>();
+import { readSubmission, submissionLimit, visitorAddress } from "@/lib/public-submission";
 
-// Only one env variable needed - the Discord webhook URL
+const limit = submissionLimit(12, 30, 5000);
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 export async function POST(request: NextRequest) {
@@ -15,59 +14,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, reason: "disabled" });
     }
 
+    const body = await readSubmission(request, limit, 12000);
+    if (body instanceof Response) return body;
+    if (Object.values(body).some(value => value.length > 1024)) {
+      return NextResponse.json({ error: "Invalid visitor data" }, { status: 400 });
+    }
     const db = await getDb();
-
-    // Get visitor data from request
-    const body = await request.json();
-    const forwardedFor = request.headers.get("x-forwarded-for");
-    const realIp = request.headers.get("x-real-ip");
-    const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown";
-
-    // Check IP cooldown (5 seconds default)
-    const lastVisit = ipCooldownStore.get(ip);
-    const cooldownMs = 5000;
-    if (lastVisit && Date.now() - lastVisit < cooldownMs) {
-      return NextResponse.json({ success: false, reason: "cooldown" });
-    }
-
-    // Check rate limit (30 per minute default)
-    const now = Date.now();
-    const rateLimitWindow = 60000;
-    const maxPerMinute = 30;
-
-    const rateData = rateLimitStore.get("global") || { count: 0, resetTime: now + rateLimitWindow };
-    if (now > rateData.resetTime) {
-      rateData.count = 0;
-      rateData.resetTime = now + rateLimitWindow;
-    }
-
-    if (rateData.count >= maxPerMinute) {
-      return NextResponse.json({ success: false, reason: "rate_limited" });
-    }
-
-    // Update cooldown and rate limit
-    ipCooldownStore.set(ip, now);
-    rateData.count++;
-    rateLimitStore.set("global", rateData);
-
-    // Fetch geolocation data
-    let geoData: { country?: string; city?: string; region?: string } = {};
-    try {
-      const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city`);
-      if (geoResponse.ok) {
-        const geo = await geoResponse.json();
-        if (geo.status === "success") {
-          geoData = {
-            country: geo.country,
-            city: geo.city,
-            region: geo.regionName,
-          };
+    const limited = await submissionQuota(db, "track-visitor", 30);
+    if (limited) return limited;
+    const ip = visitorAddress(request.headers) || "unknown";
+    const platformHeaders = process.env.VERCEL === "1" ? request.headers : new Headers();
+    let geoData = {
+      country: platformHeaders.get("x-vercel-ip-country") || undefined,
+      city: platformHeaders.get("x-vercel-ip-city") || undefined,
+      region: platformHeaders.get("x-vercel-ip-country-region") || undefined,
+    };
+    if (!geoData.country && ip !== "unknown" && process.env.IP_API_PRO_KEY) {
+      try {
+        const url = new URL("https://pro.ip-api.com/json/" + ip);
+        url.searchParams.set("fields", "status,country,regionName,city");
+        url.searchParams.set("key", process.env.IP_API_PRO_KEY);
+        const geoResponse = await fetch(url, { signal: AbortSignal.timeout(3000), redirect: "error" });
+        if (geoResponse.ok) {
+          const geo = await geoResponse.json();
+          if (geo.status === "success") geoData = { country: geo.country, city: geo.city, region: geo.regionName };
         }
-      }
-    } catch {
-      // Geo lookup failed, continue without it
+      } catch { /* Location is optional. */ }
     }
-
     // Build visitor log (all features enabled by default)
     const visitorLog = {
       ip,
@@ -146,7 +119,9 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ embeds: [embed] }),
+        signal: AbortSignal.timeout(5000),
+        redirect: "error",
+        body: JSON.stringify({ embeds: [embed], allowed_mentions: { parse: [] } }),
       });
 
       if (discordResponse.ok) {

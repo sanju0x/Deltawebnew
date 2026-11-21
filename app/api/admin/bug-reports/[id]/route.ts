@@ -1,14 +1,17 @@
+import { readJsonObject } from "@/lib/request-json.js";
+import { adminWriteError } from "@/lib/admin-access";
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
   try {
     const { id } = await params;
     if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid report ID" }, { status: 400 });
-    let body;
-    try { body = await request.json(); }
-    catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
+    const body = await readJsonObject(request, 4096);
+    if (body instanceof Response) return body;
     if (typeof body?.status !== "string" || !["open", "in_progress", "resolved", "closed"].includes(body.status)) {
       return NextResponse.json({ error: "Invalid report status" }, { status: 400 });
     }
@@ -24,7 +27,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await adminWriteError(request);
+  if (denied) return denied;
   try {
     const { id } = await params;
     if (!ObjectId.isValid(id)) return NextResponse.json({ error: "Invalid report ID" }, { status: 400 });

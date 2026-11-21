@@ -1,3 +1,4 @@
+import { readJsonObject } from "@/lib/request-json.js";
 import { type NextRequest, NextResponse } from "next/server";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
 import { trialOrigin } from "@/lib/trial-auth";
@@ -25,12 +26,12 @@ export async function POST(request: NextRequest) {
   const id = await adminId(request);
   if (!id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (request.headers.get("origin") !== trialOrigin(request)) return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
-  let body;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
-  if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  const { action, userId } = body;
-  if (!["enable", "disable", "reset", "reset-all", "enable-user", "disable-user"].includes(action)) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  if (!["enable", "disable", "reset-all"].includes(action) && (typeof userId !== "string" || !/^\d{17,20}$/.test(userId))) return NextResponse.json({ error: "Enter a valid Discord user ID" }, { status: 400 });
+  const body = await readJsonObject(request, 4096);
+  if (body instanceof Response) return body;
+  const { action } = body;
+  const userId = typeof body.userId === "string" ? body.userId : "";
+  if (typeof action !== "string" || !["enable", "disable", "reset", "reset-all", "enable-user", "disable-user"].includes(action)) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  if (!["enable", "disable", "reset-all"].includes(action) && !/^\d{17,20}$/.test(userId)) return NextResponse.json({ error: "Enter a valid Discord user ID" }, { status: 400 });
   try {
     const { claims, settings } = await trialCollections();
     if (action === "reset-all") {

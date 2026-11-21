@@ -1,3 +1,4 @@
+import { readJsonObject } from "@/lib/request-json.js";
 import { recordActivity } from "@/lib/site-activity";
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,9 +16,10 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
     await collection.createIndex({ guildId: 1 }, { unique: true });
     const commands = (presence.configurableCommands || []) as string[];
     if (request.method === "PATCH") {
-      if (Number(request.headers.get("content-length")) > 20000) throw new DashboardError("Configuration is too large.", 413);
+      const body = await readJsonObject(request, 20000);
+      if (body instanceof Response) return body;
       let input;
-      try { input = validateServerConfig(await request.json(), commands); }
+      try { input = validateServerConfig(body, commands); }
       catch (error) { throw new DashboardError(error instanceof Error ? error.message : "Invalid configuration."); }
       const revision = randomUUID();
       const expected = request.headers.get("x-config-revision");
@@ -34,7 +36,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       }
       await recordActivity("Dashboard", "Saved settings for bot sync", userId, guildId);
     }
-    const config = await collection.findOne({ guildId }, { projection: { _id: 0, language: 0, languageRevision: 0 } });
+    const config = await collection.findOne({ guildId }, { projection: { _id: 0, source: 1, disabledCommands: 1, customBot: 1, nickname: 1, bio: 1, avatar: 1, banner: 1, status: 1, error: 1, revision: 1 } });
     const settings = config || {
       source: presence.source || "ytsearch", disabledCommands: presence.disabledCommands || [],
       customBot: false, nickname: "", bio: "", avatar: "", banner: "", status: "applied"

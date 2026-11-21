@@ -41,11 +41,17 @@ export function getDiscordClientId() {
 }
 
 export function getDiscordClientSecret() {
-  return envValue(process.env.DISCORD_CLIENT_SECRET, process.env.DISCORD_OAUTH_CLIENT_SECRET);
+  const value = envValue(process.env.DISCORD_CLIENT_SECRET, process.env.DISCORD_OAUTH_CLIENT_SECRET);
+  return value === "your-discord-application-secret" ? "" : value;
+}
+
+export function validSigningKey(value: string) {
+  return value.length >= 32 && !value.startsWith("replace-with-");
 }
 
 export function getAdminSessionSecret() {
-  return envValue(process.env.ADMIN_SESSION_SECRET, process.env.AUTH_SECRET) || getDiscordClientSecret();
+  const value = envValue(process.env.ADMIN_SESSION_SECRET, process.env.AUTH_SECRET) || getDiscordClientSecret();
+  return validSigningKey(value) ? value : "";
 }
 
 export function getAllowedDiscordUserIds() {
@@ -60,6 +66,7 @@ export function getDiscordAuthConfiguration() {
   const missing: string[] = [];
   if (!getDiscordClientId()) missing.push("DISCORD_CLIENT_ID");
   if (!getDiscordClientSecret()) missing.push("DISCORD_CLIENT_SECRET");
+  if (!getAdminSessionSecret()) missing.push("ADMIN_SESSION_SECRET");
   if (!getAllowedDiscordUserIds().size) missing.push("ADMIN_ALLOWED_DISCORD_USER_IDS");
   return { configured: missing.length === 0, missing };
 }
@@ -78,11 +85,12 @@ export async function readSignedValue<T>(value: string | undefined, secret = get
 }
 
 export async function createAdminSession(userId: string) {
-  return createSignedValue({ userId, expiresAt: Date.now() + SESSION_LIFETIME_SECONDS * 1000 });
+  return createSignedValue({ purpose: "admin", userId, expiresAt: Date.now() + SESSION_LIFETIME_SECONDS * 1000 });
 }
 
 export async function getAdminSessionUserId(value: string | undefined) {
-  const session = await readSignedValue<{ userId?: string; expiresAt?: number }>(value);
+  const session = await readSignedValue<{ purpose?: string; userId?: string; expiresAt?: number }>(value);
+  if (session?.purpose !== undefined && session.purpose !== "admin") return null;
   if (typeof session?.userId !== "string" || !session.userId || typeof session.expiresAt !== "number" || !Number.isFinite(session.expiresAt) || session.expiresAt <= Date.now()) return null;
   return session.userId;
 }
