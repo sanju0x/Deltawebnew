@@ -7,14 +7,20 @@ import { CTASection } from "@/components/cta-section";
 import { Footer } from "@/components/footer";
 import { LoadingScreen } from "@/components/loading-screen";
 
-export default function Home() {
+import { trialCollections } from "@/lib/trials";
+
+export const dynamic = "force-dynamic";
+export default async function Home() {
+  const claimsEnabled = await trialCollections().then(async ({ settings }) =>
+    (await settings.findOne({ _id: "trials" }))?.enabled !== false
+  ).catch(() => false);
   return (
     <>
       <LoadingScreen />
       <main id="main-content" className="min-h-screen overflow-hidden">
-        <Header />
+        <Header showTrial={claimsEnabled} />
         <HeroSection />
-        <section className="site-container py-12" aria-labelledby="trial-heading">
+        {claimsEnabled && <section className="site-container py-12" aria-labelledby="trial-heading">
           <div className="trial-offer home-trial-banner">
             <span className="banner-icon" aria-hidden="true"><AudioLines /></span>
             <div>
@@ -24,7 +30,7 @@ export default function Home() {
             </div>
             <a className="button-primary shrink-0" href="/api/trial/login">Claim now with Discord</a>
           </div>
-        </section>
+        </section>}
         <FeaturesSection />
         <StatsSection />
         <CTASection />

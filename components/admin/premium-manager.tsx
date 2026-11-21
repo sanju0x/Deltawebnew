@@ -84,8 +84,18 @@ interface PremiumPlan {
   order: number;
 }
 
+type Guild = { guildId: string; name: string; image?: string };
+function GuildPicker({ guilds, value, onSelect, label }: { guilds: Guild[]; value: string; onSelect: (guild: Guild) => void; label: string }) {
+  return <Select value={value} onValueChange={id => { const guild = guilds.find(g => g.guildId === id); if (guild) onSelect(guild); }}>
+    <SelectTrigger aria-label={label}><SelectValue placeholder={label} /></SelectTrigger>
+    <SelectContent>{guilds.map(g => <SelectItem key={g.guildId} value={g.guildId}>
+      <span className="inline-flex items-center gap-2">{g.image ? <img className="size-6 rounded-full" alt="" src={g.image} /> : <span aria-hidden="true">{g.name.slice(0, 1)}</span>}{g.name} · {g.guildId}</span>
+    </SelectItem>)}{!guilds.length && <p className="p-2 text-sm">No connected servers.</p>}</SelectContent>
+  </Select>;
+}
 export function PremiumManager() {
-  const [configServer, setConfigServer] = useState<PremiumServer | null>(null);
+  const [configServer, setConfigServer] = useState<{ serverId: string } | null>(null);
+  const [guilds, setGuilds] = useState<Guild[]>([]);
   const [users, setUsers] = useState<PremiumUser[]>([]);
   const [servers, setServers] = useState<PremiumServer[]>([]);
   const [plans, setPlans] = useState<PremiumPlan[]>([]);
@@ -134,6 +144,7 @@ export function PremiumManager() {
       const response = await fetch("/api/admin/premium-management");
       if (response.ok) {
         const data = await response.json();
+        setGuilds(data.guilds || []);
         setUsers(data.users || []);
         setServers(data.servers || []);
         setPlans(data.plans || []);
@@ -548,6 +559,7 @@ export function PremiumManager() {
 
                 {/* Servers Tab */}
                 <TabsContent value="servers" className="space-y-4">
+                  <Label>Customize server profile</Label><GuildPicker guilds={guilds} value="" label="Select a server to customize" onSelect={g => setConfigServer({ serverId: g.guildId })} />
                   <div className="flex justify-end">
                     <Dialog open={serverDialogOpen} onOpenChange={(open) => {
                       setServerDialogOpen(open);
@@ -568,6 +580,8 @@ export function PremiumManager() {
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
+                            <Label>Select a connected server</Label>
+                            <GuildPicker guilds={guilds} value={serverFormData.serverId} label="Choose server" onSelect={g => setServerFormData({ ...serverFormData, serverId: g.guildId, serverName: g.name })} />
                             <Label>Server ID</Label>
                             <Input
                               value={serverFormData.serverId}

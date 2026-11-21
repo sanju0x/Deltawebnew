@@ -58,6 +58,8 @@ export async function authorizeGuild(request: NextRequest, guildId: string, admi
     userId = id;
   } else {
     const session = await dashboardSession(request);
+    const restriction = await (await getDb()).collection<{ _id: string }>("bot_blacklist").findOne({ _id: { $in: ["user:" + session.userId, "server:" + guildId] } }, { projection: { _id: 1 } });
+    if (restriction) throw new DashboardError("Bot access is blocked.", 403);
     if (!(await managedGuilds(session.accessToken)).some((guild) => guild.id === guildId)) throw new DashboardError("You need Manage Server or Administrator permission.", 403);
     userId = session.userId;
   }

@@ -9,6 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { MUSIC_SOURCES, IMAGE_HOSTS } from "@/lib/server-config-schema";
 
 type ServerConfig = { source: string; disabledCommands: string[]; customBot: boolean; nickname: string; bio: string; avatar: string; banner: string; status: string; error?: string | null; revision?: string };
+function previewImage(value: string) {
+  try { const url = new URL(value); return url.protocol === "https:" && IMAGE_HOSTS.includes(url.hostname) ? value : ""; }
+  catch { return ""; }
+}
 export function ServerConfigEditor({ guildId, admin = false }: { guildId: string; admin?: boolean }) {
   const endpoint = `${admin ? "/api/admin/server-config" : "/api/dashboard/servers"}/${guildId}`;
   const [config, setConfig] = useState<ServerConfig | null>(null);
@@ -30,28 +34,24 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     return () => controller.abort();
   }, [endpoint]);
   useEffect(() => {
-    if (config?.status !== "pending" || dirty) return;
+    if (!config || dirty || busy) return;
     const controller = new AbortController();
     const timer = setInterval(async () => {
       try {
         const response = await fetch(endpoint, { cache: "no-store", signal: controller.signal });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not check sync status.");
-        // Preserve local edits and only accept status for the saved revision.
-        setConfig((current) => {
-          if (!current || current.revision !== data.config.revision) return current;
-          return { ...current, status: data.config.status, error: data.config.error };
-        });
+        if (!controller.signal.aborted) setConfig(data.config);
       } catch (e) { if (!controller.signal.aborted) setNotice(e instanceof Error ? e.message : "Could not check sync status."); }
     }, 15000);
     return () => { clearInterval(timer); controller.abort(); };
-  }, [endpoint, config?.status, config?.revision, dirty]);
+  }, [endpoint, config?.status, config?.revision, dirty, busy, loading]);
   function change(values: Partial<ServerConfig>) { setConfig((current) => current ? { ...current, ...values } : current); setDirty(true); setNotice(""); }
   async function save() {
     if (!config || busy) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
+      const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify(config) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not save settings.");
       setConfig(data.config); setDirty(false); setNotice("Saved. Delta usually applies changes within 15 seconds.");
@@ -87,6 +87,11 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
             <Switch id={`${prefix}-custom`} aria-label="Enable custom bot profile" checked={config.customBot} onCheckedChange={(customBot) => change({ customBot })} /></div>
           <p className="text-sm text-muted-foreground">Turning this off removes Delta’s custom nickname, bio, avatar and banner in this server.</p>
           {config.customBot && <div className="space-y-4">
+            <div aria-label="Server profile preview" className="overflow-hidden rounded-xl border bg-card">
+              <div className="h-24 bg-secondary">{previewImage(config.banner) && <img alt="Banner preview" src={config.banner} className="h-full w-full object-cover" />}</div>
+              <div className="space-y-2 px-5 pb-5"><img alt="Bot avatar preview" className="-mt-7 relative size-16 rounded-full border-4 border-card bg-card object-cover" src={previewImage(config.avatar) || "/icon.svg"} />
+                <strong>{config.nickname || "Delta"}</strong><p className="whitespace-pre-wrap break-words text-sm">{config.bio}</p></div>
+            </div>
             <div className="space-y-2"><Label htmlFor={`${prefix}-nickname`}>Nickname</Label><Input id={`${prefix}-nickname`} maxLength={32} value={config.nickname} placeholder="Delta Music" onChange={(e) => change({ nickname: e.target.value })} /></div>
             <div className="space-y-2"><Label htmlFor={`${prefix}-bio`}>Bio</Label><Textarea id={`${prefix}-bio`} maxLength={190} value={config.bio} placeholder="Music and moderation for this server." onChange={(e) => change({ bio: e.target.value })} /><p className="text-sm text-muted-foreground">{config.bio.length}/190 characters</p></div>
             {(["avatar", "banner"] as const).map((field) => <div key={field} className="space-y-2"><Label htmlFor={`${prefix}-${field}`}>{field === "avatar" ? "Avatar" : "Banner"} image link</Label><Input id={`${prefix}-${field}`} type="url" maxLength={2048} value={config[field]} placeholder="https://cdn.discordapp.com/attachments/…" onChange={(e) => change({ [field]: e.target.value })} /></div>)}

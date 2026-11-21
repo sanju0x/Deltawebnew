@@ -49,6 +49,7 @@ import { UpdatesManager } from "./updates-manager";
 import { TeamManager } from "./team-manager";
 import { PartnersManager } from "./partners-manager";
 import { PremiumManager } from "./premium-manager";
+import { BotActivity } from "./bot-activity";
 import { TrialsManager } from "./trials-manager";
 import { MaintenanceToggle } from "./maintenance-toggle";
 
@@ -203,9 +204,13 @@ export function AdminDashboard() {
               <Crown className="h-4 w-4" />
               <span>Premium</span>
             </TabsTrigger>
+            <TabsTrigger value="blacklist" className="admin-tab"><Users /><span>Blacklist</span></TabsTrigger>
+            <TabsTrigger value="activity" className="admin-tab"><Activity /><span>Suspicious activity</span></TabsTrigger>
+            <TabsTrigger value="analytics" className="admin-tab"><Activity /><span>Bot analytics</span></TabsTrigger>
             <TabsTrigger value="trials" className="admin-tab"><AudioLines /><span>No-prefix trials</span></TabsTrigger>
           </TabsList>
 
+          {(["blacklist", "activity", "analytics"] as const).map(section => <TabsContent key={section} value={section}><BotActivity section={section} /></TabsContent>)}
           <TabsContent value="trials"><TrialsManager /></TabsContent>
 
           <TabsContent value="bugs" className="space-y-6">

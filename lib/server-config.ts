@@ -17,7 +17,18 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       try { input = validateServerConfig(await request.json(), commands); }
       catch (error) { throw new DashboardError(error instanceof Error ? error.message : "Invalid configuration."); }
       const revision = randomUUID();
-      await collection.updateOne({ guildId }, { $set: { ...input, revision, updatedBy: userId, updatedAt: new Date(), status: "pending", error: null }, $setOnInsert: { guildId } }, { upsert: true });
+      const expected = request.headers.get("x-config-revision");
+      const filter = expected === "initial" ? { guildId, revision: { $exists: false } } : expected ? { guildId, revision: expected } : { guildId };
+      try {
+        const result = await collection.updateOne(filter, {
+          $set: { ...input, revision, updatedBy: userId, updatedAt: new Date(), status: "pending", error: null },
+          $setOnInsert: { guildId }
+        }, { upsert: !expected || expected === "initial" });
+        if (expected && !result.matchedCount && !result.upsertedCount) throw new DashboardError("Settings changed in another dashboard. Reload before saving.", 409);
+      } catch (error) {
+        if ((error as { code?: number }).code === 11000) throw new DashboardError("Settings changed in another dashboard. Reload before saving.", 409);
+        throw error;
+      }
     }
     const config = await collection.findOne({ guildId }, { projection: { _id: 0 } });
     return NextResponse.json({ config: config || { source: presence.source || "ytsearch", disabledCommands: presence.disabledCommands || [], customBot: false, nickname: "", bio: "", avatar: "", banner: "", status: "applied" }, commands, serverName: presence.name }, { headers: { "Cache-Control": "no-store" } });

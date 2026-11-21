@@ -31,7 +31,8 @@ const otherLinks = [
 
 const inviteUrl = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "/support";
 
-export function Header() {
+export function Header({ showTrial = true }: { showTrial?: boolean }) {
+  const menuLinks = otherLinks.filter(link => showTrial || link.href !== "/trial");
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -59,7 +60,7 @@ export function Header() {
                 sideOffset={12}
                 className="w-64 rounded-2xl border-[#41342b]/15 bg-[#faf4eb]/98 p-2 shadow-xl shadow-[#362618]/10 backdrop-blur-xl"
               >
-                {otherLinks.map(({ href, label, description, icon: Icon }) => (
+                {menuLinks.map(({ href, label, description, icon: Icon }) => (
                   <DropdownMenuItem key={href} asChild className="cursor-pointer rounded-xl p-0 focus:bg-[#efe4d5]">
                     <Link href={href} className="flex min-h-14 items-center gap-3 px-3 py-2.5 outline-none">
                       <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-[#d83229] shadow-sm">
@@ -116,7 +117,7 @@ export function Header() {
                 <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
               </summary>
               <div className="mb-2 ml-3 grid gap-1 border-l border-[#41342b]/15 pl-2">
-                {otherLinks.map(({ href, label, icon: Icon }) => (
+                {menuLinks.map(({ href, label, icon: Icon }) => (
                   <Link
                     key={href}
                     href={href}

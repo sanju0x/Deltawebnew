@@ -26,6 +26,7 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
     "@/lib/admin-auth": { getDiscordClientId: () => "client", ADMIN_SESSION_COOKIE: "admin_session", getAdminSessionUserId: async () => adminId, getAllowedDiscordUserIds: () => new Set(allowAdmin && adminId ? [adminId] : []) },
     "@/lib/server-config-schema": schema,
     "@/lib/mongodb": { getDb: async () => ({ collection: (name) => {
+      if (name === "bot_blacklist") return { findOne: async () => null };
       if (name === "dashboard_sessions") return { findOne: async (filter) => signedIn && filter.tokenHash === createHash("sha256").update(token).digest("hex") ? session : null };
       if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", commands: ["play"], source: "ytsearch", disabledCommands: [] } };
       if (name === "server_configs") return { createIndex: async () => {}, findOne: async () => saved,
