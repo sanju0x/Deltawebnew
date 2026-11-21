@@ -41,7 +41,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PageBanner } from "@/components/page-banner";
-import { AudioLines, SlidersHorizontal } from "lucide-react";
+import { AudioLines, Grid2X2, SlidersHorizontal } from "lucide-react";
+import { RuntimeMonitor } from "./runtime-monitor";
 import { BrandLogo } from "@/components/brand-logo";
 import { NewsManager } from "./news-manager";
 import { StatusManager } from "./status-manager";
@@ -208,7 +209,11 @@ export function AdminDashboard() {
             <TabsTrigger value="activity" className="admin-tab"><Activity /><span>Suspicious activity</span></TabsTrigger>
             <TabsTrigger value="analytics" className="admin-tab"><Activity /><span>Bot analytics</span></TabsTrigger>
             <TabsTrigger value="trials" className="admin-tab"><AudioLines /><span>No-prefix trials</span></TabsTrigger>
+            <TabsTrigger value="audio" className="admin-tab runtime-tab audio-tab"><AudioLines /><span>Lavalink monitor</span></TabsTrigger>
+            <TabsTrigger value="shards" className="admin-tab runtime-tab shard-tab"><Grid2X2 /><span>Shard manager grid</span></TabsTrigger>
           </TabsList>
+          <TabsContent value="audio"><RuntimeMonitor mode="audio" /></TabsContent>
+          <TabsContent value="shards"><RuntimeMonitor mode="shards" /></TabsContent>
 
           {(["blacklist", "activity", "analytics"] as const).map(section => <TabsContent key={section} value={section}><BotActivity section={section} /></TabsContent>)}
           <TabsContent value="trials"><TrialsManager /></TabsContent>

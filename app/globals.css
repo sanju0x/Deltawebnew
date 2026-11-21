@@ -2386,6 +2386,18 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
 .admin-workspace .admin-tab:hover { color: var(--foreground); }
 .admin-workspace .admin-tab[data-state="active"] { color: white; background: #771e2b; box-shadow: inset 0 -2px white; }
 .admin-workspace .admin-tab:focus-visible { z-index: 1; outline: 2px solid var(--ring); }
+.admin-workspace .runtime-tab.audio-tab { --tab-tone: #145938; --tab-accent: #88f3b5; }
+.admin-workspace .runtime-tab.shard-tab { --tab-tone: #573782; --tab-accent: #ddbbff; }
+.admin-workspace .runtime-tab, .admin-workspace .runtime-tab[data-state="active"] {
+  background: linear-gradient(115deg, var(--tab-tone), #09090b 95%);
+  color: var(--tab-accent);
+  white-space: normal;
+  line-height: 1.15;
+}
+.admin-workspace .runtime-tab:hover, .admin-workspace .runtime-tab[data-state="active"] {
+  color: white;
+  box-shadow: inset 0 -3px var(--tab-accent);
+}
 .admin-metrics [data-slot="card"] { padding: .25rem; border-top: 2px solid color-mix(in srgb, var(--primary) 60%, var(--border)); }
 .admin-metrics .text-2xl { font: 700 clamp(1.9rem, 3vw, 2.9rem)/1.1 var(--display); font-variant-numeric: tabular-nums; margin-top: .4rem; }
 @media (max-width: 1000px) {
