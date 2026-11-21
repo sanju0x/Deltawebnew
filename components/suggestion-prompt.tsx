@@ -1,22 +1,22 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowUpRight, MessageSquarePlus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MessageSquarePlus, X } from "lucide-react";
 
 export function SuggestionPrompt() {
   const path = usePathname();
   const eligible = !path.startsWith("/admin") && path !== "/suggestions";
+  const shown = useRef(false);
   const [phase, setPhase] = useState<"hidden" | "open" | "closing">("hidden");
   useEffect(() => {
-    if (!eligible) return;
-    try { if (sessionStorage.getItem("delta-suggestion-shown")) return; } catch {}
+    if (!eligible || shown.current) return;
     function reveal() {
       if (document.hidden || document.querySelector('[role="dialog"][data-state="open"], .loading-screen')) {
         timer = setTimeout(reveal, 500);
         return;
       }
-      try { sessionStorage.setItem("delta-suggestion-shown", "1"); } catch {}
+      shown.current = true;
       setPhase("open");
     }
     let timer = setTimeout(reveal, 1400);
@@ -48,8 +48,8 @@ export function SuggestionPrompt() {
   return <aside aria-label="Suggestions" className="suggestion-position">
     <div className="suggestion-prompt" data-phase={phase}>
       <MessageSquarePlus aria-hidden size={24} />
-      <div><strong>Any suggestions?</strong>
-        <Link href="/suggestions" aria-label="Click here to share a suggestion">Click here <ArrowUpRight size={15} /></Link></div>
+      <div><strong>Any Suggestions</strong>
+        <Link href="/suggestions" aria-label="Click Here to share a suggestion"><span>Click Here</span></Link></div>
       <button type="button" aria-label="Dismiss suggestion prompt" onClick={() => setPhase("closing")}><X size={17} /></button>
     </div>
   </aside>;

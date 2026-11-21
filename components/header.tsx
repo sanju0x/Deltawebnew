@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Handshake, Menu, Sparkles, Users, X } from "lucide-react";
+import { ChevronDown, Handshake, Menu, MessageSquarePlus, Sparkles, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { DashboardAccountMenu } from "@/components/dashboard-account-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -24,6 +24,7 @@ const navLinks = [
 ];
 
 const otherLinks = [
+  { href: "/suggestions", label: "Suggestions", description: "Share an idea for Delta", icon: MessageSquarePlus },
   { href: "/trial", label: "No-Prefix Trial", description: "Claim your free month with Discord", icon: Sparkles },
   { href: "/team", label: "Team", description: "Meet the people behind Delta", icon: Users },
   { href: "/partners", label: "Partners", description: "Explore our trusted partners", icon: Handshake },

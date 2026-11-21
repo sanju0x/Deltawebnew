@@ -2439,7 +2439,22 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
 .suggestion-position { position: fixed; z-index: 48; top: 50%; right: max(1rem, env(safe-area-inset-right)); transform: translateY(-50%); max-width: calc(100vw - 2rem); }
 .suggestion-prompt { display: flex; align-items: center; gap: .85rem; padding: .95rem 1rem; border: 1px solid #ffffffbf; border-radius: 1rem; color: #181337; background: linear-gradient(110deg, #bba0ff, #faf7ff 54%, #8dbdff); box-shadow: 0 10px 35px #100d3638; animation: suggestion-enter .3s ease-out both; }
 .suggestion-prompt strong { display: block; line-height: 1.25; }
-.suggestion-prompt a { display: inline-flex; gap: .25rem; align-items: center; text-decoration: underline; font-size: .875rem; }
+.suggestion-prompt a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  margin: .4rem .35rem 0;
+  padding: 0 1rem;
+  transform: skewX(-15deg);
+  background: #fff;
+  color: #181337;
+  border: 1px solid #72688c;
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.suggestion-prompt a span { transform: skewX(15deg); }
+.suggestion-prompt a:focus-visible { outline: 2px solid #181337; outline-offset: 2px; }
 .suggestion-prompt button { align-self: flex-start; cursor: pointer; padding: .25rem; }
 .suggestion-prompt[data-phase="closing"] { animation: suggestion-leave .28s ease-in both; }
 @keyframes suggestion-enter { from { transform: translateX(2rem); opacity: 0; } }
