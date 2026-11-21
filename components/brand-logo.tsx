@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { BadgeCheck } from "lucide-react";
 
 type BrandLogoProps = {
@@ -24,7 +24,7 @@ export function BrandLogo({ compact = false, className = "" }: BrandLogoProps) {
         </span>
         <BadgeCheck
           className={compact ? "size-4 shrink-0 text-white drop-shadow-sm" : "size-5 shrink-0 text-white drop-shadow-sm"}
-          fill="#5865f2"
+          fill="#ad1e2c"
           strokeWidth={2.4}
           aria-label="Verified on Discord"
         />
@@ -32,3 +32,4 @@ export function BrandLogo({ compact = false, className = "" }: BrandLogoProps) {
     </span>
   );
 }
+

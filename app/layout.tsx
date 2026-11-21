@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { NewsPopup } from '@/components/news-popup'
 import { VisitorTracker } from '@/components/visitor-tracker'
@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <MaintenanceGate>
             {children}
             <NewsPopup />
@@ -34,3 +34,4 @@ export default function RootLayout({
     </html>
   )
 }
+

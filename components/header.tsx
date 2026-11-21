@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Handshake, Menu, Sparkles, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -31,6 +32,7 @@ const otherLinks = [
 const inviteUrl = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "/support";
 
 export function Header() {
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -43,7 +45,7 @@ export function Header() {
 
           <nav className="desktop-nav" aria-label="Main navigation">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}>
+              <Link key={link.href} href={link.href} aria-current={pathname === link.href ? "page" : undefined}>
                 {link.label}
               </Link>
             ))}
@@ -98,6 +100,7 @@ export function Header() {
           <nav id="mobile-navigation" className="mobile-nav" aria-label="Mobile navigation">
             {navLinks.map((link) => (
               <Link
+                aria-current={pathname === link.href ? "page" : undefined}
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMenuOpen(false)}
@@ -131,3 +134,4 @@ export function Header() {
     </header>
   );
 }
+

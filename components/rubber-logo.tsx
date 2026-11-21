@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
-import { BadgeCheck, Move } from "lucide-react";
+import { Disc3, Move } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Point = { x: number; y: number };
@@ -85,8 +85,6 @@ export function RubberLogo() {
     setDragging(false);
   };
 
-  const ropeLength = Math.hypot(position.x, position.y + 54);
-  const ropeAngle = Math.atan2(position.x, position.y + 54) * (180 / Math.PI);
   const speed = Math.hypot(velocityRef.current.x, velocityRef.current.y);
   const stretch = dragging ? Math.min(speed / 90, 0.09) : Math.min(speed / 130, 0.05);
 
@@ -94,19 +92,11 @@ export function RubberLogo() {
     <div
       ref={stageRef}
       className="rubber-stage"
-      aria-label="Interactive Delta logo. Drag it and release to watch it bounce."
+      aria-label="Interactive Delta record sleeve"
     >
-      <div className="rubber-anchor" aria-hidden="true" />
-      <div
-        className="rubber-rope"
-        aria-hidden="true"
-        style={{
-          height: `${ropeLength}px`,
-          transform: `translateX(-50%) rotate(${-ropeAngle}deg)`,
-        }}
-      />
       <div
         ref={cardRef}
+        aria-label="Midnight Drive record sleeve. Drag or use arrow keys to move it."
         role="button"
         tabIndex={0}
         className={`rubber-card ${dragging ? "is-dragging" : ""}`}
@@ -136,27 +126,9 @@ export function RubberLogo() {
           setPosition({ ...positionRef.current });
         }}
       >
-        <div className="rubber-card-shine" aria-hidden="true" />
-        <div className="rubber-logo-shell">
-          <Image src="/icon.svg" alt="Delta logo" width={172} height={172} priority />
-        </div>
-        <div className="rubber-identity">
-          <div>
-            <span className="rubber-name">
-              Delta
-              <BadgeCheck
-                className="size-6 text-[#5865f2]"
-                fill="currentColor"
-                aria-label="Verified on Discord"
-              />
-            </span>
-            <span className="rubber-handle">@deltamusic</span>
-          </div>
-          <span className="rubber-move">
-            <Move className="size-4" />
-            drag me
-          </span>
-        </div>
+        <Image className="sleeve-art" src="/midnight-drive.jpg" alt="A black coupe overlooking a palm-lined city at a crimson sunset" fill sizes="(max-width: 800px) 92vw, 48vw" priority draggable={false} />
+        <div className="sleeve-imprint"><Disc3 size={18} /> Delta Radio</div>
+        <div className="sleeve-caption"><span>Midnight<br />Drive</span><Move size={17} aria-hidden="true" /></div>
       </div>
     </div>
   );
