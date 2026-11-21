@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
     const response = finish();
-    response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in), { ...cookieOptions, maxAge: Math.min(token.expires_in, 86400) });
+    response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...cookieOptions, maxAge: Math.min(token.expires_in, 86400) });
     return response;
   } catch { return finish("login"); }
 }

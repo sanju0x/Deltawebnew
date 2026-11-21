@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { PageBanner } from "@/components/page-banner";
+import { AudioLines } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import type { TrialStatus } from "@/lib/trial-types";
@@ -52,12 +54,11 @@ export default function TrialPage() {
   };
   return <main className="premium-page">
     <Header />
-    <section className="site-container py-20 sm:py-28">
-      <div className="mx-auto max-w-2xl rounded-3xl border border-current/10 bg-background p-7 shadow-sm sm:p-12">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#d83229]">Free for 1 month</p>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Your music.<br />Without the prefix.</h1>
-        <p className="mt-6 leading-relaxed opacity-75">Authorize with Discord to connect your account and claim 30 days of no-prefix commands. One free trial per account. No payment required.</p>
-        <p className="my-7 text-sm opacity-75">Access ends automatically after 30 days. Delta will send you a DM when your trial ends, if your Discord settings allow messages.</p>
+    <section className="site-container trial-page-content">
+      <PageBanner icon={<AudioLines />} eyebrow="Free for one month" title="No-prefix trial" description="Play music without typing a command prefix. Connect your Discord account to claim 30 days of access." />
+      <div className="trial-account">
+        <h2>Your Discord account</h2>
+        <p className="my-5 text-muted-foreground">One free trial per account. No payment required. Access ends automatically after 30 days. Delta will send you a DM when your trial ends, if your Discord settings allow messages.</p>
         <div aria-live="polite" className="space-y-5 border-t border-current/10 pt-6">
           {loading ? <p>Checking your trial…</p> : status ? <>
             <p className="break-all text-sm opacity-70">Connected Discord account: {status.userId}</p>

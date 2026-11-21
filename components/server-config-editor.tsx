@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,14 +71,17 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           </select>
           <p className="text-sm text-muted-foreground">Used for music searches in this server. The provider must be enabled on Delta’s music node.</p>
         </section>
-        <section className="space-y-4 rounded-2xl border border-border p-5">
-          <h3 className="text-lg font-semibold">Command configuration</h3>
+        <details className="group space-y-4 rounded-sm border border-border p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+            <span><strong className="block text-lg">Command configuration</strong><span className="text-sm text-muted-foreground">{commands.length} commands ? {config.disabledCommands.length} disabled</span></span>
+            <ChevronDown aria-hidden="true" className="size-5 shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
           <p className="text-sm text-muted-foreground">Turn commands on or off for this server. Changes apply to prefix and slash commands.</p>
           <div className="grid gap-3 sm:grid-cols-2">{commands.map((command) => <div key={command} className="flex items-center justify-between gap-3 rounded-xl bg-secondary/40 p-3">
             <Label htmlFor={`${prefix}-${command}`} className="break-all">{command}</Label>
             <Switch id={`${prefix}-${command}`} checked={!config.disabledCommands.includes(command)} onCheckedChange={(enabled) => change({ disabledCommands: enabled ? config.disabledCommands.filter((value) => value !== command) : [...config.disabledCommands, command] })} />
           </div>)}</div>
-        </section>
+        </details>
         <section className="space-y-4 rounded-2xl border border-border p-5">
           <div className="flex items-center justify-between gap-4"><div><h3 className="text-lg font-semibold">Custom bot profile</h3><p className="mt-1 text-sm text-muted-foreground">Personalize Delta in this server.</p></div>
             <Switch id={`${prefix}-custom`} aria-label="Enable custom bot profile" checked={config.customBot} onCheckedChange={(customBot) => change({ customBot })} /></div>

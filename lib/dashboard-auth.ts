@@ -18,11 +18,11 @@ export function dashboardError(error: unknown) {
 export function requireSameOrigin(request: NextRequest) {
   if (request.headers.get("origin") !== siteOrigin(request)) throw new DashboardError("Invalid request origin.", 403);
 }
-export async function createSession(userId: string, username: string, accessToken: string, expiresIn: number) {
+export async function createSession(userId: string, username: string, accessToken: string, expiresIn: number, avatar: string | null = null) {
   const token = randomBytes(32).toString("hex");
   const db = await getDb();
   await db.collection("dashboard_sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, accessToken,
+  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, avatar, accessToken,
     expiresAt: new Date(Date.now() + Math.min(expiresIn, 86400) * 1000) });
   return token;
 }

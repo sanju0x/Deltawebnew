@@ -1,3 +1,4 @@
+import { AudioLines } from "lucide-react";
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
 import { FeaturesSection } from "@/components/features-section";
@@ -14,7 +15,8 @@ export default function Home() {
         <Header />
         <HeroSection />
         <section className="site-container py-12" aria-labelledby="trial-heading">
-          <div className="flex flex-col gap-6 rounded-3xl border border-current/10 bg-card p-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="trial-offer home-trial-banner">
+            <span className="banner-icon" aria-hidden="true"><AudioLines /></span>
             <div>
               <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#d83229]">Free for 1 month</p>
               <h2 id="trial-heading" className="text-3xl font-bold">No prefix. Just play.</h2>

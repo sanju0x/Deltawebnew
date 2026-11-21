@@ -40,6 +40,8 @@ import {
   Crown,
 } from "lucide-react";
 import Link from "next/link";
+import { PageBanner } from "@/components/page-banner";
+import { AudioLines, SlidersHorizontal } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { NewsManager } from "./news-manager";
 import { StatusManager } from "./status-manager";
@@ -148,8 +150,8 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-xl">
+    <div className="admin-workspace min-h-screen bg-background">
+      <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
@@ -168,46 +170,47 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="site-container py-8">
+        <PageBanner icon={<SlidersHorizontal />} eyebrow="Delta administration" title="Control room" description="Review reports, manage access, and publish updates for your community." />
         <MaintenanceToggle />
         <Tabs defaultValue="bugs" className="space-y-6">
-          <TabsList className="flex flex-wrap justify-start gap-1 rounded-xl bg-secondary/50 p-1 h-auto">
-            <TabsTrigger value="bugs" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+          <TabsList aria-label="Administration sections" className="admin-tabs">
+            <TabsTrigger value="bugs" className="admin-tab">
               <Bug className="h-4 w-4" />
-              <span className="hidden sm:inline">Bugs</span>
+              <span>Bugs</span>
             </TabsTrigger>
-            <TabsTrigger value="news" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+            <TabsTrigger value="news" className="admin-tab">
               <Newspaper className="h-4 w-4" />
-              <span className="hidden sm:inline">News</span>
+              <span>News</span>
             </TabsTrigger>
-            <TabsTrigger value="status" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+            <TabsTrigger value="status" className="admin-tab">
               <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Status</span>
+              <span>Status</span>
             </TabsTrigger>
-            <TabsTrigger value="updates" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+            <TabsTrigger value="updates" className="admin-tab">
               <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Updates</span>
+              <span>Updates</span>
             </TabsTrigger>
-            <TabsTrigger value="team" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+            <TabsTrigger value="team" className="admin-tab">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Team</span>
+              <span>Team</span>
             </TabsTrigger>
-            <TabsTrigger value="partners" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
+            <TabsTrigger value="partners" className="admin-tab">
               <Handshake className="h-4 w-4" />
-              <span className="hidden sm:inline">Partners</span>
+              <span>Partners</span>
             </TabsTrigger>
-            <TabsTrigger value="premium" className="rounded-lg data-[state=active]:bg-card flex items-center gap-2 px-3 py-2">
-              <Crown className="h-4 w-4 text-yellow-500" />
-              <span className="hidden sm:inline">Premium</span>
+            <TabsTrigger value="premium" className="admin-tab">
+              <Crown className="h-4 w-4" />
+              <span>Premium</span>
             </TabsTrigger>
-            <TabsTrigger value="trials" className="rounded-lg px-3 py-2">No-Prefix trials</TabsTrigger>
+            <TabsTrigger value="trials" className="admin-tab"><AudioLines /><span>No-prefix trials</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="trials"><TrialsManager /></TabsContent>
 
           <TabsContent value="bugs" className="space-y-6">
         {error && <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error} <Link href="/admin/login" className="underline">Sign in</Link></div>}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="admin-metrics grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <Card className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

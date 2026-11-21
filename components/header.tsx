@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Handshake, Menu, Sparkles, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
+import { DashboardAccountMenu } from "@/components/dashboard-account-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
-  { href: "/dashboard", label: "Dashboard" },
   { href: "/commands", label: "Commands" },
   { href: "/premium", label: "Premium" },
   { href: "/bugreport", label: "Bug Report" },
@@ -79,6 +79,8 @@ export function Header() {
           <div className="header-theme-toggle">
             <ThemeToggle />
           </div>
+
+          <DashboardAccountMenu />
 
           <a className="nav-cta" href={inviteUrl}>
             Add to Discord
