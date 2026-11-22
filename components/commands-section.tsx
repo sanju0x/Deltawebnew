@@ -22,7 +22,8 @@ const commandCategories = [
       { cmd: "/playlist load", desc: "Load a saved playlist" },
       { cmd: "/playlist delete", desc: "Delete a playlist" },
       { cmd: "/playlist list", desc: "View all playlists" },
-      { cmd: "/playlist share", desc: "Share with others" },
+      { cmd: "/playlist edit", desc: "Rename a playlist" },
+      { cmd: "/playlist addcurrent", desc: "Save the current track" },
     ],
   },
   {

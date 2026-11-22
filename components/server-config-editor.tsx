@@ -16,6 +16,19 @@ function previewImage(value: string) {
 export function ServerConfigEditor({ guildId, admin = false }: { guildId: string; admin?: boolean }) {
   const endpoint = `${admin ? "/api/admin/server-config" : "/api/dashboard/servers"}/${guildId}`;
   const [config, setConfig] = useState<ServerConfig | null>(null);
+  const [channels, setChannels] = useState<{id: string; name: string}[]>([]);
+  const [canConfigureTripwire, setCanConfigureTripwire] = useState(false);
+  const [channelId, setChannelId] = useState("");
+  const [action, setAction] = useState("timeout");
+  async function saveTripwire() {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const res = await fetch(endpoint, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channelId: channelId || null, action: channelId ? action : null }) });
+      if (!res.ok) throw new Error((await res.json()).error || "Could not save tripwire.");
+      setNotice("Tripwire saved. Changes usually apply within 15 seconds.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Could not save tripwire."); }
+    finally { setBusy(false); }
+  }
   const [commands, setCommands] = useState<string[]>([]);
   const [serverName, setServerName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -29,6 +42,8 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     fetch(endpoint, { headers: { "x-editor-open": "1" }, cache: "no-store", signal: controller.signal }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load settings.");
+      setChannels(data.channels || []); setCanConfigureTripwire(data.canConfigureTripwire);
+      setChannelId(data.tripwire?.channelId || ""); setAction(data.tripwire?.action || "timeout");
       setConfig(data.config); setCommands(data.commands); setServerName(data.serverName);
     }).catch((e) => { if (!controller.signal.aborted) setError(e.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
@@ -62,6 +77,12 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
   return <div className="space-y-6">
     {loading ? <p role="status">Loading server settings…</p> : config && <>
       <div><h2 className="text-2xl font-bold">{serverName || "Server settings"}</h2><p className="mt-1 break-all text-sm text-muted-foreground">{guildId}</p></div>
+      {canConfigureTripwire && <fieldset disabled={busy} className="space-y-3 rounded-2xl border p-5"><legend className="px-2 font-semibold">Channel tripwire</legend>
+        <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
+        <label className="block">Channel <select className="rounded border bg-background p-2" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
+        <label className="block">Action <select className="rounded border bg-background p-2" disabled={!channelId} value={action} onChange={e => setAction(e.target.value)}><option value="timeout">Timeout (10 minutes)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
+        <Button onClick={saveTripwire}>Save tripwire</Button>
+      </fieldset>}
       <fieldset disabled={busy} className="space-y-6 disabled:opacity-70">
         <section className="space-y-3 rounded-2xl border border-border p-5">
           <h3 className="text-lg font-semibold">Music source</h3>

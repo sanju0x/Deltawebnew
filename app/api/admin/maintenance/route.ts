@@ -13,9 +13,11 @@ export async function POST(request: NextRequest) {
   const body = await readJsonObject(request, 4096);
   if (body instanceof Response) return body;
   if (typeof body?.enabled !== "boolean") return NextResponse.json({ error: "enabled must be a boolean" }, { status: 400 });
+  const scope = body.scope ?? "website";
+  if (typeof scope !== "string" || !["website", "dashboard", "user"].includes(scope)) return NextResponse.json({ error: "Unknown maintenance scope" }, { status: 400 });
   try {
     const { settings } = await trialCollections();
-    await settings.updateOne({ _id: "website-maintenance" }, {
+    await settings.updateOne({ _id: `${scope}-maintenance` }, {
       $set: { enabled: body.enabled, updatedBy: userId, updatedAt: Date.now() }
     }, { upsert: true });
     return NextResponse.json({ enabled: body.enabled }, { headers: { "Cache-Control": "no-store" } });

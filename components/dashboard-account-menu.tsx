@@ -6,9 +6,12 @@ import { LayoutDashboard, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
+import { MaintenanceBadge, useMaintenance } from "./maintenance-gate";
+
 type Account = { id: string; name: string; avatar: string | null };
 
 export function DashboardAccountMenu() {
+  const maintenance = useMaintenance();
   const [account, setAccount] = useState<Account | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +45,7 @@ export function DashboardAccountMenu() {
   }
 
   if (!account) return (
-    <a className="dashboard-login" href={account === null ? "/api/dashboard/login" : "/dashboard"}>
+    <a className="dashboard-login" href={account === null ? (maintenance.dashboard && !maintenance.user ? "/api/dashboard/login?view=user" : "/api/dashboard/login") : (maintenance.dashboard && !maintenance.user ? "/user-dashboard" : "/dashboard")}>
       {account === null ? "Log in" : "Dashboard"}
     </a>
   );
@@ -57,7 +60,10 @@ export function DashboardAccountMenu() {
       <DropdownMenuContent align="end" sideOffset={8} className="w-56">
         <DropdownMenuLabel className="truncate">{account.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild><Link href="/dashboard"><LayoutDashboard />Dashboard</Link></DropdownMenuItem>
+        {([{ path: "/dashboard", label: "Server dashboard", blocked: maintenance.dashboard }, { path: "/user-dashboard", label: "User dashboard", blocked: maintenance.user }]).map(item =>
+          item.blocked || maintenance.enabled ? <DropdownMenuItem key={item.path} disabled>{item.label} <MaintenanceBadge /></DropdownMenuItem> :
+          <DropdownMenuItem key={item.path} asChild><Link href={item.path}><LayoutDashboard />{item.label}</Link></DropdownMenuItem> )}
+
         <DropdownMenuItem disabled={busy} onSelect={event => { event.preventDefault(); void logout(); }}>
           <LogOut />{busy ? "Logging out…" : "Log out"}
         </DropdownMenuItem>

@@ -9,10 +9,22 @@ import { validateServerConfig } from "@/lib/server-config-schema";
 export async function handleServerConfig(request: NextRequest, guildId: string, admin = false) {
   let actor: string | undefined;
   try {
-    if (request.method === "PATCH") requireSameOrigin(request);
-    const { userId, presence } = await authorizeGuild(request, guildId, admin);
+    if (request.method !== "GET") requireSameOrigin(request);
+    const { userId, presence, canConfigureTripwire } = await authorizeGuild(request, guildId, admin);
     actor = userId;
-    const collection = (await getDb()).collection("server_configs");
+    const db = await getDb();
+    const collection = db.collection("server_configs");
+    const channels = presence.channels || [];
+    const rules = db.collection<{_id: string; channelId: string | null; action: string | null}>("tripwires");
+    if (request.method === "PUT") {
+      if (!canConfigureTripwire) throw new DashboardError("Server administrator permission required.", 403);
+      const body = await readJsonObject(request, 2048);
+      if (body instanceof Response) return body;
+      const { channelId, action } = body;
+      if (!(channelId === null && action === null) && !(typeof channelId === "string" && channels.some((channel: {id: string}) => channel.id === channelId) && typeof action === "string" && ["kick","ban","timeout"].includes(action))) throw new DashboardError("Choose a current text channel and action.");
+      await rules.updateOne({ _id: guildId }, { $set: { channelId: channelId as string | null, action: action as string | null } }, { upsert: true });
+      await recordActivity("Dashboard", "Updated tripwire", userId, guildId);
+    }
     await collection.createIndex({ guildId: 1 }, { unique: true });
     const commands = (presence.configurableCommands || []) as string[];
     if (request.method === "PATCH") {
@@ -43,7 +55,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
     };
     const disabledCommands = (settings.disabledCommands || []).filter((name: string) => commands.includes(name));
     if (request.method === "GET" && request.headers.get("x-editor-open") === "1") await recordActivity("Dashboard", "Opened server configuration", userId, guildId);
-    return NextResponse.json({ config: { ...settings, disabledCommands }, commands, serverName: presence.name },
+    return NextResponse.json({ config: { ...settings, disabledCommands }, commands, channels, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (actor && request.method === "PATCH") await recordActivity("Dashboard", "Settings request failed", actor, guildId);

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function MaintenanceToggle() {
+export function MaintenanceToggle({ scope, title }: { scope: "website" | "dashboard" | "user"; title: string }) {
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +19,7 @@ export function MaintenanceToggle() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load maintenance status");
       if (typeof data?.enabled !== "boolean") throw new Error("Invalid maintenance status. Refresh to try again.");
-      setEnabled(data.enabled);
+      setEnabled(scope === "website" ? data.enabled : data[scope] === true);
       setError("");
     } catch (error) {
       setEnabled(null);
@@ -27,7 +27,7 @@ export function MaintenanceToggle() {
     } finally { pending.current = false; setBusy(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); }, [scope]);
 
   async function toggle() {
     if (enabled === null || pending.current) return;
@@ -37,7 +37,7 @@ export function MaintenanceToggle() {
     try {
       const response = await fetch("/api/admin/maintenance", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !enabled }),
+        body: JSON.stringify({ scope, enabled: !enabled }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not update maintenance mode");
@@ -52,9 +52,9 @@ export function MaintenanceToggle() {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
       <div>
-        <p className="flex items-center gap-2 font-semibold"><Wrench className="h-4 w-4" /> Website maintenance</p>
+        <p className="flex items-center gap-2 font-semibold"><Wrench className="h-4 w-4" /> {title}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {enabled === null ? (error ? "Status unavailable. Refresh to try again." : "Loading status…") : enabled ? "Enabled — visitors see a blurred page and maintenance notice." : "Disabled — the website is available to visitors."}
+          {enabled === null ? (error ? "Status unavailable. Refresh to try again." : "Loading status…") : enabled ? "Maintenance enabled" : "Available"}
         </p>
         {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
       </div>

@@ -175,9 +175,10 @@ export function AdminDashboard() {
 
       <main className="site-container py-8">
         <PageBanner icon={<SlidersHorizontal />} eyebrow="Delta administration" title="Control room" description="Review reports, manage access, and publish updates for your community." />
-        <MaintenanceToggle />
+        
         <Tabs defaultValue="bugs" className="space-y-6">
           <TabsList aria-label="Administration sections" className="admin-tabs">
+            <TabsTrigger value="maintenance" className="admin-tab"><SlidersHorizontal /><span>Maintenance</span></TabsTrigger>
             <TabsTrigger value="bugs" className="admin-tab">
               <Bug className="h-4 w-4" />
               <span>Bugs</span>
@@ -213,6 +214,11 @@ export function AdminDashboard() {
             <TabsTrigger value="audio" className="admin-tab runtime-tab audio-tab"><AudioLines /><span>Lavalink monitor</span></TabsTrigger>
             <TabsTrigger value="shards" className="admin-tab runtime-tab shard-tab"><Grid2X2 /><span>Shard manager grid</span></TabsTrigger>
           </TabsList>
+          <TabsContent value="maintenance">
+            <MaintenanceToggle scope="website" title="Whole website" />
+            <MaintenanceToggle scope="dashboard" title="Server dashboard" />
+            <MaintenanceToggle scope="user" title="User dashboard" />
+          </TabsContent>
           <TabsContent value="audio"><RuntimeMonitor mode="audio" /></TabsContent>
           <TabsContent value="shards"><RuntimeMonitor mode="shards" /></TabsContent>
 

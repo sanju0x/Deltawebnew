@@ -9,14 +9,14 @@ const limit = submissionLimit(30, 600);
 export async function GET(request: NextRequest) {
   const limited = limit(request.headers);
   if (limited) return limited;
-  const finish = async (error = "") => {
+  const finish = async (error = "", path = "/dashboard") => {
     if (error) await recordActivity("Dashboard", "Discord sign-in did not complete");
-    const response = NextResponse.redirect(new URL(`/dashboard${error ? `?error=${error}` : ""}`, siteOrigin(request)));
+    const response = NextResponse.redirect(new URL(`${path}${error ? `?error=${error}` : ""}`, siteOrigin(request)));
     response.cookies.set(STATE_COOKIE, "", { ...cookieOptions, path: "/api/dashboard", maxAge: 0 });
     return response;
   };
   try {
-    const state = await readSignedValue<{ purpose: string; state: string; expiresAt: number }>(request.cookies.get(STATE_COOKIE)?.value);
+    const state = await readSignedValue<{ purpose: string; view?: string; state: string; expiresAt: number }>(request.cookies.get(STATE_COOKIE)?.value);
     const code = request.nextUrl.searchParams.get("code");
     if (!code || state?.purpose !== "dashboard-oauth" || state.state !== request.nextUrl.searchParams.get("state") || !Number.isFinite(state.expiresAt) || state.expiresAt <= Date.now()) return finish("login");
     const tokenResponse = await fetch("https://discord.com/api/oauth2/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     if (!profileResponse.ok) return finish("login");
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
-    const response = await finish();
+    const response = await finish("", state.view === "user" ? "/user-dashboard" : "/dashboard");
     response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...cookieOptions, maxAge: Math.min(token.expires_in, 86400) });
     await recordActivity("Dashboard", "Signed in with Discord", user.id);
     return response;

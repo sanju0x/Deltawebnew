@@ -58,6 +58,7 @@ export async function managedGuilds(accessToken: string) {
 export async function authorizeGuild(request: NextRequest, guildId: string, admin = false) {
   if (!/^\d{17,20}$/.test(guildId)) throw new DashboardError("Invalid server ID.");
   let userId: string;
+  let canConfigureTripwire = admin;
   if (admin) {
     const id = await getAdminSessionUserId(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
     if (!id || !getAllowedDiscordUserIds().has(id)) throw new DashboardError("Unauthorized.", 401);
@@ -66,10 +67,12 @@ export async function authorizeGuild(request: NextRequest, guildId: string, admi
     const session = await dashboardSession(request);
     const restriction = await (await getDb()).collection<{ _id: string }>("bot_blacklist").findOne({ _id: { $in: ["user:" + session.userId, "server:" + guildId] } }, { projection: { _id: 1 } });
     if (restriction) throw new DashboardError("Bot access is blocked.", 403);
-    if (!(await managedGuilds(session.accessToken)).some((guild) => guild.id === guildId)) throw new DashboardError("You need Manage Server or Administrator permission.", 403);
+    const guild = (await managedGuilds(session.accessToken)).find((guild) => guild.id === guildId);
+    canConfigureTripwire = !!guild && (guild.owner || (BigInt(guild.permissions) & BigInt(8)) !== BigInt(0));
+    if (!guild) throw new DashboardError("You need Manage Server or Administrator permission.", 403);
     userId = session.userId;
   }
   const presence = await (await getDb()).collection("bot_guilds").findOne({ guildId, seenAt: { $gt: new Date(Date.now() - 120000) } });
   if (!presence) throw new DashboardError("Delta is offline or is not in this server. Invite Delta and try again.", 409);
-  return { userId, presence };
+  return { userId, presence, canConfigureTripwire };
 }

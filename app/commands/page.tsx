@@ -23,7 +23,12 @@ const commandCategories = [
     { name: "/remove", description: "Remove a track from the queue", usage: "/remove <position>" },
     { name: "/clear", description: "Clear every track from the queue", usage: "/clear" },
     { name: "/move", description: "Move a track to a different position", usage: "/move <from> <to>" },
-    { name: "/playlist save", description: "Save the current queue as a playlist", usage: "/playlist save <name>" },
+    { name: "/playlist create", description: "Create a personal playlist", usage: "/playlist create <name>" },
+    { name: "/playlist add", description: "Save a song or URL", usage: "/playlist add <name> <song or URL>" },
+    { name: "/playlist addcurrent", description: "Save the track playing in your voice channel", usage: "/playlist addcurrent <name>" },
+    { name: "/playlist edit", description: "Rename a playlist", usage: "/playlist edit <name> <new name>" },
+    { name: "/playlist delete", description: "Delete one of your playlists", usage: "/playlist delete <name>" },
+    { name: "/playlist list", description: "List your personal playlists", usage: "/playlist list [page]" },
     { name: "/playlist load", description: "Load a saved playlist", usage: "/playlist load <name>" },
   ] },
   { id: "effects", name: "Audio effects", icon: Sliders, commands: [
@@ -37,6 +42,7 @@ const commandCategories = [
     { name: "/pitch", description: "Adjust the audio pitch", usage: "/pitch <value>" },
   ] },
   { id: "settings", name: "Settings", icon: Settings, commands: [
+    { name: "/cmdtripwire", description: "Delete messages and kick, time out, or ban senders in one channel", usage: "/cmdtripwire <action> [channel]" },
     { name: "/settings", description: "View the current bot settings", usage: "/settings" },
     { name: "/prefix", description: "Change the bot prefix", usage: "/prefix <new prefix>" },
     { name: "/dj", description: "Set a DJ role for restricted commands", usage: "/dj <role>" },

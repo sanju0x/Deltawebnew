@@ -5,7 +5,20 @@ import {
   getAllowedDiscordUserIds,
 } from "@/lib/admin-auth";
 
+import { maintenanceStatus } from "@/lib/web-maintenance";
+
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  if (path.startsWith("/api/") && !path.startsWith("/api/admin")) {
+    if (["/api/maintenance", "/api/dashboard/account", "/api/dashboard/logout", "/api/dashboard/login", "/api/dashboard/callback"].includes(path) || path.startsWith("/api/auth/")) return NextResponse.next();
+    try {
+      const state = await maintenanceStatus();
+      if (state.enabled || (state.user && path === "/api/user-dashboard") || (state.dashboard && (path === "/api/dashboard" || path.startsWith("/api/dashboard/servers/")))) {
+        return NextResponse.json({ error: "Under maintenance." }, { status: 503 });
+      }
+    } catch { return NextResponse.json({ error: "Maintenance status unavailable." }, { status: 503 }); }
+    return NextResponse.next();
+  }
   if (request.nextUrl.pathname === "/admin/login") {
     return NextResponse.next();
   }
@@ -37,5 +50,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/:path*"],
 };

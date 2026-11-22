@@ -13,6 +13,7 @@ const userId = "222222222222222222";
 const token = "a".repeat(64);
 const valid = { source: "spsearch", disabledCommands: ["warn"], customBot: false, nickname: "", bio: "", avatar: "", banner: "" };
 async function setup({ signedIn = true, permissions = "32", adminId = null, allowAdmin = false, offline = false, discordStatus = 200, guilds, presentIds = [guildId] } = {}) {
+  let tripwire = null;
   let saved = null, writes = 0, permissionChecks = 0;
   const session = { userId, username: "Listener", avatar: "avatar-hash", accessToken: "server-only-token", expiresAt: new Date(Date.now() + 60000) };
   const context = createContext({ Response, URL, Date, Headers, AbortSignal, console: { error() {} }, process: { env: { WEBSITE_URL: "https://delta.example" } },
@@ -31,9 +32,10 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
     "@/lib/admin-auth": { getDiscordClientId: () => "client", ADMIN_SESSION_COOKIE: "admin_session", getAdminSessionUserId: async () => adminId, getAllowedDiscordUserIds: () => new Set(allowAdmin && adminId ? [adminId] : []) },
     "@/lib/server-config-schema": schema,
     "@/lib/mongodb": { getDb: async () => ({ collection: (name) => {
+      if (name === "tripwires") return { findOne: async () => tripwire, updateOne: async (filter, update) => { assert.equal(filter._id, guildId); tripwire = update.$set; } };
       if (name === "bot_blacklist") return { findOne: async () => null };
       if (name === "dashboard_sessions") return { findOne: async (filter) => signedIn && filter.tokenHash === createHash("sha256").update(token).digest("hex") ? session : null };
-      if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", configurableCommands: ["warn"], source: "ytsearch", disabledCommands: [] } };
+      if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", channels: [{ id: "333333333333333333", name: "tripwire" }], configurableCommands: ["warn"], source: "ytsearch", disabledCommands: [] } };
       if (name === "server_configs") return { createIndex: async () => {}, findOne: async () => saved,
         updateOne: async (filter, update) => { writes++; assert.equal(filter.guildId, guildId); saved = { ...update.$set, ...update.$setOnInsert }; } };
       throw new Error(`Unexpected collection ${name}`);
@@ -131,4 +133,18 @@ test("account menu returns only display identity and skips the guild lookup", as
   assert.equal(app.permissionChecks, 0);
   const visitor = await setup({ signedIn: false });
   assert.equal((await visitor.getDashboard("account/")).status, 401);
+});
+
+test("tripwire writes require administrator access and a channel belonging to the selected guild", async () => {
+  const rule = { channelId: "333333333333333333", action: "ban" };
+  const manager = await setup();
+  assert.equal((await manager.request(rule, { method: "PUT" })).status, 403);
+  const admin = await setup({ permissions: "8" });
+  assert.equal((await admin.request({ ...rule, channelId: guildId }, { method: "PUT" })).status, 400);
+  assert.equal((await admin.request({ ...rule, action: "other" }, { method: "PUT" })).status, 400);
+  assert.equal((await admin.request(rule, { method: "PUT", origin: "https://other.example" })).status, 403);
+  const result = await admin.request(rule, { method: "PUT" });
+  assert.equal(result.status, 200);
+  assert.deepEqual((await result.json()).tripwire, rule);
+  assert.equal((await admin.request({ channelId: null, action: null }, { method: "PUT" })).status, 200);
 });
