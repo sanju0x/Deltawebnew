@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Bot, ChevronDown, LayoutDashboard, ListX, Music2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,16 +84,48 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     } catch (e) { setError(e instanceof Error ? e.message : "Could not save settings."); }
     finally { setBusy(false); }
   }
+  const [activeSection, setActiveSection] = useState("overview");
+  const sections = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    ...(canConfigureTripwire ? [{ id: "tripwire", label: "Tripwire", icon: ShieldAlert }] : []),
+    { id: "commands", label: "Command disable", icon: ListX },
+    { id: "music", label: "Music source", icon: Music2 },
+    { id: "bot", label: "Custom bot", icon: Bot }
+  ];
   const prefix = `server-${guildId}`;
   return <div className="space-y-6">
     {loading ? <p role="status">Loading server settings…</p> : config && <>
       <div><h2 className="text-2xl font-bold">{serverName || "Server settings"}</h2><p className="mt-1 break-all text-sm text-muted-foreground">{guildId}</p></div>
-      {canConfigureTripwire && <fieldset disabled={busy} className="space-y-3 rounded-2xl border p-5"><legend className="px-2 font-semibold">Channel tripwire</legend>
+      <div className="grid gap-6 lg:grid-cols-[230px_minmax(0,1fr)]">
+        <nav aria-label="Server settings navigation" className="h-fit rounded-sm border border-border bg-card p-3 lg:sticky lg:top-24">
+          <p className="px-3 pb-3 pt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Server features</p>
+          <div className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+            {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-current={activeSection === id ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-3 rounded-sm px-3 py-3 text-left text-sm font-medium transition-colors lg:w-full ${activeSection === id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+              onClick={() => setActiveSection(id)}><Icon aria-hidden="true" className="size-4" />{label}</button>)}
+          </div>
+        </nav>
+        <div className="min-w-0 space-y-5">
+        {activeSection === "overview" && <section className="rounded-sm border border-border bg-card p-6">
+          <h3 className="text-xl font-bold">Server overview</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Select a category to configure Delta for this server.</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {[
+              { id: "tripwire", label: "Tripwire", value: channelId ? "Enabled" : "Disabled", visible: canConfigureTripwire },
+              { id: "commands", label: "Command restrictions", value: `${config.disabledCommands.length} disabled`, visible: true },
+              { id: "music", label: "Music source", value: MUSIC_SOURCES.find(item => item.value === config.source)?.name || config.source, visible: true },
+              { id: "bot", label: "Custom bot", value: config.customBot ? "Enabled" : "Disabled", visible: true }
+            ].filter(item => item.visible).map(item => <button type="button" key={item.id} onClick={() => setActiveSection(item.id)} className="rounded-sm border border-border bg-background p-4 text-left hover:border-primary/50">
+              <span className="block text-sm text-muted-foreground">{item.label}</span><strong className="mt-1 block">{item.value}</strong>
+            </button>)}
+          </div>
+        </section>}
+      {activeSection === "tripwire" && canConfigureTripwire && <fieldset disabled={busy} className="space-y-3 rounded-2xl border p-5"><legend className="px-2 font-semibold">Channel tripwire</legend>
         <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
         <label className="block">Channel <select className="rounded border bg-background p-2" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
         <label className="block">Action <select className="rounded border bg-background p-2" disabled={!channelId} value={action} onChange={e => setAction(e.target.value)}><option value="timeout">Timeout (10 minutes)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
       </fieldset>}
-      <fieldset disabled={busy} className="space-y-6 disabled:opacity-70">
+      {activeSection === "music" && <fieldset disabled={busy} className="space-y-6 disabled:opacity-70">
         <section className="space-y-3 rounded-2xl border border-border p-5">
           <h3 className="text-lg font-semibold">Music source</h3>
           <Label htmlFor={`${prefix}-source`}>Default search provider</Label>
@@ -102,7 +134,9 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           </select>
           <p className="text-sm text-muted-foreground">Used for music searches in this server. The provider must be enabled on Delta’s music node.</p>
         </section>
-        <details className="group space-y-4 rounded-sm border border-border p-5">
+      </fieldset>}
+      {activeSection === "commands" && <fieldset disabled={busy} className="disabled:opacity-70">
+        <details open className="group space-y-4 rounded-sm border border-border p-5">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
             <span><strong className="block text-lg">Command configuration</strong><span className="text-sm text-muted-foreground">{commands.length} commands ? {config.disabledCommands.length} disabled</span></span>
             <ChevronDown aria-hidden="true" className="size-5 shrink-0 transition-transform group-open:rotate-180" />
@@ -113,6 +147,8 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
             <Switch id={`${prefix}-${command}`} checked={!config.disabledCommands.includes(command)} onCheckedChange={(enabled) => change({ disabledCommands: enabled ? config.disabledCommands.filter((value) => value !== command) : [...config.disabledCommands, command] })} />
           </div>)}</div>
         </details>
+      </fieldset>}
+      {activeSection === "bot" && <fieldset disabled={busy} className="disabled:opacity-70">
         <section className="space-y-4 rounded-2xl border border-border p-5">
           <div className="flex items-center justify-between gap-4"><div><h3 className="text-lg font-semibold">Custom bot profile</h3><p className="mt-1 text-sm text-muted-foreground">Personalize Delta in this server.</p></div>
             <Switch id={`${prefix}-custom`} aria-label="Enable custom bot profile" checked={config.customBot} onCheckedChange={(customBot) => change({ customBot })} /></div>
@@ -129,7 +165,9 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
             <p className="text-sm text-muted-foreground">Use a direct HTTPS PNG, JPEG, GIF or WebP link, up to 8 MB. Supported hosts: {IMAGE_HOSTS.join(", ")}. Leave a field blank to reset it.</p>
           </div>}
         </section>
-      </fieldset>
+      </fieldset>}
+        </div>
+      </div>
       <div className={dirty ? "sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-background p-4 shadow-lg" : "flex items-center gap-3"}>
         <p role="status" className="text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
         {dirty && <Button variant="outline" disabled={busy} onClick={() => {
