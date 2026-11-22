@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Bot, ChevronDown, ChevronLeft, ChevronRight, LayoutDashboard, ListX, Music2, Search, ShieldAlert } from "lucide-react";
+import { Bot, Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,6 +87,7 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
   const [activeSection, setActiveSection] = useState("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sectionSearch, setSectionSearch] = useState("");
+  const [commandSearch, setCommandSearch] = useState("");
   const sections = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     ...(canConfigureTripwire ? [{ id: "tripwire", label: "Tripwire", icon: ShieldAlert }] : []),
@@ -95,9 +96,27 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     { id: "bot", label: "Custom bot", icon: Bot }
   ];
   const prefix = `server-${guildId}`;
+  const sectionMeta: Record<string, { title: string; subtitle: string }> = {
+    overview: { title: "Server overview", subtitle: "Everything Delta can manage in your community." },
+    tripwire: { title: "Tripwire protection", subtitle: "Protect your community with automated actions." },
+    commands: { title: "Command management", subtitle: "Search, enable or restrict commands for this server." },
+    music: { title: "Music preferences", subtitle: "Choose which supported provider Delta searches by default." },
+    bot: { title: "Custom bot identity", subtitle: "Make Delta feel like part of your server." }
+  };
+  const visibleCommands = commands.filter(command => command.toLowerCase().includes(commandSearch.trim().toLowerCase()));
+  const activeMeta = sectionMeta[activeSection] || sectionMeta.overview;
   return <div className="space-y-6">
     {loading ? <p role="status">Loading server settings…</p> : config && <>
-      <div><h2 className="text-2xl font-bold">{serverName || "Server settings"}</h2><p className="mt-1 break-all text-sm text-muted-foreground">{guildId}</p></div>
+      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border/70 bg-card/70 p-5 sm:p-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="grid size-12 shrink-0 place-items-center rounded-xl border border-red-600/20 bg-red-600/10 text-xl font-black text-red-500">{(serverName || "D").slice(0,1).toUpperCase()}</div>
+          <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-500">Delta control center</p><h2 className="mt-1 truncate text-xl font-bold sm:text-2xl">{serverName || "Server settings"}</h2><p className="mt-1 text-xs text-muted-foreground">Server ID: {guildId}</p></div>
+        </div>
+        <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${dirty ? "border-amber-500/25 bg-amber-500/10 text-amber-500" : config.status === "pending" ? "border-blue-500/25 bg-blue-500/10 text-blue-500" : config.status === "error" ? "border-destructive/25 bg-destructive/10 text-destructive" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-500"}`}>
+          {dirty ? <CircleAlert className="size-4" /> : config.status === "pending" ? <Clock3 className="size-4" /> : config.status === "error" ? <CircleAlert className="size-4" /> : <CircleCheck className="size-4" />}
+          {dirty ? "Unsaved changes" : config.status === "pending" ? "Syncing with Delta" : config.status === "error" ? "Sync issue" : "Up to date"}
+        </span>
+      </div>
       <div className={`grid gap-6 lg:items-start lg:transition-[grid-template-columns] lg:duration-300 ${sidebarCollapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[260px_minmax(0,1fr)]"}`}>
         <nav aria-label="Server settings navigation" className="h-fit min-w-0 rounded-xl border border-white/10 bg-[#14121d] p-3 text-white shadow-xl lg:sticky lg:top-24">
           <div className="mb-4 flex items-center justify-between gap-1 px-2 pt-2"><span className={`${sidebarCollapsed ? "lg:hidden" : ""} truncate text-sm font-bold tracking-wider text-white`}>DELTA SETTINGS</span><button type="button" aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!sidebarCollapsed} title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => setSidebarCollapsed(value => !value)} className="grid size-9 shrink-0 place-items-center rounded-lg text-white/75 hover:bg-white/10 hover:text-white">{sidebarCollapsed ? <ChevronRight className="size-5" /> : <ChevronLeft className="size-5" />}</button></div><div className={`mb-3 flex items-center gap-2 rounded-lg bg-white/10 px-3 ${sidebarCollapsed ? "lg:justify-center lg:px-0" : ""}`}><Search aria-hidden="true" className="size-4 shrink-0 text-white/70" /><input aria-label="Search server features" type="search" value={sectionSearch} onChange={event => setSectionSearch(event.target.value)} placeholder="Search..." className={`h-11 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40 ${sidebarCollapsed ? "lg:sr-only" : ""}`} /></div>
@@ -109,50 +128,70 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           <div className="mt-6 flex items-center gap-3 border-t border-white/10 px-2 pt-4"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-red-900/60 text-sm font-bold text-white">{(serverName || "D").slice(0, 1).toUpperCase()}</span><div className={`${sidebarCollapsed ? "lg:hidden" : ""} min-w-0`}><p className="truncate text-sm font-semibold text-white">{serverName || "Delta server"}</p><p className="truncate text-xs text-white/50">Server settings</p></div></div>
         </nav>
         <div className="min-w-0 space-y-5">
+          <div className="flex items-center gap-3 border-b border-border pb-5">
+            <div className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-card"><Settings2 className="size-5 text-primary" /></div>
+            <div><h3 className="text-xl font-bold">{activeMeta.title}</h3><p className="text-sm text-muted-foreground">{activeMeta.subtitle}</p></div>
+          </div>
         {activeSection === "overview" && <section className="rounded-sm border border-border bg-card p-6">
-          <h3 className="text-xl font-bold">Server overview</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Select a category to configure Delta for this server.</p>
+          <p className="text-sm text-muted-foreground">Select a feature below to open its controls. No changes are applied until you save them.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {[
               { id: "tripwire", label: "Tripwire", value: channelId ? "Enabled" : "Disabled", visible: canConfigureTripwire },
               { id: "commands", label: "Command restrictions", value: `${config.disabledCommands.length} disabled`, visible: true },
               { id: "music", label: "Music source", value: MUSIC_SOURCES.find(item => item.value === config.source)?.name || config.source, visible: true },
               { id: "bot", label: "Custom bot", value: config.customBot ? "Enabled" : "Disabled", visible: true }
-            ].filter(item => item.visible).map(item => <button type="button" key={item.id} onClick={() => setActiveSection(item.id)} className="rounded-sm border border-border bg-background p-4 text-left hover:border-primary/50">
-              <span className="block text-sm text-muted-foreground">{item.label}</span><strong className="mt-1 block">{item.value}</strong>
+            ].filter(item => item.visible).map(item => <button type="button" key={item.id} onClick={() => setActiveSection(item.id)} className="group rounded-lg border border-border bg-background p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</span><strong className="mt-2 block text-lg">{item.value}</strong><span className="mt-3 block text-xs text-primary opacity-80 group-hover:opacity-100">Configure →</span>
             </button>)}
           </div>
         </section>}
-      {activeSection === "tripwire" && canConfigureTripwire && <fieldset disabled={busy} className="space-y-3 rounded-2xl border p-5"><legend className="px-2 font-semibold">Channel tripwire</legend>
+      {activeSection === "tripwire" && canConfigureTripwire && <fieldset disabled={busy} className="space-y-4 rounded-xl border border-border bg-card p-5 sm:p-6"><legend className="px-2 font-semibold">Channel tripwire</legend>
         <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
-        <label className="block">Channel <select className="rounded border bg-background p-2" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
-        <label className="block">Action <select className="rounded border bg-background p-2" disabled={!channelId} value={action} onChange={e => setAction(e.target.value)}><option value="timeout">Timeout (10 minutes)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
+        <label className="block space-y-2 text-sm font-medium">Channel <select className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
+        <label className="block space-y-2 text-sm font-medium">Action <select className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3" disabled={!channelId} value={action} onChange={e => setAction(e.target.value)}><option value="timeout">Timeout (10 minutes)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
       </fieldset>}
-      {activeSection === "music" && <fieldset disabled={busy} className="space-y-6 disabled:opacity-70">
-        <section className="space-y-3 rounded-2xl border border-border p-5">
-          <h3 className="text-lg font-semibold">Music source</h3>
-          <Label htmlFor={`${prefix}-source`}>Default search provider</Label>
-          <select id={`${prefix}-source`} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-base" value={config.source} onChange={(event) => change({ source: event.target.value })}>
-            {MUSIC_SOURCES.map((source) => <option key={source.value} value={source.value}>{source.name}</option>)}
-          </select>
-          <p className="text-sm text-muted-foreground">Used for music searches in this server. The provider must be enabled on Delta’s music node.</p>
-        </section>
+      {activeSection === "music" && <fieldset disabled={busy} className="space-y-4 disabled:opacity-70">
+        <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+          <h4 className="text-lg font-semibold">Default music source</h4>
+          <p className="mt-1 text-sm text-muted-foreground">Choose a source for music searches. Your music node must support the provider you select.</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {MUSIC_SOURCES.map(source => <label key={source.value} className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-colors ${config.source === source.value ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/40"}`}>
+              <input type="radio" name={`${prefix}-source`} checked={config.source === source.value} onChange={() => change({source: source.value})} className="accent-red-600" />
+              <Music2 className="size-4 shrink-0 text-muted-foreground" /><span className="flex-1 text-sm font-medium">{source.name}</span>
+              {config.source === source.value && <Check className="size-4 text-primary" />}
+            </label>)}
+          </div>
+          <p className="mt-5 text-xs text-muted-foreground">A music source is required by the current bot configuration. This setting selects the default provider; it does not disable music playback.</p>
+        </div>
       </fieldset>}
-      {activeSection === "commands" && <fieldset disabled={busy} className="disabled:opacity-70">
-        <details open className="group space-y-4 rounded-sm border border-border p-5">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-            <span><strong className="block text-lg">Command configuration</strong><span className="text-sm text-muted-foreground">{commands.length} commands ? {config.disabledCommands.length} disabled</span></span>
-            <ChevronDown aria-hidden="true" className="size-5 shrink-0 transition-transform group-open:rotate-180" />
-          </summary>
-          <p className="text-sm text-muted-foreground">Turn commands on or off for this server. Changes apply to prefix and slash commands.</p>
-          <div className="grid gap-3 sm:grid-cols-2">{commands.map((command) => <div key={command} className="flex items-center justify-between gap-3 rounded-xl bg-secondary/40 p-3">
-            <Label htmlFor={`${prefix}-${command}`} className="break-all">{command}</Label>
-            <Switch id={`${prefix}-${command}`} checked={!config.disabledCommands.includes(command)} onCheckedChange={(enabled) => change({ disabledCommands: enabled ? config.disabledCommands.filter((value) => value !== command) : [...config.disabledCommands, command] })} />
-          </div>)}</div>
-        </details>
+      {activeSection === "commands" && <fieldset disabled={busy} className="space-y-4 disabled:opacity-70">
+        <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div><h4 className="text-lg font-semibold">Available commands</h4><p className="mt-1 text-sm text-muted-foreground">{commands.length} total · {config.disabledCommands.length} disabled · {commands.length - config.disabledCommands.length} enabled</p></div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" disabled={!commands.length} onClick={() => change({disabledCommands: []})}>Enable all</Button>
+              <Button type="button" variant="outline" size="sm" disabled={!commands.length} onClick={() => change({disabledCommands: [...commands]})}>Disable all</Button>
+            </div>
+          </div>
+          <div className="relative mt-5">
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-3.5 size-4 text-muted-foreground" />
+            <Input aria-label="Search commands" placeholder="Search commands..." value={commandSearch} onChange={event => setCommandSearch(event.target.value)} className="pl-10" />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">Changes affect both slash and prefix commands. Turn a switch off to disable a command.</p>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {visibleCommands.map(command => {
+              const enabled = !config.disabledCommands.includes(command);
+              return <div key={command} className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border/70 bg-background p-3.5 transition-colors hover:border-primary/30">
+                <div className="min-w-0"><Label htmlFor={`${prefix}-${command}`} className="block truncate font-medium">{command}</Label><span className={`text-xs ${enabled ? "text-emerald-500" : "text-muted-foreground"}`}>{enabled ? "Enabled" : "Disabled"}</span></div>
+                <Switch id={`${prefix}-${command}`} checked={enabled} onCheckedChange={value => change({disabledCommands: value ? config.disabledCommands.filter(item => item !== command) : [...config.disabledCommands, command]})} />
+              </div>;
+            })}
+          </div>
+          {!visibleCommands.length && <p className="mt-5 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No commands match your search.</p>}
+        </div>
       </fieldset>}
       {activeSection === "bot" && <fieldset disabled={busy} className="disabled:opacity-70">
-        <section className="space-y-4 rounded-2xl border border-border p-5">
+        <section className="space-y-4 rounded-xl border border-border bg-card p-5 sm:p-6">
           <div className="flex items-center justify-between gap-4"><div><h3 className="text-lg font-semibold">Custom bot profile</h3><p className="mt-1 text-sm text-muted-foreground">Personalize Delta in this server.</p></div>
             <Switch id={`${prefix}-custom`} aria-label="Enable custom bot profile" checked={config.customBot} onCheckedChange={(customBot) => change({ customBot })} /></div>
           <p className="text-sm text-muted-foreground">Turning this off removes Delta’s custom nickname, bio, avatar and banner in this server.</p>
@@ -171,7 +210,7 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
       </fieldset>}
         </div>
       </div>
-      <div className={dirty ? "sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-background p-4 shadow-lg" : "flex items-center gap-3"}>
+      <div className={dirty || config.status === "error" ? "sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/25 bg-background/95 p-4 shadow-xl backdrop-blur" : "flex items-center gap-3"}>
         <p role="status" className="text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
         {dirty && <Button variant="outline" disabled={busy} onClick={() => {
           setConfig(savedConfig); setChannelId(savedRule.channelId); setAction(savedRule.action);

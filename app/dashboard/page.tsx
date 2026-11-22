@@ -4,6 +4,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { ServerConfigEditor } from "@/components/server-config-editor";
+import { ArrowLeft, Search, Server, Settings2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 type Guild = { id: string; name: string; icon: string | null; role: string; available: boolean };
 type Account = { clientId: string; user: { id: string; name: string }; guilds: Guild[] };
@@ -13,6 +15,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Guild | null>(null);
   const [busy, setBusy] = useState(false);
+  const [serverSearch, setServerSearch] = useState("");
   async function load() {
     setLoading(true); setError("");
     try {
@@ -39,8 +42,8 @@ export default function DashboardPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Could not sign out."); }
     finally { setBusy(false); }
   }
-  const ready = account?.guilds.filter(guild => guild.available) ?? [];
-  const other = account?.guilds.filter(guild => !guild.available) ?? [];
+  const ready = account?.guilds.filter(guild => guild.available && guild.name.toLowerCase().includes(serverSearch.trim().toLowerCase())) ?? [];
+  const other = account?.guilds.filter(guild => !guild.available && guild.name.toLowerCase().includes(serverSearch.trim().toLowerCase())) ?? [];
   function renderGuild(guild: Guild) {
     return <GuildCard key={guild.id} guild={guild} clientId={account!.clientId} onManage={setSelected} />;
   }
@@ -51,10 +54,17 @@ export default function DashboardPage() {
         {account && <div className="space-y-3"><p className="text-sm">Signed in as {account.user.name}</p><Button variant="outline" disabled={busy} onClick={() => void logout()}>Sign out</Button></div>}
       </div>
       {error && <p role="alert" className="mb-6 rounded-xl border border-destructive/30 p-4 text-destructive">{error}</p>}
-      {loading ? <p role="status">Loading your servers…</p> : !account ? <div className="max-w-xl space-y-5 rounded-3xl border border-border bg-card p-8"><h2 className="text-2xl font-bold">Connect with Discord</h2><p className="text-muted-foreground">Sign in to see the servers you can manage.</p><a className="button-primary" href="/api/dashboard/login">Log in with Discord</a></div> : selected ? <div className="mx-auto max-w-6xl"><Button variant="outline" className="mb-6" onClick={() => setSelected(null)}>All servers</Button><ServerConfigEditor key={selected.id} guildId={selected.id} /></div> : <>
-        <div className="mb-5 flex items-center justify-between"><h2 className="text-2xl font-bold">Servers you can manage</h2><Button variant="outline" onClick={() => void load()}>Refresh servers</Button></div>
+      {loading ? <p role="status">Loading your servers…</p> : !account ? <div className="max-w-xl space-y-5 rounded-3xl border border-border bg-card p-8"><h2 className="text-2xl font-bold">Connect with Discord</h2><p className="text-muted-foreground">Sign in to see the servers you can manage.</p><a className="button-primary" href="/api/dashboard/login">Log in with Discord</a></div> : selected ? <div className="mx-auto max-w-6xl"><Button variant="outline" className="mb-6 gap-2" onClick={() => setSelected(null)}><ArrowLeft className="size-4" />All servers</Button><ServerConfigEditor key={selected.id} guildId={selected.id} /></div> : <>
+        <div className="mb-7 flex flex-col gap-5 rounded-xl border border-border bg-card/70 p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><Server className="size-5" /></span><div><h2 className="text-xl font-bold">Choose a server</h2><p className="text-sm text-muted-foreground">Manage settings for {account.guilds.length} available servers.</p></div></div>
+            <Button variant="outline" onClick={() => void load()}>Refresh servers</Button>
+          </div>
+          <div className="relative max-w-xl"><Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-muted-foreground" /><Input aria-label="Search servers" placeholder="Search your servers..." value={serverSearch} onChange={event => setServerSearch(event.target.value)} className="pl-10" /></div>
+        </div>
         {!account.guilds.length && <p className="rounded-2xl border border-border p-7">No servers found. You must own a server or have Administrator or Manage Server permission.</p>}
-        {!ready.length && other.length > 0 && <p className="text-muted-foreground">Delta is not online in any of your manageable servers.</p>}
+        {!ready.length && other.length > 0 && !serverSearch && <p className="text-muted-foreground">Delta is not online in any of your manageable servers.</p>}
+        {account.guilds.length > 0 && !ready.length && !other.length && <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">No servers match your search.</p>}
         {ready.length > 0 && <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{ready.map(renderGuild)}</div>}
         {other.length > 0 && <details className="mt-6 rounded-sm border border-border p-5">
           <summary className="cursor-pointer font-semibold">Invite Delta or check availability ({other.length})</summary>
@@ -65,9 +75,9 @@ export default function DashboardPage() {
 }
 
 function GuildCard({ guild, clientId, onManage }: { guild: Guild; clientId: string; onManage: (guild: Guild) => void }) {
-  return <article className="flex flex-col gap-5 rounded-sm border border-border bg-card p-6">
+  return <article className="group flex flex-col gap-5 rounded-xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
           <div className="flex items-center gap-4">{guild.icon ? <img alt="" width={48} height={48} className="rounded-xl" src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=96`} /> : <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-lg font-bold text-primary">{guild.name.slice(0, 2)}</span>}<div className="min-w-0"><h3 className="break-words text-lg font-semibold">{guild.name}</h3><span className="text-sm text-muted-foreground">{guild.role}</span></div></div>
-          <p className="text-sm text-muted-foreground">{guild.available ? "Delta is ready to configure." : "Invite Delta or wait for it to come online."}</p>
-          {guild.available ? <Button className="mt-auto" onClick={() => onManage(guild)}>Manage server</Button> : <a className="button-primary mt-auto" href={`https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot%20applications.commands&permissions=0&guild_id=${guild.id}&disable_guild_select=true`}>Add Delta</a>}
+          <p className="text-sm text-muted-foreground">{guild.available ? "Ready to configure music, safety and commands." : "Invite Delta or wait for it to come online."}</p>
+          {guild.available ? <Button className="mt-auto gap-2" onClick={() => onManage(guild)}><Settings2 className="size-4" />Manage server</Button> : <a className="button-primary mt-auto" href={`https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot%20applications.commands&permissions=0&guild_id=${guild.id}&disable_guild_select=true`}>Add Delta</a>}
         </article>;
 }
