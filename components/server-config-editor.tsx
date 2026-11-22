@@ -20,31 +20,30 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
   const [canConfigureTripwire, setCanConfigureTripwire] = useState(false);
   const [channelId, setChannelId] = useState("");
   const [action, setAction] = useState("timeout");
-  async function saveTripwire() {
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const res = await fetch(endpoint, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channelId: channelId || null, action: channelId ? action : null }) });
-      if (!res.ok) throw new Error((await res.json()).error || "Could not save tripwire.");
-      setNotice("Tripwire saved. Changes usually apply within 15 seconds.");
-    } catch (e) { setError(e instanceof Error ? e.message : "Could not save tripwire."); }
-    finally { setBusy(false); }
+  const [savedRule, setSavedRule] = useState({ channelId: "", action: "timeout" });
+  const [savedConfig, setSavedConfig] = useState<ServerConfig | null>(null);
+  const ruleDirty = channelId !== savedRule.channelId || (!!channelId && action !== savedRule.action);
+  function signature(value: ServerConfig | null) {
+    return JSON.stringify(value && { ...value, disabledCommands: [...value.disabledCommands].sort() });
   }
+  const configDirty = signature(config) !== signature(savedConfig);
+  const dirty = configDirty || ruleDirty;
   const [commands, setCommands] = useState<string[]>([]);
   const [serverName, setServerName] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setConfig(null); setDirty(false); setError(""); setNotice("");
+    setLoading(true); setConfig(null); setSavedConfig(null); setError(""); setNotice("");
     fetch(endpoint, { headers: { "x-editor-open": "1" }, cache: "no-store", signal: controller.signal }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load settings.");
       setChannels(data.channels || []); setCanConfigureTripwire(data.canConfigureTripwire);
-      setChannelId(data.tripwire?.channelId || ""); setAction(data.tripwire?.action || "timeout");
-      setConfig(data.config); setCommands(data.commands); setServerName(data.serverName);
+      const rule = { channelId: data.tripwire?.channelId || "", action: data.tripwire?.action || "timeout" };
+      setSavedRule(rule); setChannelId(rule.channelId); setAction(rule.action);
+      setConfig(data.config); setSavedConfig(data.config); setCommands(data.commands); setServerName(data.serverName);
     }).catch((e) => { if (!controller.signal.aborted) setError(e.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [endpoint]);
@@ -56,20 +55,32 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
         const response = await fetch(endpoint, { cache: "no-store", signal: controller.signal });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not check sync status.");
-        if (!controller.signal.aborted) setConfig(data.config);
+        if (!controller.signal.aborted) {
+          setConfig(data.config); setSavedConfig(data.config);
+          const rule = { channelId: data.tripwire?.channelId || "", action: data.tripwire?.action || "timeout" };
+          setSavedRule(rule); setChannelId(rule.channelId); setAction(rule.action);
+        }
       } catch (e) { if (!controller.signal.aborted) setNotice(e instanceof Error ? e.message : "Could not check sync status."); }
     }, 15000);
     return () => { clearInterval(timer); controller.abort(); };
   }, [endpoint, config?.status, config?.revision, dirty, busy, loading]);
-  function change(values: Partial<ServerConfig>) { setConfig((current) => current ? { ...current, ...values } : current); setDirty(true); setNotice(""); }
+  function change(values: Partial<ServerConfig>) { setConfig((current) => current ? { ...current, ...values } : current); setNotice(""); }
   async function save() {
     if (!config || busy) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify(config) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not save settings.");
-      setConfig(data.config); setDirty(false); setNotice("Saved. Delta usually applies changes within 15 seconds.");
+      if (configDirty || (!ruleDirty && config.status === "error")) {
+        const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify(config) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not save settings.");
+        setConfig(data.config); setSavedConfig(data.config);
+      }
+      if (ruleDirty) {
+        const response = await fetch(endpoint, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channelId: channelId || null, action: channelId ? action : null }) });
+        if (!response.ok) throw new Error((await response.json()).error || "Could not save tripwire.");
+        setSavedRule({ channelId, action });
+      }
+      setNotice("Saved. Delta usually applies changes within 15 seconds.");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not save settings."); }
     finally { setBusy(false); }
   }
@@ -81,7 +92,6 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
         <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
         <label className="block">Channel <select className="rounded border bg-background p-2" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
         <label className="block">Action <select className="rounded border bg-background p-2" disabled={!channelId} value={action} onChange={e => setAction(e.target.value)}><option value="timeout">Timeout (10 minutes)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
-        <Button onClick={saveTripwire}>Save tripwire</Button>
       </fieldset>}
       <fieldset disabled={busy} className="space-y-6 disabled:opacity-70">
         <section className="space-y-3 rounded-2xl border border-border p-5">
@@ -120,9 +130,13 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           </div>}
         </section>
       </fieldset>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className={dirty ? "sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-xl border bg-background p-4 shadow-lg" : "flex items-center gap-3"}>
         <p role="status" className="text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
-        <Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save settings"}</Button>
+        {dirty && <Button variant="outline" disabled={busy} onClick={() => {
+          setConfig(savedConfig); setChannelId(savedRule.channelId); setAction(savedRule.action);
+          setError(""); setNotice("");
+        }}>Reset</Button>}
+        {(dirty || config.status === "error") && <Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save Changes"}</Button>}
       </div>
       {!dirty && config.error && <p role="alert" className="text-sm text-destructive">{config.error}</p>}
     </>}
