@@ -7,7 +7,8 @@ import { canManageGuild } from "@/lib/server-config-schema";
 
 export const DASHBOARD_COOKIE = "delta_dashboard_session";
 export const STATE_COOKIE = "delta_dashboard_oauth_state";
-export const cookieOptions = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", ...(process.env.NODE_ENV === "production" ? { domain: ".delta-bot.online" } : {}) };
+export const cookieOptions = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/" };
+export function dashboardCookieOptions(request: NextRequest) { return { ...cookieOptions, ...(request.nextUrl.hostname === "delta-bot.online" || request.nextUrl.hostname.endsWith(".delta-bot.online") ? { domain: ".delta-bot.online" } : {}) }; }
 export const SERVER_DASHBOARD_ORIGIN = "https://dash.delta-bot.online";
 export function isServerDashboardHost(request: NextRequest) { return request.nextUrl.hostname.toLowerCase() === "dash.delta-bot.online"; }
 export function siteOrigin(request: NextRequest) { return isServerDashboardHost(request) ? SERVER_DASHBOARD_ORIGIN : new URL(process.env.WEBSITE_URL || request.nextUrl.origin).origin; }
