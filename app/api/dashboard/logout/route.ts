@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     }
     const response = NextResponse.json({ success: true });
     response.cookies.set(DASHBOARD_COOKIE, "", { ...dashboardCookieOptions(request), maxAge: 0 });
-    response.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
-    response.cookies.set(TRIAL_SESSION_COOKIE, "", { ...trialCookieOptions, maxAge: 0 });
+    response.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), ...dashboardCookieOptions(request), maxAge: 0 });
+    response.cookies.set(TRIAL_SESSION_COOKIE, "", { ...trialCookieOptions, ...dashboardCookieOptions(request), maxAge: 0 });
     return response;
   } catch (error) { return dashboardError(error); }
 }
