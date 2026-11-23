@@ -2642,7 +2642,7 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
   .site-header .dashboard-login { padding-inline: .5rem; }
 }
 @media (max-width: 360px) {
-  .site-header .brand-mark { display: none; }
+  .site-header .brand-mark { width: 1.5rem; height: 1.5rem; flex: none; }
   .liquid-site-header .nav-shell { flex-wrap: wrap; }
 }
 .liquid-site-header .mobile-nav {
