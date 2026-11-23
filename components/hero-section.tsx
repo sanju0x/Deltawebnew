@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Check, Command, Headphones, Play, Sparkles } from "lucide-react";
+import { ArrowUpRight, Check, Command, Headphones, Play } from "lucide-react";
 
 const inviteUrl = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "/support";
 
@@ -10,7 +10,6 @@ export function HeroSection() {
       <div className="liquid-ambient liquid-ambient-two" aria-hidden="true" />
       <div className="site-container liquid-hero-layout">
         <div className="liquid-hero-copy">
-          <div className="liquid-hero-eyebrow"><Sparkles size={15} /> Music that brings your server together</div>
           <h1>YOUR SERVER.<span>YOUR SOUND.</span></h1>
           <p>Meet Delta — the soundtrack to better conversations. Queue the next track, discover new favorites, and make every Discord night unforgettable.</p>
           <div className="hero-actions">

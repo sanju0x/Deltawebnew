@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Handshake, Menu, MessageSquarePlus, Sparkles, Users, X } from "lucide-react";
@@ -47,8 +47,38 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
   const isLanding = pathname === "/";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const headerRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const compact = window.matchMedia("(max-width: 1150px)");
+    function onResize() {
+      if (!compact.matches) setIsMenuOpen(false);
+    }
+    function onPointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && !headerRef.current?.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        setIsMenuOpen(false);
+        toggleRef.current?.focus();
+      }
+    }
+    compact.addEventListener("change", onResize);
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      compact.removeEventListener("change", onResize);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMenuOpen]);
+
   return (
-    <header className={isLanding ? "site-header liquid-site-header" : "site-header"}>
+    <header ref={headerRef} className={isLanding ? "site-header liquid-site-header" : "site-header"}>
       <div className="site-container">
         <div className="nav-shell">
           <Link href="/" aria-label="Delta home" className="brand-link">
@@ -100,6 +130,7 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
 
           <button
             type="button"
+            ref={toggleRef}
             className="mobile-menu-button"
             onClick={() => setIsMenuOpen((open) => !open)}
             aria-expanded={isMenuOpen}
@@ -141,7 +172,7 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
                 ))}
               </div>
             </details>
-            <a href={inviteUrl}>Add to Discord</a>
+            <a href={inviteUrl} onClick={() => setIsMenuOpen(false)}>Add to Discord</a>
           </nav>
         )}
       </div>
