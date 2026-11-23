@@ -14,12 +14,11 @@ The server settings dashboard is served from **https://dash.delta-bot.online/** 
 
 ## Discord Developer Portal
 
-In the bot's Discord application → OAuth2 → Redirects, register:
+In the bot's Discord application → OAuth2 → Redirects, register the **single canonical callback**:
 
-- `https://dash.delta-bot.online/api/dashboard/callback` — server dashboard
-- `https://delta-bot.online/api/dashboard/callback` — existing user dashboard
+- `https://delta-bot.online/api/dashboard/callback` — landing, server dashboard, user dashboard, trial, and admin sign-in
 
-The server dashboard uses the new callback automatically when opened on `dash.delta-bot.online`. The main website keeps its existing callback through `DISCORD_DASHBOARD_REDIRECT_URI`.
+Set `DISCORD_DASHBOARD_REDIRECT_URI` to this URL. The server dashboard sends the user to the main site for Discord authorization, sets an HTTP-only session cookie scoped to `.delta-bot.online`, and returns the user to the dashboard subdomain. Old OAuth callbacks can remain registered temporarily for compatibility but are not used by the new sign-in links.
 
 Leave `WEBSITE_URL=https://delta-bot.online` for the website and other login flows. Do not replace it with the subdomain. Ensure the Vercel deployment has the existing Discord client credentials and MongoDB variables.
 
@@ -28,8 +27,8 @@ Leave `WEBSITE_URL=https://delta-bot.online` for the website and other login flo
 - `https://dash.delta-bot.online/` → internal rewrite to existing `/dashboard` page.
 - `https://dash.delta-bot.online/dashboard` → redirects to subdomain root.
 - `https://delta-bot.online/dashboard` (including www) → redirects to the subdomain root.
-- `/api/dashboard/*` stays on the same host used to start the login or settings request, so cookies and same-origin write checks work.
-- `/user-dashboard` and its OAuth login remain on the main website.
+- Dashboard sign-in is centralized on the main hostname, while server configuration API calls remain same-origin to the dashboard subdomain. Shared secure session cookies provide single sign-on across both hosts.
+- `/user-dashboard`, `/trial`, and `/admin` remain on the main website. These features use the same Discord login, while their individual permissions and claim checks remain server-side.
 - Existing admin and maintenance proxy protections are preserved.
 
 ## Validation after DNS and deployment
