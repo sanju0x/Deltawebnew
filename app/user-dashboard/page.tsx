@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { discordAvatarUrl } from "@/lib/discord-avatar";
 import { Clock3, Crown, Heart, ListMusic, Music2, Sparkles, Terminal, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TrialStatus } from "@/lib/trial-types";
@@ -14,12 +15,14 @@ function remaining(ms: number) {
 
 export default function UserDashboard() {
   const [data, setData] = useState<Profile | null>(null);
+  const [discordAccount, setDiscordAccount] = useState<{ id: string; avatar: string | null } | null>(null);
   const [signIn, setSignIn] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     const controller = new AbortController();
+    fetch("/api/dashboard/account", { cache: "no-store", signal: controller.signal }).then(response => response.ok ? response.json() : null).then(account => { if (!controller.signal.aborted) setDiscordAccount(account); }).catch(() => {});
     fetch("/api/user-dashboard", { cache: "no-store", signal: controller.signal }).then(async res => {
       if (res.status === 401) { setSignIn(true); return; }
       const body = await res.json();
@@ -45,7 +48,7 @@ export default function UserDashboard() {
   }
   const end = data?.trial.endsAt;
   const active = data?.trial.active && end && end > now;
-  return <DashboardShell active="account" username={data?.username}>
+  return <DashboardShell active="account" username={data?.username} avatarUrl={discordAccount ? discordAvatarUrl(discordAccount.id, discordAccount.avatar) : null}>
     <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-red-400">Your Delta experience</p><h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">User Dashboard</h1><p className="mt-2 text-sm text-white/50">Your music, access and playlists in one place.</p></div>
       <a href="https://delta-bot.online/premium" className="inline-flex items-center gap-2 rounded-xl bg-emerald-400/15 px-4 py-2.5 text-sm font-bold text-emerald-300 hover:bg-emerald-400/25"><Crown className="size-4" />Premium</a>
@@ -55,7 +58,7 @@ export default function UserDashboard() {
     : data ? <>
       <section className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[#302044] via-[#28172f] to-[#171629] p-6 sm:p-8">
         <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-violet-500/15 blur-3xl" />
-        <div className="relative flex flex-wrap items-center gap-4"><span className="grid size-14 place-items-center rounded-2xl border border-white/20 bg-gradient-to-br from-violet-500 to-rose-700 text-2xl font-black">{data.username.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="text-xs text-white/50">Signed in as</p><h2 className="truncate text-2xl font-bold">{data.username}</h2><p className="mt-1 text-xs text-white/50">Manage your Delta experience</p></div></div>
+        <div className="relative flex flex-wrap items-center gap-4"><span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-red-600 to-red-900 text-2xl font-black">{discordAccount && discordAvatarUrl(discordAccount.id, discordAccount.avatar) ? <img src={discordAvatarUrl(discordAccount.id, discordAccount.avatar)!} alt="" className="size-full object-cover" width={56} height={56} /> : data.username.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="text-xs text-white/50">Signed in as</p><h2 className="truncate text-2xl font-bold">{data.username}</h2><p className="mt-1 text-xs text-white/50">Manage your Delta experience</p></div></div>
       </section>
       <div className="grid gap-4 md:grid-cols-3">
         <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-[#332246] to-[#21182b] p-5">
