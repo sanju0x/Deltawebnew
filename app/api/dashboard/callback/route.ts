@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
     // Separate authorization cookies are derived from the same verified Discord identity.
     // Admin rights still require the server-side allowlist; a login alone grants nothing.
     if (getAllowedDiscordUserIds().has(user.id)) response.cookies.set(ADMIN_SESSION_COOKIE, await createAdminSession(user.id), sessionCookieOptions());
+    else response.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
     try { response.cookies.set(TRIAL_SESSION_COOKIE, await createTrialSession(user.id), trialCookieOptions); }
     catch { /* Trial signing is optional and does not block the main login. */ }
     await recordActivity("Dashboard", "Signed in with Discord", user.id);
