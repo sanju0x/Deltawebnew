@@ -1,0 +1,44 @@
+# Delta server dashboard subdomain
+
+The server settings dashboard is served from **https://dash.delta-bot.online/** by the same Next.js/Vercel project as the main website.
+
+## Vercel / DNS
+
+1. Open the existing Delta website project in Vercel, then Settings → Domains.
+2. Add `dash.delta-bot.online` to **the same project** (not a separate application).
+3. In the DNS provider for `delta-bot.online`, create a `CNAME` record with host/name `dash` pointing at the CNAME destination Vercel displays. For a typical external DNS setup, this is `cname.vercel-dns.com`; follow Vercel's displayed target if different.
+4. Remove conflicting records for the `dash` hostname and allow DNS and TLS provisioning to complete.
+5. Deploy the latest `main` commit, then visit `https://dash.delta-bot.online/`.
+
+**Git pushes do not create a DNS record or add domains to Vercel.** These steps must be completed with the domain and Vercel accounts.
+
+## Discord Developer Portal
+
+In the bot's Discord application → OAuth2 → Redirects, register:
+
+- `https://dash.delta-bot.online/api/dashboard/callback` — server dashboard
+- `https://delta-bot.online/api/dashboard/callback` — existing user dashboard
+
+The server dashboard uses the new callback automatically when opened on `dash.delta-bot.online`. The main website keeps its existing callback through `DISCORD_DASHBOARD_REDIRECT_URI`.
+
+Leave `WEBSITE_URL=https://delta-bot.online` for the website and other login flows. Do not replace it with the subdomain. Ensure the Vercel deployment has the existing Discord client credentials and MongoDB variables.
+
+## Routing
+
+- `https://dash.delta-bot.online/` → internal rewrite to existing `/dashboard` page.
+- `https://dash.delta-bot.online/dashboard` → redirects to subdomain root.
+- `https://delta-bot.online/dashboard` (including www) → redirects to the subdomain root.
+- `/api/dashboard/*` stays on the same host used to start the login or settings request, so cookies and same-origin write checks work.
+- `/user-dashboard` and its OAuth login remain on the main website.
+- Existing admin and maintenance proxy protections are preserved.
+
+## Validation after DNS and deployment
+
+1. Open `https://delta-bot.online/dashboard` and confirm the redirect.
+2. Open `https://dash.delta-bot.online/` and sign in using Discord.
+3. Verify the browser returns to the subdomain after authorization.
+4. Select a server, change a reversible setting, save, and confirm it applies.
+5. Sign out, and confirm an unauthorized dashboard request is rejected.
+6. Test `https://delta-bot.online/user-dashboard` separately to ensure its OAuth cookie and callback still work.
+
+The dashboard server selection is presently client state, not a nested server-specific route.
