@@ -38,7 +38,7 @@ export default function DashboardPage() {
     try {
       const response = await fetch("/api/dashboard/logout", { method: "POST" });
       if (!response.ok) throw new Error("Could not sign out. Try again.");
-      window.location.replace("/dashboard");
+      window.location.replace("/server-dashboard");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not sign out."); }
     finally { setBusy(false); }
   }
