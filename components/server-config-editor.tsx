@@ -228,13 +228,13 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
         </section>
       </fieldset>}
       </div>
-      <div className={dirty || config.status === "error" ? "sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/25 bg-background/95 p-4 shadow-xl backdrop-blur" : "flex items-center gap-3"}>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#191517] p-4 sm:p-5">
         <p role="status" className="text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
-        {dirty && <Button variant="outline" disabled={busy} onClick={() => {
+        <Button variant="outline" disabled={busy || !dirty} onClick={() => {
           setConfig(savedConfig); setChannelId(savedRule.channelId); setAction(savedRule.action);
           setError(""); setNotice("");
-        }}>Reset</Button>}
-        {(dirty || config.status === "error") && <Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save Changes"}</Button>}
+        }}>Reset</Button>
+        <Button disabled={busy || (!dirty && config.status !== "error")} onClick={() => void save()}>{busy ? "Saving…" : "Save Changes"}</Button>
       </div>
       {!dirty && config.error && <p role="alert" className="text-sm text-destructive">{config.error}</p>}
     </>}
