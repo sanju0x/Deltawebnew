@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createSignedValue, readSignedValue, validSigningKey } from "@/lib/admin-auth";
+import { DASHBOARD_COOKIE, dashboardSession } from "@/lib/dashboard-auth";
 
 export const TRIAL_SESSION_COOKIE = "delta_trial_session";
 export const TRIAL_STATE_COOKIE = "delta_trial_oauth_state";
@@ -24,6 +25,11 @@ export function createTrialSession(userId: string) {
 }
 
 export async function trialUserId(request: NextRequest) {
+  // Prefer the verified shared Discord identity, even when an old trial cookie remains.
+  if (request.cookies.get(DASHBOARD_COOKIE)?.value) {
+    try { const account = await dashboardSession(request); return account.userId as string; }
+    catch { return null; }
+  }
   const session = await readSignedValue<{ purpose?: string; userId?: string; expiresAt?: number }>(request.cookies.get(TRIAL_SESSION_COOKIE)?.value, trialSecret());
   if (session?.purpose !== "trial" || !session.userId || !/^\d{17,20}$/.test(session.userId) || typeof session.expiresAt !== "number" || session.expiresAt <= Date.now()) return null;
   return session.userId;
