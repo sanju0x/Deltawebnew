@@ -10,7 +10,7 @@ const limit = submissionLimit(30, 600);
 export async function GET(request: NextRequest) {
   const limited = limit(request.headers);
   if (limited) return limited;
-  const finish = async (error = "", path = "/dashboard") => {
+  const finish = async (error = "", path = "/server-dashboard") => {
     if (error) await recordActivity("Dashboard", "Discord sign-in did not complete");
     const response = NextResponse.redirect(new URL(`${path}${error ? `?error=${error}` : ""}`, siteOrigin(request)));
     response.cookies.set(STATE_COOKIE, "", { ...cookieOptions, path: "/api/dashboard", maxAge: 0 });
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (!profileResponse.ok) return finish("login");
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
-    const destination = state.view === "user" ? "/user-dashboard" : state.view === "trial" ? "/trial" : state.view === "admin" ? "/admin" : state.view === "home" ? "/" : "https://dash.delta-bot.online/";
+    const destination = state.view === "user" ? "/user-dashboard" : state.view === "trial" ? "/trial" : state.view === "admin" ? "/admin" : state.view === "home" ? "/" : "/server-dashboard";
     const response = await finish("", destination);
     const sharedOptions = dashboardCookieOptions(request);
     response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
