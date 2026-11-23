@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (!getDiscordClientId() || !getDiscordClientSecret()) throw new Error("Discord is not configured");
     const state = crypto.randomUUID();
     const requested = request.nextUrl.searchParams.get("view");
-    const view = requested === "admin" || requested === "trial" || requested === "user" ? requested : "server";
+    const view = requested === "admin" || requested === "trial" || requested === "user" || requested === "server" ? requested : "home";
     const signed = await createSignedValue({ purpose: "dashboard-oauth", view, state, expiresAt: Date.now() + 600000 });
     const url = new URL("https://discord.com/oauth2/authorize");
     url.search = new URLSearchParams({ client_id: getDiscordClientId(), redirect_uri: redirectUri(request), response_type: "code", scope: "identify guilds", state }).toString();
