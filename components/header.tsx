@@ -44,10 +44,11 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
   }, [showTrial]);
   const menuLinks = otherLinks.filter(link => (showTrial ?? enabled) || link.href !== "/trial");
   const pathname = usePathname();
+  const isLanding = pathname === "/";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="site-header">
+    <header className={isLanding ? "site-header liquid-site-header" : "site-header"}>
       <div className="site-container">
         <div className="nav-shell">
           <Link href="/" aria-label="Delta home" className="brand-link">
@@ -68,17 +69,17 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
               <DropdownMenuContent
                 align="end"
                 sideOffset={12}
-                className="w-64 rounded-2xl border-[#41342b]/15 bg-[#faf4eb]/98 p-2 shadow-xl shadow-[#362618]/10 backdrop-blur-xl"
+                className={isLanding ? "w-64 rounded-2xl border-white/20 bg-[#21151c]/90 p-2 text-white shadow-2xl backdrop-blur-2xl" : "w-64 rounded-2xl border-[#41342b]/15 bg-[#faf4eb]/98 p-2 shadow-xl shadow-[#362618]/10 backdrop-blur-xl"}
               >
                 {menuLinks.map(({ href, label, description, icon: Icon }) => (
-                  <DropdownMenuItem key={href} asChild className="cursor-pointer rounded-xl p-0 focus:bg-[#efe4d5]">
+                  <DropdownMenuItem key={href} asChild className={isLanding ? "cursor-pointer rounded-xl p-0 focus:bg-white/10" : "cursor-pointer rounded-xl p-0 focus:bg-[#efe4d5]"}>
                     <Link href={href} className="flex min-h-14 items-center gap-3 px-3 py-2.5 outline-none">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-[#d83229] shadow-sm">
+                      <span className={isLanding ? "grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-red-300 shadow-sm" : "grid size-9 shrink-0 place-items-center rounded-xl bg-white text-[#d83229] shadow-sm"}>
                         <Icon className="size-4.5" aria-hidden="true" />
                       </span>
                       <span>
-                        <span className="block text-sm font-bold text-[#241f1b]">{label}</span>
-                        <span className="mt-0.5 block text-xs font-medium text-[#746a61]">{description}</span>
+                        <span className={isLanding ? "block text-sm font-bold text-white" : "block text-sm font-bold text-[#241f1b]"}>{label}</span>
+                        <span className={isLanding ? "mt-0.5 block text-xs font-medium text-white/60" : "mt-0.5 block text-xs font-medium text-[#746a61]"}>{description}</span>
                       </span>
                     </Link>
                   </DropdownMenuItem>
