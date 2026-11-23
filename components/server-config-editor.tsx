@@ -228,14 +228,19 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
         </section>
       </fieldset>}
       </div>
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#191517] p-4 sm:p-5">
-        <p role="status" className="text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
-        <Button variant="outline" disabled={busy || !dirty} onClick={() => {
-          setConfig(savedConfig); setChannelId(savedRule.channelId); setAction(savedRule.action);
-          setError(""); setNotice("");
-        }}>Reset</Button>
-        <Button disabled={busy || (!dirty && config.status !== "error")} onClick={() => void save()}>{busy ? "Saving…" : "Save Changes"}</Button>
-      </div>
+      <p role="status" aria-live="polite" className="mt-5 text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
+      {(dirty || config.status === "error") && <div role="region" aria-label="Save server settings" className="fixed bottom-24 left-3 right-3 z-40 mx-auto max-w-xl rounded-2xl border border-red-500/30 bg-[#211719]/95 p-4 text-white shadow-[0_18px_65px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:left-6 sm:right-6 lg:bottom-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0"><p className="text-sm font-semibold">{dirty ? "Unsaved changes" : "Settings need attention"}</p><p className="mt-1 text-xs text-white/60">{dirty ? "Save or reset your changes." : "Retry saving to apply settings."}</p></div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="outline" disabled={busy || !dirty} onClick={() => {
+              setConfig(savedConfig); setChannelId(savedRule.channelId); setAction(savedRule.action);
+              setError(""); setNotice("");
+            }}>Reset</Button>
+            <Button disabled={busy || (!dirty && config.status !== "error")} onClick={() => void save()}>{busy ? "Saving…" : "Save Changes"}</Button>
+          </div>
+        </div>
+      </div>}
       {!dirty && config.error && <p role="alert" className="text-sm text-destructive">{config.error}</p>}
     </>}
     {notice && <p role="status" className="text-sm">{notice}</p>}
