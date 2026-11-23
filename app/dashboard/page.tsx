@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { discordAvatarUrl } from "@/lib/discord-avatar";
 import { Button } from "@/components/ui/button";
 import { ServerConfigEditor } from "@/components/server-config-editor";
 import { ArrowLeft, CheckCircle2, Search, Server, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type Guild = { id: string; name: string; icon: string | null; role: string; available: boolean };
-type Account = { clientId: string; user: { id: string; name: string }; guilds: Guild[] };
+type Account = { clientId: string; user: { id: string; name: string; avatar: string | null }; guilds: Guild[] };
 export default function DashboardPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +47,7 @@ export default function DashboardPage() {
   function renderGuild(guild: Guild) {
     return <GuildCard key={guild.id} guild={guild} clientId={account!.clientId} onManage={setSelected} />;
   }
-  return <DashboardShell active="servers" username={account?.user.name} onLogout={account ? () => void logout() : undefined} loggingOut={busy}>
+  return <DashboardShell active="servers" username={account?.user.name} avatarUrl={account ? discordAvatarUrl(account.user.id, account.user.avatar) : null} onLogout={account ? () => void logout() : undefined} loggingOut={busy}>
     {selected ? <div className="mx-auto max-w-6xl space-y-5">
       <Button variant="outline" className="gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10" onClick={() => setSelected(null)}><ArrowLeft className="size-4" />All servers</Button>
       <ServerConfigEditor key={selected.id} guildId={selected.id} />
