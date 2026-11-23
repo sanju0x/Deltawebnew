@@ -26,7 +26,7 @@ export default async function Home() {
               <h2 id="trial-heading" className="text-3xl font-bold">No prefix. Just play.</h2>
               <p className="mt-3 max-w-xl text-muted-foreground">Claim 30 days of no-prefix commands. One free trial per Discord account. No payment required.</p>
             </div>
-            <a className="button-primary shrink-0" href="/api/trial/login">Claim now with Discord</a>
+            <a className="button-primary shrink-0" href="/trial">View your free trial</a>
           </div>
         </section>}
         <FeaturesSection />
