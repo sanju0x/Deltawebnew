@@ -58,7 +58,7 @@ export default function DashboardPage() {
       {error && <p role="alert" className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
       {loading ? <p role="status" className="rounded-xl border border-white/10 bg-white/5 p-6 text-white/60">Loading your servers…</p>
       : !account ? <div className="max-w-lg rounded-2xl border border-white/10 bg-white/[0.04] p-7"><div className="mb-4 grid size-12 place-items-center rounded-xl bg-red-500/15"><Server className="size-6 text-red-400" /></div><h2 className="text-xl font-bold">Connect your Discord</h2><p className="mt-2 mb-6 text-sm text-white/55">Sign in to see servers you own or have permission to manage.</p><a className="inline-flex rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-500" href="/api/dashboard/login">Log in with Discord</a></div>
-      : <section className="rounded-[20px] border border-white/[0.07] bg-[#171221]/85 p-4 sm:p-6">
+      : <section className="rounded-[20px] border border-white/[0.07] bg-[#1a1517]/90 p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div><h2 className="text-xl font-bold">Your servers</h2><p className="mt-1 text-xs text-white/45">{account.guilds.length} manageable servers · {account.guilds.filter(g => g.available).length} ready to configure</p></div>
           <Button type="button" variant="outline" className="border-white/15 bg-white/[0.05] text-white hover:bg-white/10" onClick={() => void load()}>Refresh</Button>
@@ -75,17 +75,17 @@ export default function DashboardPage() {
 
 function GuildCard({ guild, clientId, onManage }: { guild: Guild; clientId: string; onManage: (guild: Guild) => void }) {
   const palettes = [
-    "from-[#3034aa] via-[#6551c7] to-[#11172f]",
-    "from-[#9b4058] via-[#71436f] to-[#20132b]",
-    "from-[#167e91] via-[#4866c3] to-[#14283b]",
-    "from-[#a15b2e] via-[#a44783] to-[#261729]",
-    "from-[#51328c] via-[#423ea3] to-[#1d193c]",
+    "from-[#793044] via-[#ae3545] to-[#211215]",
+    "from-[#9b4058] via-[#74303e] to-[#201317]",
+    "from-[#764047] via-[#a14f53] to-[#28171a]",
+    "from-[#8e4c2b] via-[#a13a40] to-[#261619]",
+    "from-[#59313a] via-[#8c2838] to-[#221519]",
   ];
   const palette = palettes[Array.from(guild.id).reduce((n, digit) => n + (Number(digit) || 0), 0) % palettes.length];
-  return <article className="group min-w-0 overflow-hidden rounded-2xl border border-white/[0.09] bg-[#211b2b] transition-all duration-200 hover:-translate-y-1 hover:border-white/25 hover:shadow-xl hover:shadow-black/30">
+  return <article className="group min-w-0 overflow-hidden rounded-2xl border border-white/[0.09] bg-[#21191b] transition-all duration-200 hover:-translate-y-1 hover:border-white/25 hover:shadow-xl hover:shadow-black/30">
     <div className={`relative flex h-28 items-center justify-center overflow-hidden bg-gradient-to-br ${palette}`}>
       <div className="pointer-events-none absolute -right-5 -top-12 size-40 rounded-full bg-white/10 blur-2xl" />
-      {guild.icon ? <img alt="" width={66} height={66} className="relative size-16 rounded-full border-[3px] border-white/20 bg-[#211b2b] object-cover shadow-xl" src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`} /> : <span className="relative grid size-16 place-items-center rounded-full border-[3px] border-white/20 bg-white/90 text-2xl font-black text-[#352645] shadow-xl">{guild.name.slice(0, 2).toUpperCase()}</span>}
+      {guild.icon ? <img alt="" width={66} height={66} className="relative size-16 rounded-full border-[3px] border-white/20 bg-[#21191b] object-cover shadow-xl" src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`} /> : <span className="relative grid size-16 place-items-center rounded-full border-[3px] border-white/20 bg-white/90 text-2xl font-black text-[#5b1b27] shadow-xl">{guild.name.slice(0, 2).toUpperCase()}</span>}
       <span className="absolute right-3 top-3 rounded-full border border-black/10 bg-black/35 px-2.5 py-1 text-[10px] font-semibold text-white/90">{guild.available ? "● Ready" : "○ Offline"}</span>
     </div>
     <div className="flex min-h-[80px] items-center justify-between gap-2 p-3.5">
