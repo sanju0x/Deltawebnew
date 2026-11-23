@@ -1,26 +1,8 @@
-import { submissionLimit } from "@/lib/public-submission";
-import { recordActivity } from "@/lib/site-activity";
-import { NextRequest, NextResponse } from "next/server";
-import { createSignedValue, getDiscordClientId, getDiscordClientSecret } from "@/lib/admin-auth";
-import { TRIAL_STATE_COOKIE, trialCookieOptions, trialOrigin, trialRedirectUri, trialSecret } from "@/lib/trial-auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const limit = submissionLimit(30, 600);
-
-export async function GET(request: NextRequest) {
-  const limited = limit(request.headers);
-  if (limited) return limited;
-  try {
-    const clientId = getDiscordClientId();
-    if (!clientId || !getDiscordClientSecret()) throw new Error("Discord login is not configured");
-    const state = crypto.randomUUID();
-    const value = await createSignedValue({ purpose: "trial-oauth", state, expiresAt: Date.now() + 600_000 }, trialSecret());
-    const url = new URL("https://discord.com/oauth2/authorize");
-    url.search = new URLSearchParams({ client_id: clientId, redirect_uri: trialRedirectUri(request), response_type: "code", scope: "identify", state, prompt: "consent" }).toString();
-    const response = NextResponse.redirect(url);
-    response.cookies.set(TRIAL_STATE_COOKIE, value, { ...trialCookieOptions, path: "/api/trial", maxAge: 600 });
-    await recordActivity("Trial", "Started Discord sign-in");
-    return response;
-  } catch {
-    return NextResponse.redirect(new URL("/trial?error=configuration", trialOrigin(request)));
-  }
+// Compatibility endpoint: all Discord sign-ins begin on the main Delta website.
+// Claiming a trial remains a separate, explicit action after authentication.
+export function GET(_request: NextRequest) {
+  return NextResponse.redirect("https://delta-bot.online/api/dashboard/login?view=trial");
 }
