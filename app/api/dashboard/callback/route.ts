@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (!profileResponse.ok) return finish("login");
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
-    const destination = state.view === "user" ? "/user-dashboard" : state.view === "trial" ? "/trial" : state.view === "admin" ? "/admin" : "https://dash.delta-bot.online/";
+    const destination = state.view === "user" ? "/user-dashboard" : state.view === "trial" ? "/trial" : state.view === "admin" ? "/admin" : state.view === "home" ? "/" : "https://dash.delta-bot.online/";
     const response = await finish("", destination);
     const sharedOptions = dashboardCookieOptions(request);
     response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
