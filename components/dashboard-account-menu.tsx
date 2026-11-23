@@ -37,7 +37,7 @@ export function DashboardAccountMenu() {
     try {
       const response = await fetch("/api/dashboard/logout", { method: "POST" });
       if (!response.ok) throw new Error();
-      window.location.replace("/dashboard");
+      window.location.replace("/server-dashboard");
     } catch {
       setError("Could not log out. Try again.");
       setBusy(false);
@@ -45,7 +45,7 @@ export function DashboardAccountMenu() {
   }
 
   if (!account) return (
-    <a className="dashboard-login" href={account === null ? (maintenance.dashboard && !maintenance.user ? "/api/dashboard/login?view=user" : "/api/dashboard/login") : (maintenance.dashboard && !maintenance.user ? "/user-dashboard" : "/dashboard")}>
+    <a className="dashboard-login" href={account === null ? (maintenance.dashboard && !maintenance.user ? "/api/dashboard/login?view=user" : "/api/dashboard/login") : (maintenance.dashboard && !maintenance.user ? "/user-dashboard" : "/server-dashboard")}>
       {account === null ? "Log in" : "Dashboard"}
     </a>
   );
@@ -60,7 +60,7 @@ export function DashboardAccountMenu() {
       <DropdownMenuContent align="end" sideOffset={8} className="w-56">
         <DropdownMenuLabel className="truncate">{account.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {([{ path: "/dashboard", label: "Server dashboard", blocked: maintenance.dashboard }, { path: "/user-dashboard", label: "User dashboard", blocked: maintenance.user }]).map(item =>
+        {([{ path: "/server-dashboard", label: "Server dashboard", blocked: maintenance.dashboard }, { path: "/user-dashboard", label: "User dashboard", blocked: maintenance.user }]).map(item =>
           item.blocked || maintenance.enabled ? <DropdownMenuItem key={item.path} disabled>{item.label} <MaintenanceBadge /></DropdownMenuItem> :
           <DropdownMenuItem key={item.path} asChild><Link href={item.path}><LayoutDashboard />{item.label}</Link></DropdownMenuItem> )}
 
