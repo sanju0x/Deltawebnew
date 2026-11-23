@@ -9,7 +9,7 @@ type Section = "servers" | "account";
 type Props = { children: ReactNode; active: Section; username?: string; avatarUrl?: string | null; onLogout?: () => void; loggingOut?: boolean };
 
 const navigation = [
-  { label: "Servers", href: "https://dash.delta-bot.online/", icon: Server, id: "servers" },
+  { label: "Servers", href: "/server-dashboard", icon: Server, id: "servers" },
   { label: "My account", href: "https://delta-bot.online/user-dashboard", icon: UserRound, id: "account" },
   { label: "Commands", href: "https://delta-bot.online/commands", icon: Bot, id: "commands" },
   { label: "Support", href: "https://delta-bot.online/support", icon: LifeBuoy, id: "support" },
