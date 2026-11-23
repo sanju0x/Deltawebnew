@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { discordAvatarUrl } from "@/lib/discord-avatar";
-import { Clock3, Crown, Heart, ListMusic, Music2, Sparkles, Terminal, Trash2, UserRound } from "lucide-react";
+import { Clock3, Heart, ListMusic, Music2, Sparkles, Terminal, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TrialStatus } from "@/lib/trial-types";
 
@@ -51,7 +51,6 @@ export default function UserDashboard() {
   return <DashboardShell active="account" username={data?.username} avatarUrl={discordAccount ? discordAvatarUrl(discordAccount.id, discordAccount.avatar) : null}>
     <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-red-400">Your Delta experience</p><h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">User Dashboard</h1><p className="mt-2 text-sm text-white/50">Your music, access and playlists in one place.</p></div>
-      <a href="https://delta-bot.online/premium" className="inline-flex items-center gap-2 rounded-xl bg-emerald-400/15 px-4 py-2.5 text-sm font-bold text-emerald-300 hover:bg-emerald-400/25"><Crown className="size-4" />Premium</a>
     </div>
     {error && <p role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
     {signIn ? <section className="max-w-lg rounded-2xl border border-white/10 bg-[#1a1527] p-7"><div className="mb-4 grid size-12 place-items-center rounded-xl bg-violet-500/15"><UserRound className="size-6 text-violet-300" /></div><h2 className="text-xl font-bold">Welcome to your dashboard</h2><p className="mt-2 mb-6 text-sm text-white/55">Connect your Discord account to access playlists, usage stats, and your no-prefix benefits.</p><a className="inline-flex rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-500" href="/api/dashboard/login?view=user">Sign in with Discord</a></section>
