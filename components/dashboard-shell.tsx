@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
-import { Bot, Headphones, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
+import { Bot, Headphones, Home, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
 
 type Section = "servers" | "account";
 type Props = { children: ReactNode; active: Section; username?: string; avatarUrl?: string | null; onLogout?: () => void; loggingOut?: boolean };
@@ -34,6 +34,7 @@ export function DashboardShell({ children, active, username, avatarUrl, onLogout
               </Link>)}
           </nav>
           <div className="mt-auto space-y-3 pt-10">
+            {active === "servers" && <Link href="https://delta-bot.online/" className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 px-3 py-3 text-sm font-semibold text-white/75 transition-colors hover:border-red-500/40 hover:bg-red-950/30 hover:text-white"><Home className="size-[18px]" aria-hidden="true" />Back to Home</Link>}
             {username && <div className="flex items-center gap-2 border-t border-white/10 pt-4">
               <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold">{avatarUrl ? <img src={avatarUrl} alt="" width={36} height={36} className="size-full object-cover" referrerPolicy="no-referrer" /> : username.slice(0,1).toUpperCase()}</span>
               <span className="min-w-0 flex-1 truncate text-xs font-semibold">{username}</span>
@@ -61,6 +62,7 @@ export function DashboardShell({ children, active, username, avatarUrl, onLogout
         </div>
       </div>
       <nav aria-label="Mobile quick navigation" className="fixed inset-x-3 bottom-3 z-30 flex justify-around rounded-2xl border border-white/10 bg-[#201618]/95 p-2 shadow-2xl backdrop-blur-xl lg:hidden">
+        {active === "servers" && <Link href="https://delta-bot.online/" className="flex min-w-[65px] flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold text-white/55 hover:bg-white/10 hover:text-white"><Home className="size-5" aria-hidden="true" />Home</Link>}
         {navigation.filter(({id}) => ["servers","account","support"].includes(id)).map(({id, href, label, icon: Icon})=><Link href={href} key={id} aria-current={id === active ? "page" : undefined} className={`flex min-w-[65px] flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${id === active ? "bg-[#8c1b2a] text-white" : "text-white/55"}`}><Icon className="size-5" />{label}</Link>)}
       </nav>
     </main>
