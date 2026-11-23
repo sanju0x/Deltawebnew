@@ -4,7 +4,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { discordAvatarUrl } from "@/lib/discord-avatar";
 import { Button } from "@/components/ui/button";
 import { ServerConfigEditor } from "@/components/server-config-editor";
-import { ArrowLeft, CheckCircle2, Search, Server, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Search, Server } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type Guild = { id: string; name: string; icon: string | null; role: string; available: boolean };
@@ -54,7 +54,6 @@ export default function DashboardPage() {
     </div> : <>
       <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-400">Your workspace</p><h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Select a Server</h1><p className="mt-2 max-w-2xl text-sm text-white/50">Choose a community to customize music, security, commands and Delta settings.</p></div>
-        <a href="https://delta-bot.online/premium" className="inline-flex items-center gap-2 rounded-xl bg-emerald-400/15 px-4 py-2.5 text-sm font-bold text-emerald-300 transition-colors hover:bg-emerald-400/25"><Sparkles className="size-4" />Premium</a>
       </div>
       {error && <p role="alert" className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
       {loading ? <p role="status" className="rounded-xl border border-white/10 bg-white/5 p-6 text-white/60">Loading your servers…</p>
