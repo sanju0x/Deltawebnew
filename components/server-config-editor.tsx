@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Bot, Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, Settings2 } from "lucide-react";
+import { Bot, Check, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,8 +85,6 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     finally { setBusy(false); }
   }
   const [activeSection, setActiveSection] = useState("overview");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sectionSearch, setSectionSearch] = useState("");
   const [commandSearch, setCommandSearch] = useState("");
   const sections = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -117,21 +115,14 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           {dirty ? "Unsaved changes" : config.status === "pending" ? "Syncing with Delta" : config.status === "error" ? "Sync issue" : "Up to date"}
         </span>
       </div>
-      <div className={`grid gap-6 lg:items-start lg:transition-[grid-template-columns] lg:duration-300 ${sidebarCollapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[260px_minmax(0,1fr)]"}`}>
-        <nav aria-label="Server settings navigation" className="h-fit min-w-0 rounded-xl border border-white/10 bg-[#14121d] p-3 text-white shadow-xl lg:sticky lg:top-24">
-          <div className="mb-4 flex items-center justify-between gap-1 px-2 pt-2"><span className={`${sidebarCollapsed ? "lg:hidden" : ""} truncate text-sm font-bold tracking-wider text-white`}>DELTA SETTINGS</span><button type="button" aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!sidebarCollapsed} title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => setSidebarCollapsed(value => !value)} className="grid size-9 shrink-0 place-items-center rounded-lg text-white/75 hover:bg-white/10 hover:text-white">{sidebarCollapsed ? <ChevronRight className="size-5" /> : <ChevronLeft className="size-5" />}</button></div><div className={`mb-3 flex items-center gap-2 rounded-lg bg-white/10 px-3 ${sidebarCollapsed ? "lg:justify-center lg:px-0" : ""}`}><Search aria-hidden="true" className="size-4 shrink-0 text-white/70" /><input aria-label="Search server features" type="search" value={sectionSearch} onChange={event => setSectionSearch(event.target.value)} placeholder="Search..." className={`h-11 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40 ${sidebarCollapsed ? "lg:sr-only" : ""}`} /></div>
-          <div className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
-            {sections.filter(section => section.label.toLowerCase().includes(sectionSearch.toLowerCase().trim())).map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-current={activeSection === id ? "page" : undefined}
-              title={sidebarCollapsed ? label : undefined} className={`flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium transition-all duration-200 lg:w-full ${sidebarCollapsed ? "lg:justify-center lg:px-0" : ""} ${activeSection === id ? "bg-white text-[#15121d]" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
-              onClick={() => setActiveSection(id)}><Icon aria-hidden="true" className="size-[18px] shrink-0" /><span className={`${sidebarCollapsed ? "lg:hidden" : ""}`}>{label}</span></button>)}
-          </div>
-          <div className="mt-6 flex items-center gap-3 border-t border-white/10 px-2 pt-4"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-red-900/60 text-sm font-bold text-white">{(serverName || "D").slice(0, 1).toUpperCase()}</span><div className={`${sidebarCollapsed ? "lg:hidden" : ""} min-w-0`}><p className="truncate text-sm font-semibold text-white">{serverName || "Delta server"}</p><p className="truncate text-xs text-white/50">Server settings</p></div></div>
-        </nav>
-        <div className="min-w-0 space-y-5">
-          <div className="flex items-center gap-3 border-b border-border pb-5">
-            <div className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-card"><Settings2 className="size-5 text-primary" /></div>
-            <div><h3 className="text-xl font-bold">{activeMeta.title}</h3><p className="text-sm text-muted-foreground">{activeMeta.subtitle}</p></div>
-          </div>
+      <nav aria-label="Server settings sections" className="flex gap-2 overflow-x-auto rounded-xl border border-white/10 bg-[#171315] p-2">
+        {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => setActiveSection(id)} aria-current={activeSection === id ? "page" : undefined}
+          className={`inline-flex min-h-11 shrink-0 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all ${activeSection === id ? "bg-gradient-to-r from-[#841627] to-[#bd2639] text-white shadow-lg shadow-red-950/40" : "text-white/55 hover:bg-white/5 hover:text-white"}`}>
+          <Icon aria-hidden="true" className="size-4" />{label}</button>)}
+      </nav>
+      <div className="space-y-5">
+        <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg border border-red-900/40 bg-red-950/30"><Settings2 className="size-5 text-red-400" /></div>
+          <div><h3 className="text-xl font-bold">{activeMeta.title}</h3><p className="text-sm text-white/45">{activeMeta.subtitle}</p></div></div>
         {activeSection === "overview" && <section className="rounded-sm border border-border bg-card p-6">
           <p className="text-sm text-muted-foreground">Select a feature below to open its controls. No changes are applied until you save them.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -208,7 +199,6 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           </div>}
         </section>
       </fieldset>}
-        </div>
       </div>
       <div className={dirty || config.status === "error" ? "sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/25 bg-background/95 p-4 shadow-xl backdrop-blur" : "flex items-center gap-3"}>
         <p role="status" className="text-sm text-muted-foreground">{dirty ? "You have unsaved changes." : config.status === "pending" ? "Pending — waiting for Delta to apply your settings." : config.status === "error" ? "Some settings could not be applied. Save again to retry." : "Settings applied."}</p>
