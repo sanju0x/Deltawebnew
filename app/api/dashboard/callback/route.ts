@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
     response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
     // Separate authorization cookies are derived from the same verified Discord identity.
     // Admin rights still require the server-side allowlist; a login alone grants nothing.
-    if (getAllowedDiscordUserIds().has(user.id)) response.cookies.set(ADMIN_SESSION_COOKIE, await createAdminSession(user.id), sessionCookieOptions());
-    else response.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
-    try { response.cookies.set(TRIAL_SESSION_COOKIE, await createTrialSession(user.id), trialCookieOptions); }
+    if (getAllowedDiscordUserIds().has(user.id)) response.cookies.set(ADMIN_SESSION_COOKIE, await createAdminSession(user.id), { ...sessionCookieOptions(), ...sharedOptions });
+    else response.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), ...sharedOptions, maxAge: 0 });
+    try { response.cookies.set(TRIAL_SESSION_COOKIE, await createTrialSession(user.id), { ...trialCookieOptions, ...sharedOptions }); }
     catch { /* Trial signing is optional and does not block the main login. */ }
     await recordActivity("Dashboard", "Signed in with Discord", user.id);
     return response;
