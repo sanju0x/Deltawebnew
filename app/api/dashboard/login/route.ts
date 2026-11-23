@@ -7,9 +7,9 @@ import { cookieOptions, redirectUri, siteOrigin, STATE_COOKIE, isServerDashboard
 const limit = submissionLimit(30, 600);
 
 export async function GET(request: NextRequest) {
-  if (isServerDashboardHost(request)) {
+  if (isServerDashboardHost(request) || request.nextUrl.hostname === "www.delta-bot.online") {
     const url = new URL("/api/dashboard/login", "https://delta-bot.online");
-    url.searchParams.set("view", "server");
+    url.searchParams.set("view", isServerDashboardHost(request) ? "server" : (request.nextUrl.searchParams.get("view") || "home"));
     return NextResponse.redirect(url);
   }
   const limited = limit(request.headers);
