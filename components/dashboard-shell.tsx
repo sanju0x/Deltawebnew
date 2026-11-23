@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Bot, Crown, Headphones, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
 
 type Section = "servers" | "account";
-type Props = { children: ReactNode; active: Section; username?: string; onLogout?: () => void; loggingOut?: boolean };
+type Props = { children: ReactNode; active: Section; username?: string; avatarUrl?: string | null; onLogout?: () => void; loggingOut?: boolean };
 
 const navigation = [
   { label: "Servers", href: "https://dash.delta-bot.online/", icon: Server, id: "servers" },
@@ -16,7 +16,7 @@ const navigation = [
   { label: "Support", href: "https://delta-bot.online/support", icon: LifeBuoy, id: "support" },
 ] as const;
 
-export function DashboardShell({ children, active, username, onLogout, loggingOut }: Props) {
+export function DashboardShell({ children, active, username, avatarUrl, onLogout, loggingOut }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <main className="min-h-screen bg-[#090909] px-3 py-3 text-[#f8f6ff] sm:px-6 sm:py-6 lg:px-8 lg:py-8">
@@ -42,7 +42,7 @@ export function DashboardShell({ children, active, username, onLogout, loggingOu
               <Link href="https://delta-bot.online/premium" className="mt-4 inline-flex rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-[#072a20] hover:bg-emerald-300">Explore premium</Link>
             </div>
             {username && <div className="flex items-center gap-2 border-t border-white/10 pt-4">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold">{username.slice(0,1).toUpperCase()}</span>
+              <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold">{avatarUrl ? <img src={avatarUrl} alt="" width={36} height={36} className="size-full object-cover" referrerPolicy="no-referrer" /> : username.slice(0,1).toUpperCase()}</span>
               <span className="min-w-0 flex-1 truncate text-xs font-semibold">{username}</span>
               {onLogout && <button type="button" title="Sign out" aria-label="Sign out" disabled={loggingOut} onClick={onLogout} className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white"><LogOut className="size-4" /></button>}
             </div>}
@@ -57,7 +57,7 @@ export function DashboardShell({ children, active, username, onLogout, loggingOu
             </div>
             <div className="flex min-w-0 items-center gap-3">
               <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300 sm:inline-flex">Dashboard</span>
-              {username && <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold" title={username}>{username.slice(0,1).toUpperCase()}</span>}
+              {username && <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold" title={username}>{avatarUrl ? <img src={avatarUrl} alt="" width={36} height={36} className="size-full object-cover" referrerPolicy="no-referrer" /> : username.slice(0,1).toUpperCase()}</span>}
             </div>
           </header>
           {menuOpen && <nav aria-label="Mobile menu" className="grid gap-1 border-b border-white/10 bg-[#211719] p-3 lg:hidden">
