@@ -2475,7 +2475,7 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
 #main-content:has(.liquid-hero) .stats-section {
   background: transparent;
 }
-.liquid-site-header { padding-top: .75rem; background: transparent; border: 0; pointer-events: none; }
+.liquid-site-header { padding-top: max(.75rem, env(safe-area-inset-top)); background: transparent; border: 0; pointer-events: none; }
 .liquid-site-header .nav-shell, .liquid-site-header .mobile-nav { pointer-events: auto; }
 .liquid-site-header .nav-shell {
   position: relative;
@@ -2483,7 +2483,7 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
   padding: .5rem clamp(.6rem, 1.5vw, 1.25rem);
   border: 1px solid rgba(255,255,255,.22);
   border-radius: 999px;
-  background: linear-gradient(115deg,rgba(69,49,55,.48),rgba(22,19,26,.52) 55%,rgba(79,37,48,.4));
+  background: linear-gradient(115deg,rgba(69,49,55,.88),rgba(22,19,26,.84) 55%,rgba(79,37,48,.86));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 rgba(255,255,255,.05),0 12px 45px rgba(0,0,0,.32);
   -webkit-backdrop-filter: blur(25px) saturate(160%);
   backdrop-filter: blur(25px) saturate(160%);
@@ -2641,5 +2641,5 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
   .site-header .brand-link .brand-mark + span { display: none; }
 }
 .liquid-site-header .mobile-nav {
-  max-height: calc(100dvh - 6rem - env(safe-area-inset-bottom));
+  max-height: calc(100dvh - 5.25rem - max(.75rem, env(safe-area-inset-top)) - env(safe-area-inset-bottom));
 }
