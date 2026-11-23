@@ -41,9 +41,9 @@ export default function TrialPage() {
   async function switchAccount() {
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/trial/logout", { method: "POST" });
+      const response = await fetch("/api/dashboard/logout", { method: "POST" });
       if (!response.ok) throw new Error("Could not sign out. Please try again.");
-      window.location.assign("/api/trial/login");
+      window.location.assign("/api/dashboard/login?view=trial");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not sign out."); setBusy(false); }
   }
   const descriptions: Record<TrialStatus["code"], string> = {
