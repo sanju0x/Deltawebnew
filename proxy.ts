@@ -9,6 +9,25 @@ import { maintenanceStatus } from "@/lib/web-maintenance";
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const hostname = request.nextUrl.hostname.toLowerCase();
+  // Keep all existing API, admin and maintenance protections intact.
+  if (hostname === "dash.delta-bot.online") {
+    if (path === "/dashboard") {
+      const url = new URL("/", "https://dash.delta-bot.online");
+      url.search = request.nextUrl.search;
+      return NextResponse.redirect(url, 308);
+    }
+    if (path === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.rewrite(url);
+    }
+  }
+  if ((hostname === "delta-bot.online" || hostname === "www.delta-bot.online") && path === "/dashboard") {
+    const url = new URL("/", "https://dash.delta-bot.online");
+    url.search = request.nextUrl.search;
+    return NextResponse.redirect(url, 308);
+  }
   if (path.startsWith("/api/") && !path.startsWith("/api/admin")) {
     if (["/api/maintenance", "/api/dashboard/account", "/api/dashboard/logout", "/api/dashboard/login", "/api/dashboard/callback"].includes(path) || path.startsWith("/api/auth/")) return NextResponse.next();
     try {
@@ -50,5 +69,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/:path*"],
+  matcher: ["/", "/dashboard", "/admin/:path*", "/api/:path*"],
 };
