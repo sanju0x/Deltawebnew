@@ -123,19 +123,47 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
       <div className="space-y-5">
         <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg border border-red-900/40 bg-red-950/30"><Settings2 className="size-5 text-red-400" /></div>
           <div><h3 className="text-xl font-bold">{activeMeta.title}</h3><p className="text-sm text-white/45">{activeMeta.subtitle}</p></div></div>
-        {activeSection === "overview" && <section className="rounded-sm border border-border bg-card p-6">
-          <p className="text-sm text-muted-foreground">Select a feature below to open its controls. No changes are applied until you save them.</p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {[
-              { id: "tripwire", label: "Tripwire", value: channelId ? "Enabled" : "Disabled", visible: canConfigureTripwire },
-              { id: "commands", label: "Command restrictions", value: `${config.disabledCommands.length} disabled`, visible: true },
-              { id: "music", label: "Music source", value: MUSIC_SOURCES.find(item => item.value === config.source)?.name || config.source, visible: true },
-              { id: "bot", label: "Custom bot", value: config.customBot ? "Enabled" : "Disabled", visible: true }
-            ].filter(item => item.visible).map(item => <button type="button" key={item.id} onClick={() => setActiveSection(item.id)} className="group rounded-lg border border-border bg-background p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-              <span className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</span><strong className="mt-2 block text-lg">{item.value}</strong><span className="mt-3 block text-xs text-primary opacity-80 group-hover:opacity-100">Configure →</span>
-            </button>)}
-          </div>
-        </section>}
+        {activeSection === "overview" && <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+          <section className="rounded-xl border border-white/10 bg-[#191517] p-5 sm:p-6">
+            <h4 className="text-lg font-bold">Server information</h4>
+            <p className="mt-1 text-sm text-white/45">Manage server-specific settings without leaving the dashboard.</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-[#251b1e] p-4"><p className="text-xs text-white/50">Server name</p><p className="mt-2 break-words font-semibold">{serverName || "Delta Server"}</p></div>
+              <div className="rounded-lg border border-white/10 bg-[#251b1e] p-4"><p className="text-xs text-white/50">Server ID</p><p className="mt-2 break-all font-mono text-sm">{guildId}</p></div>
+            </div>
+            <h4 className="mt-7 text-lg font-bold">Setup & features</h4>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[
+                { id: "tripwire", label: "Tripwire protection", value: channelId ? "On" : "Off", visible: canConfigureTripwire },
+                { id: "commands", label: "Command restrictions", value: `${config.disabledCommands.length} disabled`, visible: true },
+                { id: "music", label: "Music provider", value: MUSIC_SOURCES.find(item => item.value === config.source)?.name || config.source, visible: true },
+                { id: "bot", label: "Custom bot", value: config.customBot ? "On" : "Off", visible: true }
+              ].filter(item => item.visible).map(item => <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} className="rounded-xl border border-white/10 bg-[#251b1e] p-4 text-left transition-colors hover:border-red-500/50 hover:bg-[#302025]">
+                <span className="block text-xs text-white/50">{item.label}</span><strong className="mt-2 block text-base">{item.value}</strong><span className="mt-3 block text-xs font-semibold text-red-400">Configure →</span>
+              </button>)}
+            </div>
+          </section>
+          <aside className="space-y-5">
+            <section className="rounded-xl border border-white/10 bg-[#191517] p-5">
+              <h4 className="font-bold">Setup status</h4>
+              <p className="mt-2 text-sm text-white/50">{dirty ? "Changes are waiting to be saved." : config.status === "pending" ? "Delta is syncing your settings." : config.status === "error" ? "The last update needs attention." : "Your saved configuration is up to date."}</p>
+            </section>
+            <section className="rounded-xl border border-white/10 bg-[#191517] p-5">
+              <h4 className="font-bold">Recommended setup</h4>
+              <p className="mt-1 text-xs text-white/45">Optional features you can configure.</p>
+              <div className="mt-4 divide-y divide-white/10">
+                {[
+                  { id: "tripwire", title: "Tripwire", desc: "Protect a selected channel", active: !!channelId, visible: canConfigureTripwire },
+                  { id: "bot", title: "Custom bot", desc: "Personalize the bot profile", active: config.customBot, visible: true },
+                  { id: "commands", title: "Command restrictions", desc: "Control available commands", active: config.disabledCommands.length > 0, visible: true }
+                ].filter(item => item.visible).map(item => <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} className="flex w-full items-center justify-between gap-3 py-4 text-left hover:text-red-300">
+                  <span><strong className="block text-sm">{item.title}</strong><small className="mt-1 block text-xs text-white/45">{item.desc}</small></span>
+                  <span className={`rounded-full px-2.5 py-1 text-xs ${item.active ? "bg-emerald-400/10 text-emerald-400" : "bg-white/10 text-white/50"}`}>{item.active ? "On" : "Off"}</span>
+                </button>)}
+              </div>
+            </section>
+          </aside>
+        </div>}
       {activeSection === "tripwire" && canConfigureTripwire && <fieldset disabled={busy} className="space-y-4 rounded-xl border border-border bg-card p-5 sm:p-6"><legend className="px-2 font-semibold">Channel tripwire</legend>
         <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
         <label className="block space-y-2 text-sm font-medium">Channel <select className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
