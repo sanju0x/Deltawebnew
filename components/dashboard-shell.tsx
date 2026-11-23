@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
-import { Bot, Crown, Headphones, LayoutDashboard, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
+import { Bot, Crown, Headphones, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
 
 type Section = "servers" | "account";
 type Props = { children: ReactNode; active: Section; username?: string; onLogout?: () => void; loggingOut?: boolean };
