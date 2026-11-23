@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { ServerConfigEditor } from "@/components/server-config-editor";
-import { ArrowLeft, CheckCircle2, Search, Server, Settings2, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Search, Server, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type Guild = { id: string; name: string; icon: string | null; role: string; available: boolean };
