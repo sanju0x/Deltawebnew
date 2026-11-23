@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MUSIC_SOURCES, IMAGE_HOSTS } from "@/lib/server-config-schema";
 
 type ServerConfig = { source: string; disabledCommands: string[]; customBot: boolean; nickname: string; bio: string; avatar: string; banner: string; status: string; error?: string | null; revision?: string };
@@ -166,8 +167,31 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
         </div>}
       {activeSection === "tripwire" && canConfigureTripwire && <fieldset disabled={busy} className="space-y-4 rounded-xl border border-border bg-card p-5 sm:p-6"><legend className="px-2 font-semibold">Channel tripwire</legend>
         <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
-        <label className="block space-y-2 text-sm font-medium">Channel <select className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3" value={channelId} onChange={e => setChannelId(e.target.value)}><option value="">Disabled</option>{channels.map(c => <option key={c.id} value={c.id}>#{c.name}</option>)}</select></label>
-        <label className="block space-y-2 text-sm font-medium">Action <select className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3" disabled={!channelId} value={action} onChange={e => setAction(e.target.value)}><option value="timeout">Timeout (10 minutes)</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
+        <div className="space-y-2">
+          <Label htmlFor={`${prefix}-tripwire-channel`}>Channel</Label>
+          <Select value={channelId || "off"} onValueChange={value => setChannelId(value === "off" ? "" : value)} disabled={busy}>
+            <SelectTrigger id={`${prefix}-tripwire-channel`} className="h-12 w-full rounded-xl border-white/15 bg-[#211719] px-4 text-white shadow-sm transition-colors hover:border-red-500/40 focus-visible:border-red-500 focus-visible:ring-red-500/20">
+              <SelectValue placeholder="Select a channel" />
+            </SelectTrigger>
+            <SelectContent position="popper" className="z-[70] max-h-72 rounded-xl border border-red-900/35 bg-[#1b1517] p-1 text-white shadow-[0_20px_50px_rgba(0,0,0,.55)]">
+              <SelectItem value="off" className="min-h-10 rounded-lg text-white/75 focus:bg-red-900/35 focus:text-white">Disabled</SelectItem>
+              {channels.map(channel => <SelectItem key={channel.id} value={channel.id} className="min-h-10 rounded-lg text-white/85 focus:bg-red-900/35 focus:text-white">#{channel.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={`${prefix}-tripwire-action`}>Action</Label>
+          <Select value={action} onValueChange={setAction} disabled={busy || !channelId}>
+            <SelectTrigger id={`${prefix}-tripwire-action`} className="h-12 w-full rounded-xl border-white/15 bg-[#211719] px-4 text-white shadow-sm transition-colors hover:border-red-500/40 focus-visible:border-red-500 focus-visible:ring-red-500/20">
+              <SelectValue placeholder="Choose an action" />
+            </SelectTrigger>
+            <SelectContent position="popper" className="z-[70] rounded-xl border border-red-900/35 bg-[#1b1517] p-1 text-white shadow-[0_20px_50px_rgba(0,0,0,.55)]">
+              <SelectItem value="timeout" className="min-h-10 rounded-lg focus:bg-red-900/35 focus:text-white">Timeout (10 minutes)</SelectItem>
+              <SelectItem value="kick" className="min-h-10 rounded-lg focus:bg-red-900/35 focus:text-white">Kick</SelectItem>
+              <SelectItem value="ban" className="min-h-10 rounded-lg focus:bg-red-900/35 focus:text-white">Ban</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </fieldset>}
       {activeSection === "music" && <fieldset disabled={busy} className="space-y-4 disabled:opacity-70">
         <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
