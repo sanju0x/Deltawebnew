@@ -26,5 +26,5 @@ export async function GET(request: NextRequest) {
     response.cookies.set(STATE_COOKIE, signed, { ...cookieOptions, path: "/api/dashboard", maxAge: 600 });
     await recordActivity("Dashboard", "Started Discord sign-in");
     return response;
-  } catch { return NextResponse.redirect(new URL("/dashboard?error=configuration", siteOrigin(request))); }
+  } catch { return NextResponse.redirect(new URL("/server-dashboard?error=configuration", siteOrigin(request))); }
 }
