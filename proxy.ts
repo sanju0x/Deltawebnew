@@ -22,11 +22,6 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/server-dashboard";
     return NextResponse.redirect(url, 308);
   }
-  if (path === "/server-dashboard") {
-    const internal = request.nextUrl.clone();
-    internal.pathname = "/dashboard";
-    return NextResponse.rewrite(internal);
-  }
   if (path.startsWith("/api/") && !path.startsWith("/api/admin")) {
     if (["/api/maintenance", "/api/dashboard/account", "/api/dashboard/logout", "/api/dashboard/login", "/api/dashboard/callback"].includes(path) || path.startsWith("/api/auth/")) return NextResponse.next();
     try {
