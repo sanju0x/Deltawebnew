@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
-import { Bot, Crown, Headphones, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
+import { Bot, Headphones, LifeBuoy, LogOut, Menu, Music2, Server, UserRound, X } from "lucide-react";
 
 type Section = "servers" | "account";
 type Props = { children: ReactNode; active: Section; username?: string; avatarUrl?: string | null; onLogout?: () => void; loggingOut?: boolean };
@@ -12,7 +12,6 @@ const navigation = [
   { label: "Servers", href: "https://dash.delta-bot.online/", icon: Server, id: "servers" },
   { label: "My account", href: "https://delta-bot.online/user-dashboard", icon: UserRound, id: "account" },
   { label: "Commands", href: "https://delta-bot.online/commands", icon: Bot, id: "commands" },
-  { label: "Premium", href: "https://delta-bot.online/premium", icon: Crown, id: "premium" },
   { label: "Support", href: "https://delta-bot.online/support", icon: LifeBuoy, id: "support" },
 ] as const;
 
@@ -35,12 +34,6 @@ export function DashboardShell({ children, active, username, avatarUrl, onLogout
               </Link>)}
           </nav>
           <div className="mt-auto space-y-3 pt-10">
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#36151c] via-[#251417] to-[#161214] p-4">
-              <Crown className="mb-3 size-5 text-amber-300" />
-              <strong className="block text-sm">Make more of Delta</strong>
-              <p className="mt-1 text-xs leading-relaxed text-white/55">Discover premium music features and personalization.</p>
-              <Link href="https://delta-bot.online/premium" className="mt-4 inline-flex rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-[#072a20] hover:bg-emerald-300">Explore premium</Link>
-            </div>
             {username && <div className="flex items-center gap-2 border-t border-white/10 pt-4">
               <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold">{avatarUrl ? <img src={avatarUrl} alt="" width={36} height={36} className="size-full object-cover" referrerPolicy="no-referrer" /> : username.slice(0,1).toUpperCase()}</span>
               <span className="min-w-0 flex-1 truncate text-xs font-semibold">{username}</span>
@@ -68,7 +61,7 @@ export function DashboardShell({ children, active, username, avatarUrl, onLogout
         </div>
       </div>
       <nav aria-label="Mobile quick navigation" className="fixed inset-x-3 bottom-3 z-30 flex justify-around rounded-2xl border border-white/10 bg-[#201618]/95 p-2 shadow-2xl backdrop-blur-xl lg:hidden">
-        {navigation.filter(({id}) => ["servers","account","support","premium"].includes(id)).map(({id, href, label, icon: Icon})=><Link href={href} key={id} aria-current={id === active ? "page" : undefined} className={`flex min-w-[65px] flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${id === active ? "bg-[#8c1b2a] text-white" : "text-white/55"}`}><Icon className="size-5" />{label}</Link>)}
+        {navigation.filter(({id}) => ["servers","account","support"].includes(id)).map(({id, href, label, icon: Icon})=><Link href={href} key={id} aria-current={id === active ? "page" : undefined} className={`flex min-w-[65px] flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${id === active ? "bg-[#8c1b2a] text-white" : "text-white/55"}`}><Icon className="size-5" />{label}</Link>)}
       </nav>
     </main>
   );
