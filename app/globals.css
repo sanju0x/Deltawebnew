@@ -148,7 +148,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 .site-container {
@@ -2006,7 +2006,7 @@ html {
 .dark [class~="text-[#a2968c]"] { color: #b9aea5 !important; }
 
 @media (max-width: 960px) {
-  .header-theme-toggle { margin-left: auto; }
+
   .mobile-menu-button { margin-left: 0; }
 }
 
@@ -2199,7 +2199,7 @@ html {
   --foreground: #191517;
 }
 .dark {
-  --background: #0d0c0d;
+  --background: #000;
   --card: #191719;
   --foreground: #f8f6f5;
   --card-foreground: var(--foreground);
@@ -2228,9 +2228,7 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
 .nav-cta,.dark .nav-cta,.button-primary {border-radius:3px;background:#a71d2a;color:#fff;box-shadow:none}
 .nav-cta:hover,.button-primary:hover {background:#c72a36;box-shadow:none}
 .button-secondary,.dark .button-secondary {border-radius:3px;box-shadow:none}
-.theme-control,.mute-control,.transport {display:grid;place-items:center}
-.theme-control {width:2.6rem;height:2.6rem;color:#ddd;border:1px solid #3b3336;border-radius:3px}
-.theme-control:hover {background:#332327}
+.mute-control,.transport {display:grid;place-items:center}
 .broadcast-hero {color:white;background:radial-gradient(ellipse at 90% 55%,#401419 0,transparent 53%),linear-gradient(115deg,#0d0c0e 15%,#1c1013 100%);border-bottom:1px solid #43282c;padding:clamp(7.5rem,10vw,10rem) 0 clamp(3rem,5vw,5rem);overflow:hidden}
 .broadcast-layout {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.93fr);align-items:center;gap:clamp(2rem,5vw,5.5rem)}
 .broadcast-label,.sleeve-imprint,.track-name small {font:700 .75rem/1.4 Consolas,monospace;letter-spacing:.15em;text-transform:uppercase}
@@ -2276,7 +2274,8 @@ h1,h2,h3,h4,.stat strong,.rubber-name {font-family:var(--display)}
 .section-heading h2,.stats-intro h2,.cta-copy h2 {letter-spacing:-.055em;line-height:1}
 .mobile-nav {max-height:calc(100dvh - 5rem);overflow-y:auto}
 @media(max-width:1150px){
- .header-theme-toggle {margin-left:auto}
+ .site-header .brand-link { margin-right: auto; }
+
  .site-header .mobile-menu-button {margin:0}
 }
 @media(max-width:800px){

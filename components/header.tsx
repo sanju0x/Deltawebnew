@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Handshake, Menu, MessageSquarePlus, Sparkles, Users, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { DashboardAccountMenu } from "@/components/dashboard-account-menu";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -116,10 +115,6 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>
-
-          <div className="header-theme-toggle">
-            <ThemeToggle />
-          </div>
 
           <DashboardAccountMenu />
 

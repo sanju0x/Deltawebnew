@@ -2,7 +2,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import { NewsPopup } from '@/components/news-popup'
 import { VisitorTracker } from '@/components/visitor-tracker'
-import { ThemeProvider } from '@/components/theme-provider'
 import { MaintenanceGate } from '@/components/maintenance-gate'
 import './globals.css'
 
@@ -20,16 +19,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background" suppressHydrationWarning>
+    <html lang="en" className="dark bg-background">
       <body className="antialiased bg-background text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <MaintenanceGate>
-            {children}
-            <NewsPopup />
-          </MaintenanceGate>
-          <VisitorTracker />
-          {process.env.NODE_ENV === 'production' && <Analytics />}
-        </ThemeProvider>
+        <MaintenanceGate>
+          {children}
+          <NewsPopup />
+        </MaintenanceGate>
+        <VisitorTracker />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
