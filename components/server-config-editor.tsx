@@ -120,6 +120,9 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
   };
   const visibleCommands = commands.filter(command => command.toLowerCase().includes(commandSearch.trim().toLowerCase()));
   const activeMeta = sectionMeta[activeSection] || sectionMeta.overview;
+  const iconHash = serverNavigation?.current.icon;
+  const cardIconUrl = iconHash ? `https://cdn.discordapp.com/icons/${guildId}/${iconHash}.png?size=128` : null;
+  const [failedIconUrl, setFailedIconUrl] = useState<string | null>(null);
   const [showSections, setShowSections] = useState(false);
   const moduleStatus: Record<string, string> = config && activeSection === "overview" ? {
     welcome: config.greetings?.welcome?.enabled ? "Welcome messages on" : "Welcome messages off",
@@ -165,7 +168,11 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
     {loading ? <p role="status">Loading server settings…</p> : config && <>
       <div className={`server-masthead flex flex-wrap items-start justify-between gap-4 rounded-xl border p-5 sm:p-6 ${admin ? "border-border/70 bg-card/70" : "border-white/10 bg-linear-to-r from-[#351b22] to-[#191517]"}`}>
         <div className="flex min-w-0 items-center gap-4">
-          <div className="grid size-12 shrink-0 place-items-center rounded-xl border border-red-600/20 bg-red-600/10 text-xl font-black text-red-500">{(serverName || "D").slice(0,1).toUpperCase()}</div>
+          <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-red-600/20 bg-red-600/10 text-xl font-black text-red-500">
+            {cardIconUrl && cardIconUrl !== failedIconUrl
+              ? <img src={cardIconUrl} alt="" width={48} height={48} className="size-full object-cover" onError={() => setFailedIconUrl(cardIconUrl)} />
+              : (serverName || serverNavigation?.current.name || "D").slice(0, 1).toUpperCase()}
+          </div>
           <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-500">{serverNavigation ? "Server settings" : "Delta control center"}</p><h2 className="mt-1 truncate text-xl font-bold sm:text-2xl">{serverName || "Server settings"}</h2><p className="mt-1 text-xs text-muted-foreground">Server ID: {guildId}</p></div>
         </div>
         <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${dirty ? "border-amber-500/25 bg-amber-500/10 text-amber-500" : config.status === "pending" ? "border-blue-500/25 bg-blue-500/10 text-blue-500" : config.status === "error" ? "border-destructive/25 bg-destructive/10 text-destructive" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-500"}`}>
