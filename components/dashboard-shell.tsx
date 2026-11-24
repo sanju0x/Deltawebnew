@@ -1,5 +1,6 @@
 "use client";
 
+import "./server-workspace.css";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,7 +19,7 @@ const navigation = [
 export function DashboardShell({ serverOpen = false, children, active, username, avatarUrl, onLogout, loggingOut }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <main className="min-h-screen bg-[#090909] px-3 py-3 text-[#f8f6ff] sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+    <main data-server-workspace={active === "servers" ? "" : undefined} className="min-h-screen bg-[#090909] px-3 py-3 text-[#f8f6ff] sm:px-6 sm:py-6 lg:px-8 lg:py-8">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1500px] overflow-hidden rounded-[24px] border border-white/[0.07] bg-[#131112] shadow-[0_30px_100px_rgba(0,0,0,.55)]">
         {!serverOpen && <aside className="hidden w-[230px] shrink-0 flex-col border-r border-white/[0.07] bg-[#171416] p-5 lg:flex">
           <Link href="https://delta-bot.online/" className="mb-10 flex items-center gap-3 px-2" aria-label="Delta homepage">
@@ -47,10 +48,10 @@ export function DashboardShell({ serverOpen = false, children, active, username,
           <header className="flex h-[76px] items-center justify-between gap-3 border-b border-white/[0.07] px-5 sm:px-8">
             <div className="flex items-center gap-3">
               <button type="button" className={`grid size-9 place-items-center rounded-lg border border-white/10 text-white/80 ${serverOpen ? "" : "lg:hidden"}`} aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
-              <div className="flex items-center gap-2"><Headphones className="size-5 text-red-500" /><span className="text-sm font-bold tracking-widest">DELTA CONTROL</span></div>
+              <div className="flex items-center gap-2">{active === "servers" ? <img src="/icon.svg" width={32} height={32} alt="" /> : <Headphones className="size-5 text-red-500" />}<span className="text-sm font-bold tracking-widest">{active === "servers" ? "DELTA / Servers" : "DELTA CONTROL"}</span></div>
             </div>
             <div className="flex min-w-0 items-center gap-3">
-              <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300 sm:inline-flex">Dashboard</span>
+              {active === "servers" ? <span className="hidden text-sm text-white/65 sm:inline">{username}</span> : <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300 sm:inline-flex">Dashboard</span>}
               {username && <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-red-500 to-red-900 text-sm font-bold" title={username}>{avatarUrl ? <img src={avatarUrl} alt="" width={36} height={36} className="size-full object-cover" referrerPolicy="no-referrer" /> : username.slice(0,1).toUpperCase()}</span>}
             </div>
           </header>

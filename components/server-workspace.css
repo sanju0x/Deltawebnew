@@ -1,0 +1,111 @@
+/* Public server workspace. The account dashboard and admin editor use their own shell. */
+[data-server-workspace] {
+  --card: #201b1e;
+  --background: #141214;
+  --border: #403238;
+  --foreground: #fff7f8;
+  --card-foreground: #fff7f8;
+  --muted-foreground: #c4b6bc;
+  --muted: #33272d;
+  --primary: #ae283e;
+  --primary-foreground: #fff;
+  --input: #514047;
+  padding: 0;
+  color: var(--foreground);
+  background: var(--background);
+}
+[data-server-workspace] > div:first-child {
+  min-height: 100dvh;
+  max-width: 110rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--background);
+  box-shadow: none;
+  overflow: clip;
+}
+[data-server-workspace] header:not(.server-masthead) {
+  height: 4rem;
+  background: #171317;
+}
+[data-server-workspace] .server-masthead {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(1.25rem, 3vw, 2.75rem);
+  border: 1px solid #70323e;
+  border-radius: .875rem;
+  background: linear-gradient(112deg,#3b1721,#601c2c 60%,#25171d);
+}
+[data-server-workspace] .server-masthead::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 50%;
+  transform: skewX(-22deg);
+  background: repeating-linear-gradient(90deg,transparent 0 11px,#ffffff0c 11px 13px);
+}
+[data-server-workspace] .server-masthead h2 { font-size: clamp(1.5rem,3vw,2.75rem); line-height: 1.12; }
+[data-server-workspace] .server-masthead h2,
+[data-server-workspace] .server-masthead h1 { letter-spacing: -.045em; }
+[data-server-workspace] .server-masthead p { color: #ebced6; }
+.server-layout { display: grid; align-items: start; grid-template-columns: minmax(12rem,15rem) minmax(0,1fr); gap: clamp(1rem,2.6vw,3rem); }
+.server-sidebar {
+  position: sticky;
+  top: 1rem;
+  padding: .85rem;
+  border: 1px solid #403137;
+  border-radius: .875rem;
+  background: #1c181b;
+}
+.server-sidebar > button:first-of-type { justify-content: space-between; min-height: 3.75rem; padding-inline: .65rem; background: #32242b; }
+.server-sidebar nav { border: 0; padding: .7rem 0 0; border-top: 1px solid #403137; border-radius: 0; background: transparent; }
+.server-sidebar nav button { justify-content: flex-start; padding-inline: .8rem; }
+.server-sidebar nav button[aria-current] { background: #42232b; box-shadow: inset 3px 0 #ed556b; }
+.section-disclosure { display: none; }
+.module-directory, .server-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,16rem),1fr));
+  gap: .8rem;
+}
+.module-link, .server-directory-card {
+  min-width: 0;
+  border: 1px solid #443239;
+  border-radius: .75rem;
+  background: #201b1e;
+}
+.module-link {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 1rem;
+  padding: 1.25rem;
+  text-align: left;
+}
+.module-icon { color: #f78698; width: 1.4rem; height: 1.4rem; }
+.module-link > span { grid-area: 2 / 1 / 3 / 3; }
+.module-link strong, .module-link small { display: block; }
+.module-link small { margin-top: .25rem; color: #c6b5bd; }
+.module-arrow { grid-area: 1 / 2; width: 1rem; color: #b99da7; }
+.module-link:hover, .server-directory-card:focus-within { background: #2d2127; border-color: #985262; }
+.server-directory-grid { padding: clamp(.8rem,2vw,1.5rem); }
+.server-directory-card { display: grid; grid-template-columns: auto minmax(0,1fr); gap: .85rem; align-items: center; padding: 1rem; }
+.server-directory-card > :last-child { grid-column: 1 / -1; margin-top: .25rem; }
+.server-layout fieldset { min-inline-size: 0; }
+.server-layout fieldset.bg-card, .server-layout fieldset .bg-card {
+  border-color: #4b363f;
+  background-color: var(--card);
+}
+.server-layout legend { color: #ffced8; }
+.server-layout [aria-label="Save server settings"] { border-radius: .8rem; border-color: #9d4053; }
+[data-server-workspace] :focus-visible { outline: 2px solid #ff9bad; outline-offset: 2px; }
+@media (max-width: 767px) {
+  .server-layout { grid-template-columns: minmax(0,1fr); }
+  .server-sidebar { position: static; padding: .6rem; }
+  .server-sidebar > button:first-of-type { width: 100%; margin-bottom: .35rem; }
+  .server-sidebar > button:first-of-type > svg { display: block; }
+  .section-disclosure { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: space-between; padding: .45rem .65rem; font-weight: 650; }
+  .server-sidebar [data-expanded="false"] { display: none; }
+  .server-sidebar nav button span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; clip: auto; white-space: normal; }
+  .module-link { grid-template-columns: auto minmax(0,1fr) auto; align-items: center; padding: 1rem; }
+  .module-link > span, .module-arrow { grid-area: auto; }
+  .server-layout:has([aria-label="Save server settings"]) { padding-bottom: 10rem; }
+}

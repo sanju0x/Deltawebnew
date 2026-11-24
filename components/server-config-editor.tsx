@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Bot, Check, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, Settings2 } from "lucide-react";
+import { ArrowUpRight, Bot, Check, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,9 +120,17 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
   };
   const visibleCommands = commands.filter(command => command.toLowerCase().includes(commandSearch.trim().toLowerCase()));
   const activeMeta = sectionMeta[activeSection] || sectionMeta.overview;
+  const [showSections, setShowSections] = useState(false);
+  const moduleStatus: Record<string, string> = config && activeSection === "overview" ? {
+    welcome: config.greetings?.welcome?.enabled ? "Welcome messages on" : "Welcome messages off",
+    music: MUSIC_SOURCES.find(source => source.value === config.source)?.name || config.source,
+    commands: `${config.disabledCommands.length} disabled`,
+    bot: config.customBot ? "Custom profile on" : "Default profile",
+    tripwire: channelId ? "Protection on" : "Protection off",
+  } : {};
   const sectionNav = (
       <nav aria-label="Server settings sections" className={`rounded-xl border border-white/10 bg-[#171315] p-2 ${serverNavigation ? "flex flex-col gap-1 border-0 p-0" : "flex gap-2 overflow-x-auto"}`}>
-        {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-label={label} title={label} onClick={() => setActiveSection(id)} aria-current={activeSection === id ? "page" : undefined}
+        {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-label={label} title={label} onClick={() => { setActiveSection(id); setShowSections(false); }} aria-current={activeSection === id ? "page" : undefined}
           className={`inline-flex min-h-11 shrink-0 flex-1 items-center gap-2 rounded-lg py-3 ${serverNavigation ? "justify-center px-1 md:justify-start md:px-3" : "justify-center px-3"} text-sm font-semibold transition-all ${activeSection === id ? "bg-gradient-to-r from-[#841627] to-[#bd2639] text-white shadow-lg shadow-red-950/40" : "text-white/55 hover:bg-white/5 hover:text-white"}`}>
           <Icon aria-hidden="true" className="size-4 shrink-0" /><span className={serverNavigation ? "sr-only md:not-sr-only" : undefined}>{label}</span></button>)}
       </nav>
@@ -131,8 +139,8 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
     if (busy || (dirty && !window.confirm("Discard unsaved changes and switch servers?"))) return;
     serverNavigation?.select(id === "directory" ? null : id);
   }
-  return <div className={serverNavigation ? "grid grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-2 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-5" : undefined}>
-    {serverNavigation && <aside className="min-w-0 rounded-xl border border-white/10 bg-[#171315] p-1 md:p-3">
+  return <div className={serverNavigation ? "server-layout" : undefined}>
+    {serverNavigation && <aside className="server-sidebar">
       <Select value={guildId} onValueChange={switchServer} disabled={busy}>
         <SelectTrigger aria-label={`Select server: ${serverNavigation.current.name}`} title={serverNavigation.current.name}
           className="mb-3 flex w-full justify-center gap-0 border-white/10 px-1 py-5 text-white md:justify-between md:gap-2 [&>svg]:hidden md:[&>svg]:block">
@@ -140,7 +148,7 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
             <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-[#56212d] font-bold">
               {serverNavigation.current.icon ? <img alt="" className="size-full object-cover" src={`https://cdn.discordapp.com/icons/${guildId}/${serverNavigation.current.icon}.png?size=64`} /> : serverNavigation.current.name.slice(0,1)}
             </span>
-            <span className="hidden min-w-0 text-left md:block"><strong className="block truncate">{serverNavigation.current.name}</strong><small className="block truncate text-white/60">{serverNavigation.current.role}</small></span>
+            <span className="min-w-0 text-left"><strong className="block truncate">{serverNavigation.current.name}</strong><small className="block truncate text-white/60">{serverNavigation.current.role}</small></span>
           </span>
         </SelectTrigger>
         <SelectContent position="popper" align="start" className="max-h-72 min-w-48 max-w-[85vw]">
@@ -148,14 +156,17 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
           <SelectItem value="directory">Browse all servers</SelectItem>
         </SelectContent>
       </Select>
-      {sectionNav}
+      <button type="button" className="section-disclosure" aria-controls="server-sections" aria-expanded={showSections} onClick={() => setShowSections(!showSections)}>
+        {activeMeta.title}<span aria-hidden="true">{showSections ? "−" : "+"}</span>
+      </button>
+      <div id="server-sections" data-expanded={showSections}>{sectionNav}</div>
     </aside>}
     <div className="min-w-0 space-y-6">
     {loading ? <p role="status">Loading server settings…</p> : config && <>
-      <div className={`flex flex-wrap items-start justify-between gap-4 rounded-xl border p-5 sm:p-6 ${admin ? "border-border/70 bg-card/70" : "border-white/10 bg-linear-to-r from-[#351b22] to-[#191517]"}`}>
+      <div className={`server-masthead flex flex-wrap items-start justify-between gap-4 rounded-xl border p-5 sm:p-6 ${admin ? "border-border/70 bg-card/70" : "border-white/10 bg-linear-to-r from-[#351b22] to-[#191517]"}`}>
         <div className="flex min-w-0 items-center gap-4">
           <div className="grid size-12 shrink-0 place-items-center rounded-xl border border-red-600/20 bg-red-600/10 text-xl font-black text-red-500">{(serverName || "D").slice(0,1).toUpperCase()}</div>
-          <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-500">Delta control center</p><h2 className="mt-1 truncate text-xl font-bold sm:text-2xl">{serverName || "Server settings"}</h2><p className="mt-1 text-xs text-muted-foreground">Server ID: {guildId}</p></div>
+          <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-500">{serverNavigation ? "Server settings" : "Delta control center"}</p><h2 className="mt-1 truncate text-xl font-bold sm:text-2xl">{serverName || "Server settings"}</h2><p className="mt-1 text-xs text-muted-foreground">Server ID: {guildId}</p></div>
         </div>
         <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${dirty ? "border-amber-500/25 bg-amber-500/10 text-amber-500" : config.status === "pending" ? "border-blue-500/25 bg-blue-500/10 text-blue-500" : config.status === "error" ? "border-destructive/25 bg-destructive/10 text-destructive" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-500"}`}>
           {dirty ? <CircleAlert className="size-4" /> : config.status === "pending" ? <Clock3 className="size-4" /> : config.status === "error" ? <CircleAlert className="size-4" /> : <CircleCheck className="size-4" />}
@@ -166,7 +177,16 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
       <div className="space-y-5">
         <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg border border-red-900/40 bg-red-950/30"><Settings2 className="size-5 text-red-400" /></div>
           <div><h3 className="text-xl font-bold">{activeMeta.title}</h3><p className="text-sm text-white/45">{activeMeta.subtitle}</p></div></div>
-        {activeSection === "overview" && <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+        {activeSection === "overview" && serverNavigation && <section aria-label="Server modules" className="module-directory">
+          {sections.filter(section => section.id !== "overview").map(({ id, icon: Icon }) => {
+            return <button key={id} type="button" className="module-link" onClick={() => setActiveSection(id)}>
+              <Icon aria-hidden="true" className="module-icon" />
+              <span className="min-w-0"><strong>{sectionMeta[id].title}</strong><small>{moduleStatus[id]}</small></span>
+              <ArrowUpRight aria-hidden="true" className="module-arrow" />
+            </button>;
+          })}
+        </section>}
+        {activeSection === "overview" && !serverNavigation && <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
           <section className="rounded-xl border border-white/10 bg-[#191517] p-5 sm:p-6">
             <h4 className="text-lg font-bold">Server information</h4>
             <p className="mt-1 text-sm text-white/45">Manage server-specific settings without leaving the dashboard.</p>

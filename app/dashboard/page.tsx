@@ -74,8 +74,8 @@ export default function DashboardPage() {
           },
         }} />
     </> : <>
-      <header className="mb-6 border-b border-white/10 pb-6">
-        <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Server dashboard</h1>
+      <header className="server-masthead mb-6">
+        <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Server directory</h1>
         <p className="mt-2 text-sm text-white/65">Choose a server to manage Delta or set up a new community.</p>
       </header>
       {error && <p role="alert" className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           : matches.length === 0 ? <div role="status" className="p-8 text-center text-sm text-white/65">No matching servers.
             <button type="button" onClick={() => { setServerSearch(""); setFilter("all"); }} className="mx-auto mt-3 block min-h-11 px-3 font-semibold text-red-300 underline">Clear filters</button>
           </div>
-          : <ul className="divide-y divide-white/10">{matches.map(guild => <GuildRow key={guild.id} guild={guild} clientId={account.clientId} onManage={setSelected} />)}</ul>}
+          : <ul className="server-directory-grid">{matches.map(guild => <GuildRow key={guild.id} guild={guild} clientId={account.clientId} onManage={setSelected} />)}</ul>}
       </section>}
     </>}
   </DashboardShell>;
@@ -122,7 +122,7 @@ export default function DashboardPage() {
 function GuildRow({ guild, clientId, onManage }: { guild: Guild; clientId: string; onManage: (guild: Guild) => void }) {
   const actionClass = "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold";
   return (
-    <li className="flex flex-wrap items-center gap-3 px-4 py-4 hover:bg-white/[0.025] sm:px-6">
+    <li className="server-directory-card">
       <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-[#48232c] font-bold text-red-100">
         {guild.icon ? <img alt="" width={44} height={44} className="size-full object-cover" src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`} />
           : guild.name.slice(0, 2).toUpperCase()}
