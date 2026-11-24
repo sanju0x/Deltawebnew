@@ -8,8 +8,12 @@ import { canManageGuild } from "@/lib/server-config-schema";
 export const DASHBOARD_COOKIE = "delta_dashboard_session";
 export const STATE_COOKIE = "delta_dashboard_oauth_state";
 export const cookieOptions = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/" };
-export function siteOrigin(request: NextRequest) { return new URL(process.env.WEBSITE_URL || request.nextUrl.origin).origin; }
-export function redirectUri(request: NextRequest) { return process.env.DISCORD_DASHBOARD_REDIRECT_URI || `${siteOrigin(request)}/api/dashboard/callback`; }
+export function dashboardCookieOptions(request: NextRequest) { return { ...cookieOptions, ...(request.nextUrl.hostname === "delta-bot.online" || request.nextUrl.hostname.endsWith(".delta-bot.online") ? { domain: ".delta-bot.online" } : {}) }; }
+export const WEBSITE_ORIGIN = "https://delta-bot.online";
+export function isServerDashboardHost(request: NextRequest) { return request.nextUrl.hostname.toLowerCase() === "dash.delta-bot.online"; }
+export function siteOrigin(request: NextRequest) { return request.nextUrl.hostname === "delta-bot.online" || request.nextUrl.hostname === "www.delta-bot.online" || isServerDashboardHost(request) ? WEBSITE_ORIGIN : new URL(process.env.WEBSITE_URL || request.nextUrl.origin).origin; }
+// All production Discord authorizations use a single callback on the landing domain.
+export function redirectUri(request: NextRequest) { return siteOrigin(request) === WEBSITE_ORIGIN ? `${WEBSITE_ORIGIN}/api/dashboard/callback` : process.env.DISCORD_DASHBOARD_REDIRECT_URI || `${siteOrigin(request)}/api/dashboard/callback`; }
 export function sessionHash(token: string) { return createHash("sha256").update(token).digest("hex"); }
 export class DashboardError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export function dashboardError(error: unknown) {

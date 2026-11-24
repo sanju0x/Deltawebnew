@@ -1,15 +1,16 @@
 import { submissionLimit } from "@/lib/public-submission";
 import { recordActivity } from "@/lib/site-activity";
 import { NextRequest, NextResponse } from "next/server";
-import { getDiscordClientId, getDiscordClientSecret, readSignedValue } from "@/lib/admin-auth";
-import { cookieOptions, createSession, DASHBOARD_COOKIE, redirectUri, siteOrigin, STATE_COOKIE } from "@/lib/dashboard-auth";
+import { getDiscordClientId, getDiscordClientSecret, readSignedValue, createAdminSession, getAllowedDiscordUserIds, ADMIN_SESSION_COOKIE, sessionCookieOptions } from "@/lib/admin-auth";
+import { cookieOptions, dashboardCookieOptions, createSession, DASHBOARD_COOKIE, redirectUri, siteOrigin, STATE_COOKIE } from "@/lib/dashboard-auth";
+import { TRIAL_SESSION_COOKIE, createTrialSession, trialCookieOptions } from "@/lib/trial-auth";
 
 const limit = submissionLimit(30, 600);
 
 export async function GET(request: NextRequest) {
   const limited = limit(request.headers);
   if (limited) return limited;
-  const finish = async (error = "", path = "/dashboard") => {
+  const finish = async (error = "", path = "/server-dashboard") => {
     if (error) await recordActivity("Dashboard", "Discord sign-in did not complete");
     const response = NextResponse.redirect(new URL(`${path}${error ? `?error=${error}` : ""}`, siteOrigin(request)));
     response.cookies.set(STATE_COOKIE, "", { ...cookieOptions, path: "/api/dashboard", maxAge: 0 });
@@ -28,8 +29,19 @@ export async function GET(request: NextRequest) {
     if (!profileResponse.ok) return finish("login");
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
-    const response = await finish("", state.view === "user" ? "/user-dashboard" : "/dashboard");
-    response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...cookieOptions, maxAge: Math.min(token.expires_in, 86400) });
+    const destination = state.view === "user" ? "/user-dashboard" : state.view === "trial" ? "/trial" : state.view === "admin" ? "/admin" : state.view === "home" ? "/" : "/server-dashboard";
+    const response = await finish("", destination);
+    const sharedOptions = dashboardCookieOptions(request);
+    response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
+    // Separate authorization cookies are derived from the same verified Discord identity.
+    // Admin rights still require the server-side allowlist; a login alone grants nothing.
+    if (getAllowedDiscordUserIds().has(user.id)) {
+      try { response.cookies.set(ADMIN_SESSION_COOKIE, await createAdminSession(user.id), { ...sessionCookieOptions(), ...sharedOptions }); }
+      catch { /* Admin signing configuration must not block ordinary Discord login. */ }
+    }
+    else response.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), ...sharedOptions, maxAge: 0 });
+    try { response.cookies.set(TRIAL_SESSION_COOKIE, await createTrialSession(user.id), { ...trialCookieOptions, ...sharedOptions }); }
+    catch { /* Trial signing is optional and does not block the main login. */ }
     await recordActivity("Dashboard", "Signed in with Discord", user.id);
     return response;
   } catch { return finish("login"); }

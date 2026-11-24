@@ -9,6 +9,19 @@ import { maintenanceStatus } from "@/lib/web-maintenance";
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const hostname = request.nextUrl.hostname.toLowerCase();
+  // Keep the old dashboard subdomain as a redirect while serving the dashboard
+  // from the main website's /server-dashboard route.
+  if (hostname === "dash.delta-bot.online" && (path === "/" || path === "/dashboard" || path === "/server-dashboard")) {
+    const url = new URL("/server-dashboard", "https://delta-bot.online");
+    url.search = request.nextUrl.search;
+    return NextResponse.redirect(url, 308);
+  }
+  if (path === "/dashboard") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/server-dashboard";
+    return NextResponse.redirect(url, 308);
+  }
   if (path.startsWith("/api/") && !path.startsWith("/api/admin")) {
     if (["/api/maintenance", "/api/dashboard/account", "/api/dashboard/logout", "/api/dashboard/login", "/api/dashboard/callback"].includes(path) || path.startsWith("/api/auth/")) return NextResponse.next();
     try {
@@ -50,5 +63,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/:path*"],
+  matcher: ["/", "/dashboard", "/server-dashboard", "/admin/:path*", "/api/:path*"],
 };

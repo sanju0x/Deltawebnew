@@ -17,6 +17,6 @@ export async function GET(request: NextRequest) {
     })).sort((a, b) => Number(b.available) - Number(a.available)
       || priority.indexOf(a.role!) - priority.indexOf(b.role!) || a.name.localeCompare(b.name));
     await recordActivity("Dashboard", "Opened server list", session.userId);
-    return NextResponse.json({ clientId: getDiscordClientId(), user: { id: session.userId, name: session.username }, guilds: servers }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ clientId: getDiscordClientId(), user: { id: session.userId, name: session.username, avatar: session.avatar ?? null }, guilds: servers }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return dashboardError(error); }
 }

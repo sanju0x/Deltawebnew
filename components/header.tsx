@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Handshake, Menu, MessageSquarePlus, Sparkles, Users, X } from "lucide-react";
@@ -46,8 +46,38 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const headerRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const compact = window.matchMedia("(max-width: 1150px)");
+    function onResize() {
+      if (!compact.matches) setIsMenuOpen(false);
+    }
+    function onPointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && !headerRef.current?.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        setIsMenuOpen(false);
+        toggleRef.current?.focus();
+      }
+    }
+    compact.addEventListener("change", onResize);
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      compact.removeEventListener("change", onResize);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMenuOpen]);
+
   return (
-    <header className="site-header">
+    <header ref={headerRef} className="site-header liquid-site-header">
       <div className="site-container">
         <div className="nav-shell">
           <Link href="/" aria-label="Delta home" className="brand-link">
@@ -68,17 +98,17 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
               <DropdownMenuContent
                 align="end"
                 sideOffset={12}
-                className="w-64 rounded-2xl border-[#41342b]/15 bg-[#faf4eb]/98 p-2 shadow-xl shadow-[#362618]/10 backdrop-blur-xl"
+                className="w-64 rounded-2xl border-white/20 bg-[#21151c]/90 p-2 text-white shadow-2xl backdrop-blur-2xl"
               >
                 {menuLinks.map(({ href, label, description, icon: Icon }) => (
-                  <DropdownMenuItem key={href} asChild className="cursor-pointer rounded-xl p-0 focus:bg-[#efe4d5]">
-                    <Link href={href} className="flex min-h-14 items-center gap-3 px-3 py-2.5 outline-none">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-[#d83229] shadow-sm">
+                  <DropdownMenuItem key={href} asChild className="cursor-pointer rounded-xl p-0 focus:bg-white/10">
+                    <Link href={href} aria-current={pathname === href ? "page" : undefined} className="flex min-h-14 items-center gap-3 px-3 py-2.5 outline-none">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-red-300 shadow-sm">
                         <Icon className="size-4.5" aria-hidden="true" />
                       </span>
                       <span>
-                        <span className="block text-sm font-bold text-[#241f1b]">{label}</span>
-                        <span className="mt-0.5 block text-xs font-medium text-[#746a61]">{description}</span>
+                        <span className="block text-sm font-bold text-white">{label}</span>
+                        <span className="mt-0.5 block text-xs font-medium text-white/60">{description}</span>
                       </span>
                     </Link>
                   </DropdownMenuItem>
@@ -99,6 +129,7 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
 
           <button
             type="button"
+            ref={toggleRef}
             className="mobile-menu-button"
             onClick={() => setIsMenuOpen((open) => !open)}
             aria-expanded={isMenuOpen}
@@ -130,6 +161,7 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
                 {menuLinks.map(({ href, label, icon: Icon }) => (
                   <Link
                     key={href}
+                    aria-current={pathname === href ? "page" : undefined}
                     href={href}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center gap-3"
@@ -140,7 +172,7 @@ export function Header({ showTrial }: { showTrial?: boolean }) {
                 ))}
               </div>
             </details>
-            <a href={inviteUrl}>Add to Discord</a>
+            <a href={inviteUrl} onClick={() => setIsMenuOpen(false)}>Add to Discord</a>
           </nav>
         )}
       </div>
