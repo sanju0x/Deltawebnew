@@ -4,7 +4,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { discordAvatarUrl } from "@/lib/discord-avatar";
 import { Button } from "@/components/ui/button";
 import { ServerConfigEditor } from "@/components/server-config-editor";
-import { ArrowLeft, ArrowRight, Plus, RefreshCw, Search, Server } from "lucide-react";
+import { ArrowRight, Plus, RefreshCw, Search, Server } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type Guild = { id: string; name: string; icon: string | null; role: string; available: boolean };
@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const [busy, setBusy] = useState(false);
   const [serverSearch, setServerSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "ready" | "setup">("all");
-  async function load() {
+  async function load(openOverview = false) {
     setLoading(true); setError("");
     try {
       const response = await fetch("/api/dashboard", { cache: "no-store" });
@@ -31,13 +31,15 @@ export default function DashboardPage() {
         const guild = (data.guilds as Guild[]).find(g => g.id === target && g.available);
         if (guild) setSelected(guild);
         else setError("This server is unavailable or you do not have access.");
+      } else if (openOverview && !new URLSearchParams(window.location.search).has("error")) {
+        setSelected((data.guilds as Guild[]).find(guild => guild.available) ?? null);
       }
     } catch (e) { setError(e instanceof Error ? e.message : "Could not load dashboard."); }
     finally { setLoading(false); }
   }
   useEffect(() => {
     setWelcomeGuild(new URLSearchParams(window.location.search).get("welcome") || "");
-    void load().then(() => {
+    void load(true).then(() => {
       const reason = new URLSearchParams(window.location.search).get("error");
       if (reason) setError(reason === "configuration" ? "Discord dashboard login is not configured yet." : "Discord login was cancelled or expired. Please sign in again.");
     });
@@ -58,11 +60,20 @@ export default function DashboardPage() {
     guild.name.toLowerCase().includes(query) &&
     (filter === "all" || guild.available === (filter === "ready"))
   ).sort((a, b) => Number(b.available) - Number(a.available) || a.name.localeCompare(b.name));
-  return <DashboardShell active="servers" username={account?.user.name} avatarUrl={account ? discordAvatarUrl(account.user.id, account.user.avatar) : null} onLogout={account ? () => void logout() : undefined} loggingOut={busy}>
-    {selected ? <div className="mx-auto max-w-6xl space-y-5">
-      <Button variant="outline" className="gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10" onClick={() => { setSelected(null); setWelcomeGuild(""); window.history.replaceState(null, "", "/server-dashboard"); }}><ArrowLeft className="size-4" />All servers</Button>
-      <ServerConfigEditor key={selected.id} guildId={selected.id} initialSection={selected.id === welcomeGuild ? "welcome" : "overview"} />
-    </div> : <>
+  return <DashboardShell serverOpen={!!selected} active="servers" username={account?.user.name} avatarUrl={account ? discordAvatarUrl(account.user.id, account.user.avatar) : null} onLogout={account ? () => void logout() : undefined} loggingOut={busy}>
+    {selected ? <>
+      {error && <p role="alert" className="mb-4 text-sm text-red-300">{error}</p>}
+      <ServerConfigEditor key={selected.id} guildId={selected.id} initialSection={selected.id === welcomeGuild ? "welcome" : "overview"}
+        serverNavigation={{
+          current: selected,
+          servers: guilds.filter(guild => guild.available),
+          select: id => {
+            setSelected(guilds.find(guild => guild.id === id && guild.available) ?? null);
+            setWelcomeGuild("");
+            window.history.replaceState(null, "", "/server-dashboard");
+          },
+        }} />
+    </> : <>
       <header className="mb-6 border-b border-white/10 pb-6">
         <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">Server dashboard</h1>
         <p className="mt-2 text-sm text-white/65">Choose a server to manage Delta or set up a new community.</p>

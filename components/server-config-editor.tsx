@@ -16,7 +16,10 @@ function previewImage(value: string) {
   try { const url = new URL(value); return url.protocol === "https:" && IMAGE_HOSTS.includes(url.hostname) ? value : ""; }
   catch { return ""; }
 }
-export function ServerConfigEditor({ guildId, admin = false, initialSection = "overview" }: { guildId: string; admin?: boolean; initialSection?: string }) {
+type SidebarServer = { id: string; name: string; icon: string | null; role: string };
+type ServerNavigation = { current: SidebarServer; servers: SidebarServer[]; select: (id: string | null) => void };
+
+export function ServerConfigEditor({ guildId, admin = false, initialSection = "overview", serverNavigation }: { guildId: string; admin?: boolean; initialSection?: string; serverNavigation?: ServerNavigation }) {
   const endpoint = `${admin ? "/api/admin/server-config" : "/api/dashboard/servers"}/${guildId}`;
   const [config, setConfig] = useState<ServerConfig | null>(null);
   const [roles, setRoles] = useState<GuildOption[]>([]);
@@ -117,7 +120,37 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
   };
   const visibleCommands = commands.filter(command => command.toLowerCase().includes(commandSearch.trim().toLowerCase()));
   const activeMeta = sectionMeta[activeSection] || sectionMeta.overview;
-  return <div className="space-y-6">
+  const sectionNav = (
+      <nav aria-label="Server settings sections" className={`rounded-xl border border-white/10 bg-[#171315] p-2 ${serverNavigation ? "flex flex-col gap-1 border-0 p-0" : "flex gap-2 overflow-x-auto"}`}>
+        {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" aria-label={label} title={label} onClick={() => setActiveSection(id)} aria-current={activeSection === id ? "page" : undefined}
+          className={`inline-flex min-h-11 shrink-0 flex-1 items-center gap-2 rounded-lg py-3 ${serverNavigation ? "justify-center px-1 md:justify-start md:px-3" : "justify-center px-3"} text-sm font-semibold transition-all ${activeSection === id ? "bg-gradient-to-r from-[#841627] to-[#bd2639] text-white shadow-lg shadow-red-950/40" : "text-white/55 hover:bg-white/5 hover:text-white"}`}>
+          <Icon aria-hidden="true" className="size-4 shrink-0" /><span className={serverNavigation ? "sr-only md:not-sr-only" : undefined}>{label}</span></button>)}
+      </nav>
+  );
+  function switchServer(id: string) {
+    if (busy || (dirty && !window.confirm("Discard unsaved changes and switch servers?"))) return;
+    serverNavigation?.select(id === "directory" ? null : id);
+  }
+  return <div className={serverNavigation ? "grid grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-2 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-5" : undefined}>
+    {serverNavigation && <aside className="min-w-0 rounded-xl border border-white/10 bg-[#171315] p-1 md:p-3">
+      <Select value={guildId} onValueChange={switchServer} disabled={busy}>
+        <SelectTrigger aria-label={`Select server: ${serverNavigation.current.name}`} title={serverNavigation.current.name}
+          className="mb-3 flex w-full justify-center gap-0 border-white/10 px-1 py-5 text-white md:justify-between md:gap-2 [&>svg]:hidden md:[&>svg]:block">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-[#56212d] font-bold">
+              {serverNavigation.current.icon ? <img alt="" className="size-full object-cover" src={`https://cdn.discordapp.com/icons/${guildId}/${serverNavigation.current.icon}.png?size=64`} /> : serverNavigation.current.name.slice(0,1)}
+            </span>
+            <span className="hidden min-w-0 text-left md:block"><strong className="block truncate">{serverNavigation.current.name}</strong><small className="block truncate text-white/60">{serverNavigation.current.role}</small></span>
+          </span>
+        </SelectTrigger>
+        <SelectContent position="popper" align="start" className="max-h-72 min-w-48 max-w-[85vw]">
+          {serverNavigation.servers.map(server => <SelectItem key={server.id} value={server.id}>{server.name}</SelectItem>)}
+          <SelectItem value="directory">Browse all servers</SelectItem>
+        </SelectContent>
+      </Select>
+      {sectionNav}
+    </aside>}
+    <div className="min-w-0 space-y-6">
     {loading ? <p role="status">Loading server settings…</p> : config && <>
       <div className={`flex flex-wrap items-start justify-between gap-4 rounded-xl border p-5 sm:p-6 ${admin ? "border-border/70 bg-card/70" : "border-white/10 bg-linear-to-r from-[#351b22] to-[#191517]"}`}>
         <div className="flex min-w-0 items-center gap-4">
@@ -129,11 +162,7 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
           {dirty ? "Unsaved changes" : config.status === "pending" ? "Syncing with Delta" : config.status === "error" ? "Sync issue" : "Up to date"}
         </span>
       </div>
-      <nav aria-label="Server settings sections" className={`rounded-xl border border-white/10 bg-[#171315] p-2 ${admin ? "flex gap-2 overflow-x-auto" : "grid grid-cols-2 gap-1.5 sm:grid-cols-3"}`}>
-        {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => setActiveSection(id)} aria-current={activeSection === id ? "page" : undefined}
-          className={`inline-flex min-h-11 shrink-0 flex-1 items-center gap-2 rounded-lg px-3 py-3 ${admin ? "justify-center" : "text-left"} text-sm font-semibold transition-all ${activeSection === id ? "bg-gradient-to-r from-[#841627] to-[#bd2639] text-white shadow-lg shadow-red-950/40" : "text-white/55 hover:bg-white/5 hover:text-white"}`}>
-          <Icon aria-hidden="true" className="size-4 shrink-0" />{label}</button>)}
-      </nav>
+      {!serverNavigation && sectionNav}
       <div className="space-y-5">
         <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg border border-red-900/40 bg-red-950/30"><Settings2 className="size-5 text-red-400" /></div>
           <div><h3 className="text-xl font-bold">{activeMeta.title}</h3><p className="text-sm text-white/45">{activeMeta.subtitle}</p></div></div>
@@ -284,5 +313,6 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
     </>}
     {notice && <p role="status" className="text-sm">{notice}</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    </div>
   </div>;
 }
