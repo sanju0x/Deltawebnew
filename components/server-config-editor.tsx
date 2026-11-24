@@ -119,7 +119,7 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
   const activeMeta = sectionMeta[activeSection] || sectionMeta.overview;
   return <div className="space-y-6">
     {loading ? <p role="status">Loading server settings…</p> : config && <>
-      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border/70 bg-card/70 p-5 sm:p-6">
+      <div className={`flex flex-wrap items-start justify-between gap-4 rounded-xl border p-5 sm:p-6 ${admin ? "border-border/70 bg-card/70" : "border-white/10 bg-linear-to-r from-[#351b22] to-[#191517]"}`}>
         <div className="flex min-w-0 items-center gap-4">
           <div className="grid size-12 shrink-0 place-items-center rounded-xl border border-red-600/20 bg-red-600/10 text-xl font-black text-red-500">{(serverName || "D").slice(0,1).toUpperCase()}</div>
           <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-500">Delta control center</p><h2 className="mt-1 truncate text-xl font-bold sm:text-2xl">{serverName || "Server settings"}</h2><p className="mt-1 text-xs text-muted-foreground">Server ID: {guildId}</p></div>
@@ -129,10 +129,10 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
           {dirty ? "Unsaved changes" : config.status === "pending" ? "Syncing with Delta" : config.status === "error" ? "Sync issue" : "Up to date"}
         </span>
       </div>
-      <nav aria-label="Server settings sections" className="flex gap-2 overflow-x-auto rounded-xl border border-white/10 bg-[#171315] p-2">
+      <nav aria-label="Server settings sections" className={`rounded-xl border border-white/10 bg-[#171315] p-2 ${admin ? "flex gap-2 overflow-x-auto" : "grid grid-cols-2 gap-1.5 sm:grid-cols-3"}`}>
         {sections.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => setActiveSection(id)} aria-current={activeSection === id ? "page" : undefined}
-          className={`inline-flex min-h-11 shrink-0 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all ${activeSection === id ? "bg-gradient-to-r from-[#841627] to-[#bd2639] text-white shadow-lg shadow-red-950/40" : "text-white/55 hover:bg-white/5 hover:text-white"}`}>
-          <Icon aria-hidden="true" className="size-4" />{label}</button>)}
+          className={`inline-flex min-h-11 shrink-0 flex-1 items-center gap-2 rounded-lg px-3 py-3 ${admin ? "justify-center" : "text-left"} text-sm font-semibold transition-all ${activeSection === id ? "bg-gradient-to-r from-[#841627] to-[#bd2639] text-white shadow-lg shadow-red-950/40" : "text-white/55 hover:bg-white/5 hover:text-white"}`}>
+          <Icon aria-hidden="true" className="size-4 shrink-0" />{label}</button>)}
       </nav>
       <div className="space-y-5">
         <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg border border-red-900/40 bg-red-950/30"><Settings2 className="size-5 text-red-400" /></div>
