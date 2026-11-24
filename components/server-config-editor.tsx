@@ -55,7 +55,7 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
     return () => controller.abort();
   }, [endpoint]);
   useEffect(() => {
-    if (!config || dirty || busy) return;
+    if (!config || busy) return;
     const controller = new AbortController();
     const timer = setInterval(async () => {
       try {
@@ -63,9 +63,11 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not check sync status.");
         if (!controller.signal.aborted) {
-          setConfig(data.config); setSavedConfig(data.config);
+          if (!dirty) { setConfig(data.config); setSavedConfig(data.config); }
+          setRoles(data.roles || []); setChannels(data.channels || []); setEmojis(data.emojis || []);
+          setMemberCount(data.memberCount || 0); setCanConfigureTripwire(data.canConfigureTripwire);
           const rule = { channelId: data.tripwire?.channelId || "", action: data.tripwire?.action || "timeout" };
-          setSavedRule(rule); setChannelId(rule.channelId); setAction(rule.action);
+          if (!dirty) { setSavedRule(rule); setChannelId(rule.channelId); setAction(rule.action); }
         }
       } catch (e) { if (!controller.signal.aborted) setNotice(e instanceof Error ? e.message : "Could not check sync status."); }
     }, 15000);

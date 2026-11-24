@@ -6,7 +6,7 @@ import { defaultGreetings, imageUrl, IMAGE_HOSTS } from "@/lib/server-config-sch
 import { Palette, MessageInput, ComponentBuilder, ComponentPreview, MarkdownPreview, effectiveBlocks } from "./greeting-builder";
 
 export type Greetings = ReturnType<typeof defaultGreetings>;
-export type GuildOption = { id: string; name: string; animated?: boolean };
+export type GuildOption = { id: string; name: string; animated?: boolean; assignable?: boolean; position?: number };
 type Kind = "welcome" | "goodbye";
 type Props = {
   value: Greetings; onChange: (settings: Greetings) => void; channels: GuildOption[];
@@ -55,7 +55,11 @@ export function GreetingEditor({ value, onChange, channels, roles, emojis, serve
   const [kind, setKind] = useState<Kind>("welcome");
   const card = value[kind];
   const title = kind === "welcome" ? "Welcome" : "Goodbye";
-  function change(patch: Partial<typeof card>) { onChange({ ...value, [kind]: { ...card, ...patch } }); }
+  function change(patch: Partial<typeof card>) {
+    const next = { ...card, ...patch };
+    if (next.format === "components") next.blocks = effectiveBlocks(next);
+    onChange({ ...value, [kind]: next });
+  }
   function move(layer: Layer, x: number, y: number) {
     const clamp = (n: number) => Math.min(100, Math.max(0, Math.round(n)));
     change({ [`${layer}X`]: clamp(x), [`${layer}Y`]: clamp(y) });
@@ -83,14 +87,16 @@ export function GreetingEditor({ value, onChange, channels, roles, emojis, serve
         <Picker label="Message format" value={card.format} pick={format => change({ format })} items={[
           { id: "components", name: "Components V2" }, { id: "embed", name: "Embed (classic)" }, { id: "plain", name: "Plain message" }]} />
       </div>
+      <Picker label="Media source" value={card.canvas ? "canvas" : "image"} pick={source => change({ canvas: source === "canvas" })}
+        items={[{ id: "canvas", name: "Generated canvas" }, { id: "image", name: "Image / GIF links" }]} />
       {card.format === "components" ? <>
-        <Picker label="Media source" value={card.canvas ? "canvas" : "image"} pick={source => change({ canvas: source === "canvas" })}
-          items={[{ id: "image", name: "Image / GIF links" }, { id: "canvas", name: "Generated canvas" }]} />
-        <p className="text-xs text-muted-foreground">{card.canvas ? "Your personalized canvas appears below the message blocks." : "Add image or thumbnail blocks with direct image and GIF links."}</p>
+        <p className="text-xs text-muted-foreground">{card.canvas ? "Reorder the Generated Canvas block to position your personalized canvas." : "Add image or thumbnail blocks with direct image and GIF links."}</p>
         <ComponentBuilder key={kind} blocks={effectiveBlocks(card)} onChange={blocks => change({ blocks })} emojis={emojis} />
-        <Palette label="Container accent" value={card.accentColor || "#5865f2"} pick={accentColor => change({ accentColor })} />
+        <div className="space-y-3 rounded-xl border p-4">
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!card.accentColor} onChange={e => change({ accentColor: e.target.checked ? "#5865f2" : "" })} />Component V2 color (optional block)</label>
+          {card.accentColor && <Palette label="Component V2 color" value={card.accentColor} pick={accentColor => change({ accentColor })} />}
+        </div>
       </> : <MessageInput key={kind + "message"} label="Message" value={card.message} onChange={message => change({ message })} emojis={emojis} />}
-      {card.format !== "components" && <label className="flex items-center gap-2"><input type="checkbox" checked={card.canvas} onChange={e => change({ canvas: e.target.checked })} />Attach a canvas image</label>}
       {card.canvas && <>
         <MessageInput key={kind + "canvas"} label="Canvas text" maxLength={600} value={card.canvasText} onChange={canvasText => change({ canvasText })} emojis={emojis} />
         <label className="block">Background image URL<Input type="url" maxLength={2048} value={card.backgroundImage} onChange={e => change({ backgroundImage: e.target.value })} /></label>
@@ -116,9 +122,12 @@ export function GreetingEditor({ value, onChange, channels, roles, emojis, serve
     {canManageRoles && <section className="space-y-3 rounded-xl border bg-card p-5 xl:col-span-2">
       <h4 className="font-semibold">Automatic join roles</h4>
       <p className="text-sm text-muted-foreground">Roles apply when someone joins, including when welcome messages are off.</p>
+      <p role="note" className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-300">Delta needs Manage Roles permission. Move Delta’s highest role above each selected role in your server’s role list.</p>
+      {roles.length === 0 && <p className="text-sm text-muted-foreground">No server roles are available yet. Check Delta’s server permissions and wait for the next sync.</p>}
       {(["autoRole", "botRole"] as const).map(field => <Picker key={field} label={field === "autoRole" ? "Member role" : "Bot role"}
         value={value[field] || "none"} pick={id => onChange({ ...value, [field]: id === "none" ? "" : id })}
         items={[{ id: "none", name: "None" }, ...(value[field] && !roles.some(r => r.id === value[field]) ? [{ id: value[field], name: "Role unavailable" }] : []), ...roles]} />)}
+      {(["autoRole", "botRole"] as const).map(field => value[field] && (!roles.some(role => role.id === value[field]) || roles.find(role => role.id === value[field])?.assignable === false) && <p key={field} role="alert" className="text-sm text-amber-600 dark:text-amber-300">{field === "autoRole" ? "Member role" : "Bot role"}: Delta cannot assign the selected role. Move Delta’s highest role above it and give Delta Manage Roles permission.</p>)}
     </section>}
   </div>;
 }

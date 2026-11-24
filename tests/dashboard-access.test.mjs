@@ -12,7 +12,7 @@ const guildId = "111111111111111111";
 const userId = "222222222222222222";
 const token = "a".repeat(64);
 const valid = { source: "spsearch", disabledCommands: ["warn"], customBot: false, nickname: "", bio: "", avatar: "", banner: "" };
-async function setup({ signedIn = true, permissions = "32", adminId = null, allowAdmin = false, offline = false, discordStatus = 200, guilds, presentIds = [guildId] } = {}) {
+async function setup({ signedIn = true, permissions = "32", adminId = null, allowAdmin = false, offline = false, discordStatus = 200, guilds, roles, presentIds = [guildId] } = {}) {
   let tripwire = null;
   let saved = null, writes = 0, permissionChecks = 0;
   const session = { userId, username: "Listener", avatar: "avatar-hash", accessToken: "server-only-token", expiresAt: new Date(Date.now() + 60000) };
@@ -35,7 +35,7 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
       if (name === "tripwires") return { findOne: async () => tripwire, updateOne: async (filter, update) => { assert.equal(filter._id, guildId); tripwire = update.$set; } };
       if (name === "bot_blacklist") return { findOne: async () => null };
       if (name === "dashboard_sessions") return { findOne: async (filter) => signedIn && filter.tokenHash === createHash("sha256").update(token).digest("hex") ? session : null };
-      if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", channels: [{ id: "333333333333333333", name: "tripwire" }], configurableCommands: ["warn"], source: "ytsearch", disabledCommands: [] } };
+      if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", roles, channels: [{ id: "333333333333333333", name: "tripwire" }], configurableCommands: ["warn"], source: "ytsearch", disabledCommands: [] } };
       if (name === "server_configs") return { createIndex: async () => {}, findOne: async () => saved,
         updateOne: async (filter, update) => { writes++; assert.equal(filter.guildId, guildId); saved = { ...saved, ...update.$setOnInsert };
           for (const [path, value] of Object.entries(update.$set)) {
@@ -166,4 +166,19 @@ test("greetings are opt-in and independent across saves, with administrator-only
   assert.equal((await save({ autoRole: "333333333333333333" })).status, 400);
   assert.equal((await app.request()).status, 200);
   assert.deepEqual(app.saved.greetings.welcome, welcome);
+});
+
+
+test("automatic roles list includes hierarchy warnings and rejects roles Delta cannot assign", async () => {
+  const roles = [{ id: "lower", name: "Member", assignable: true }, { id: "higher", name: "Moderator", assignable: false }];
+  const app = await setup({ permissions: "8", roles });
+  const data = await (await app.request(valid, { method: "GET" })).json();
+  assert.deepEqual(data.roles, roles);
+  const rejected = await app.request({ ...valid, greetings: { autoRole: "higher" } });
+  assert.equal(rejected.status, 400);
+  assert.match((await rejected.json()).error, /highest role must be above/);
+  assert.equal(app.writes, 0);
+  assert.equal((await app.request({ ...valid, greetings: { autoRole: "lower", botRole: "lower" } })).status, 200);
+  assert.equal(app.saved.greetings.autoRole, "lower");
+  assert.equal(app.saved.greetings.botRole, "lower");
 });

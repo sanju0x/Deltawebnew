@@ -4,8 +4,32 @@ import schema from "../lib/server-config-schema.js";
 const { canManageGuild, imageUrl, validateServerConfig } = schema;
 const valid = { source: "ytsearch", disabledCommands: ["play"], customBot: true, nickname: "Delta Music", bio: "Music for this server.", avatar: "https://i.imgur.com/example.png", banner: "" };
 
+test("new greetings default to plain messages with generated canvas and preserve saved choices", () => {
+  for (const kind of ["welcome", "goodbye"]) {
+    const card = schema.defaultGreetings()[kind];
+    assert.equal(card.format, "plain");
+    assert.equal(card.canvas, true);
+    assert.equal(card.accentColor, "");
+    assert.equal(schema.validateGreeting(kind, card, []).accentColor, "");
+    const saved = schema.defaultGreetings({ [kind]: { format: "embed", canvas: false, accentColor: "#123456" } })[kind];
+    assert.equal(saved.format, "embed");
+    assert.equal(saved.canvas, false);
+    assert.equal(saved.accentColor, "#123456");
+  }
+});
+
+test("generated canvas blocks retain their order and optional color survives validation", () => {
+  const canvas = { id: "canvas", type: "canvas", text: "", url: "", description: "", divider: true, spacing: 1 };
+  const card = { ...schema.defaultGreetings().welcome, format: "components", enabled: true, channelId: "channel", blocks: [canvas, { ...canvas, id: "text", type: "text", text: "Hello" }] };
+  const validated = schema.validateGreeting("welcome", card, [{ id: "channel" }]);
+  assert.deepEqual(validated.blocks, card.blocks);
+  assert.equal(validated.accentColor, "");
+  assert.throws(() => schema.validateGreeting("welcome", { ...card, blocks: [canvas, { ...canvas, id: "duplicate-canvas" }] }, [{ id: "channel" }]));
+  assert.throws(() => schema.validateGreeting("welcome", { ...card, accentColor: "invalid" }, [{ id: "channel" }]));
+});
+
 test("V2 blocks survive validation with ordered media, thumbnails and separator settings", () => {
-  const base = { ...schema.defaultGreetings().welcome, enabled: true, channelId: "channel", canvas: false, message: "" };
+  const base = { ...schema.defaultGreetings().welcome, format: "components", enabled: true, channelId: "channel", canvas: false, message: "" };
   const block = { id: "first", type: "image", text: "", url: "https://media.tenor.com/example/welcome.gif", description: "Welcome", divider: true, spacing: 1 };
   const card = { ...base, blocks: [block, { ...block, id: "second", type: "section", text: "**Hi {user}**" }, { ...block, id: "third", type: "separator", url: "", divider: false, spacing: 2 }] };
   const validated = schema.validateGreeting("welcome", card, [{ id: "channel" }]);

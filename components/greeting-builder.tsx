@@ -15,7 +15,9 @@ export function newBlock(type: Block["type"], text = ""): Block {
   return { id: crypto.randomUUID(), type, text, url: "", description: "", divider: true, spacing: 1 };
 }
 export function effectiveBlocks(card: Greetings["welcome"]): Block[] {
-  return card.blocks?.length ? card.blocks : [{ id: "message", type: "text", text: card.message, url: "", description: "", divider: true, spacing: 1 }];
+  const blocks = card.blocks?.length ? card.blocks : [{ id: "message", type: "text" as const, text: card.message, url: "", description: "", divider: true, spacing: 1 }];
+  if (!card.canvas) return blocks.filter(block => block.type !== "canvas");
+  return blocks.some(block => block.type === "canvas") ? blocks : [...blocks, { id: "generated-canvas", type: "canvas", text: "", url: "", description: "", divider: true, spacing: 1 }];
 }
 function safeImage(url: string) { try { return imageUrl(url); } catch { return ""; } }
 
@@ -92,20 +94,21 @@ export function MessageInput({ label, value, onChange, emojis, maxLength = 2000 
 export function ComponentBuilder({ blocks, onChange, emojis }: { blocks: Block[]; onChange: (blocks: Block[]) => void; emojis: GuildOption[] }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
-  const names = { text: "Text", separator: "Separator", image: "Image / GIF", section: "Text + thumbnail" };
+  const names = { text: "Text", separator: "Separator", image: "Image / GIF", section: "Text + thumbnail", canvas: "Generated Canvas" };
   function update(id: string, patch: Partial<Block>) { onChange(blocks.map(b => b.id === id ? { ...b, ...patch } : b)); }
   function move(id: string, index: number) { const next = [...blocks]; const from = next.findIndex(b => b.id === id); if (from < 0 || index < 0 || index >= next.length || from === index) return; const [item] = next.splice(from, 1); next.splice(index, 0, item); onChange(next); }
   return <div className="space-y-3">
-    <div className="flex items-center justify-between"><div><h4 className="text-sm font-semibold">Message blocks</h4><p className="mt-1 text-xs text-muted-foreground">Drag the grip to reorder. Arrow buttons work on touch and keyboard.</p></div><span className="text-xs text-muted-foreground">{blocks.length}/10</span></div>
+    <div className="flex items-center justify-between"><div><h4 className="text-sm font-semibold">Message blocks</h4><p className="mt-1 text-xs text-muted-foreground">Drag the grip to reorder. Arrow buttons work on touch and keyboard.</p></div><span className="text-xs text-muted-foreground">{blocks.filter(block => block.type !== "canvas").length}/10</span></div>
     {blocks.map((block, index) => <div key={block.id} onDragOver={e => { if (drag) { e.preventDefault(); setOver(block.id); } }} onDrop={e => { e.preventDefault(); if (drag) move(drag, index); setDrag(null); setOver(null); }} className={`overflow-hidden rounded-xl border bg-background transition ${over === block.id && drag !== block.id ? "border-primary ring-1 ring-primary" : ""} ${drag === block.id ? "opacity-50" : ""}`}>
       <div className="flex items-center gap-2 border-b bg-muted/25 px-3 py-2">
         <button type="button" draggable aria-label={"Drag " + names[block.type]} className={tool + " cursor-grab active:cursor-grabbing"} onDragStart={e => { setDrag(block.id); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", block.id); }} onDragEnd={() => { setDrag(null); setOver(null); }}><GripVertical size={16} /></button>
         <span className="flex-1 text-xs font-medium">{String(index + 1).padStart(2, "0")} · {names[block.type]}</span>
         <button type="button" aria-label="Move block up" className={tool} disabled={!index} onClick={() => move(block.id, index - 1)}><ArrowUp size={14} /></button>
         <button type="button" aria-label="Move block down" className={tool} disabled={index === blocks.length - 1} onClick={() => move(block.id, index + 1)}><ArrowDown size={14} /></button>
-        <button type="button" aria-label="Remove block" className={tool} disabled={blocks.length === 1} onClick={() => onChange(blocks.filter(b => b.id !== block.id))}><Trash2 size={14} /></button>
+        <button type="button" aria-label="Remove block" className={tool} disabled={blocks.length === 1 || block.type === "canvas"} onClick={() => onChange(blocks.filter(b => b.id !== block.id))}><Trash2 size={14} /></button>
       </div>
       <div className="space-y-3 p-4">
+        {block.type === "canvas" && <p className="text-xs text-muted-foreground">Your generated canvas appears here. Edit its text, background and avatar below, or change the media source to remove it.</p>}
         {(block.type === "text" || block.type === "section") && <MessageInput label="Text content" value={block.text} onChange={text => update(block.id, { text })} emojis={emojis} />}
         {(block.type === "image" || block.type === "section") && <><label className="block space-y-1 text-xs"><span>{block.type === "section" ? "Thumbnail" : "Image or GIF"} URL</span><Input type="url" maxLength={2048} placeholder="https://media.tenor.com/…/welcome.gif" value={block.url} aria-invalid={!!block.url && !safeImage(block.url)} onChange={e => update(block.id, { url: e.target.value })} /></label>
           {block.url && !safeImage(block.url) && <p className="text-xs text-destructive">Use a direct HTTPS image link from a supported host.</p>}
@@ -113,7 +116,7 @@ export function ComponentBuilder({ blocks, onChange, emojis }: { blocks: Block[]
         {block.type === "separator" && <div className="flex flex-wrap items-center gap-4 text-sm"><label className="flex items-center gap-2"><input type="checkbox" checked={block.divider} onChange={e => update(block.id, { divider: e.target.checked })} />Show divider line</label><label className="flex items-center gap-2">Spacing<select aria-label="Separator spacing" className="rounded border bg-background p-2 text-xs" value={block.spacing} onChange={e => update(block.id, { spacing: Number(e.target.value) })}><option value={1}>Small</option><option value={2}>Large</option></select></label></div>}
       </div>
     </div>)}
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{([{ type: "text", icon: Type }, { type: "separator", icon: Minus }, { type: "image", icon: ImageIcon }, { type: "section", icon: Plus }] as const).map(({ type, icon: Icon }) => <button key={type} type="button" disabled={blocks.length >= 10} onClick={() => onChange([...blocks, newBlock(type)])} className="flex items-center justify-center gap-2 rounded-lg border border-dashed px-2 py-3 text-xs hover:border-primary hover:bg-primary/5 disabled:opacity-40"><Icon size={15} />{names[type]}</button>)}</div>
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{([{ type: "text", icon: Type }, { type: "separator", icon: Minus }, { type: "image", icon: ImageIcon }, { type: "section", icon: Plus }] as const).map(({ type, icon: Icon }) => <button key={type} type="button" disabled={blocks.filter(block => block.type !== "canvas").length >= 10} onClick={() => onChange([...blocks, newBlock(type)])} className="flex items-center justify-center gap-2 rounded-lg border border-dashed px-2 py-3 text-xs hover:border-primary hover:bg-primary/5 disabled:opacity-40"><Icon size={15} />{names[type]}</button>)}</div>
     <p className="text-[11px] leading-relaxed text-muted-foreground">Direct image and animated GIF links: {IMAGE_HOSTS.join(", ")}. Up to 3500 characters across text blocks.</p>
   </div>;
 }
@@ -124,13 +127,13 @@ export function MarkdownPreview({ text, render }: { text: string; render: (text:
 }
 
 export function ComponentPreview({ card, render, children }: { card: Greetings["welcome"]; render: (text: string) => ReactNode; children?: ReactNode }) {
-  return <div className="space-y-3 rounded-lg border border-l-4 bg-[#2b2d31] p-4 text-[#dbdee1]" style={{ borderLeftColor: card.accentColor || "#5865f2" }}>
+  return <div className={`space-y-3 rounded-lg border bg-[#2b2d31] p-4 text-[#dbdee1] ${card.accentColor !== "" ? "border-l-4" : ""}`} style={{ borderLeftColor: card.accentColor || undefined }}>
     {effectiveBlocks(card).map(block => <div key={block.id}>
+      {block.type === "canvas" && children}
       {block.type === "text" && <MarkdownPreview text={block.text} render={render} />}
       {block.type === "separator" && <div style={{ paddingBlock: block.spacing === 2 ? 12 : 4 }}>{block.divider && <hr className="border-white/15" />}</div>}
       {block.type === "image" && (safeImage(block.url) ? <img className="max-h-80 w-full rounded-md object-contain" src={safeImage(block.url)} alt={block.description || "Message image"} /> : <div className="flex h-28 items-center justify-center gap-2 rounded-lg border border-dashed border-white/20 text-xs text-gray-400"><ImageIcon size={18} />Add an image or GIF link</div>)}
       {block.type === "section" && <div className="flex items-start justify-between gap-4"><div className="min-w-0 flex-1"><MarkdownPreview text={block.text} render={render} /></div>{safeImage(block.url) ? <img className="size-20 shrink-0 rounded-lg object-cover" src={safeImage(block.url)} alt={block.description || "Thumbnail"} /> : <div className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-dashed border-white/20"><ImageIcon size={20} /></div>}</div>}
     </div>)}
-    {children}
   </div>;
 }

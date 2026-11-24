@@ -14,7 +14,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
     actor = userId;
     const db = await getDb();
     const collection = db.collection("server_configs");
-    const roles = presence.assignableRoles || [];
+    const roles = presence.roles || presence.assignableRoles || [];
     const channels = presence.channels || [];
     const rules = db.collection<{_id: string; channelId: string | null; action: string | null}>("tripwires");
     if (request.method === "PUT") {
@@ -44,7 +44,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
             if (!(field in greetings)) continue;
             if (!canConfigureTripwire) throw new Error("Administrator permission is required to change automatic roles.");
             const role = greetings[field];
-            if (role !== "" && !roles.some((r: {id: string}) => r.id === role)) throw new Error("Choose a role Delta can assign.");
+            if (role !== "" && !roles.some((r: {id: string; assignable?: boolean}) => r.id === role && r.assignable !== false)) throw new Error("Delta needs Manage Roles permission and its highest role must be above the selected role.");
             input[`greetings.${field}`] = role;
           }
         }
