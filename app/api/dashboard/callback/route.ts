@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     return response;
   };
   try {
-    const state = await readSignedValue<{ purpose: string; view?: string; state: string; expiresAt: number }>(request.cookies.get(STATE_COOKIE)?.value);
+    const state = await readSignedValue<{ purpose: string; view?: string; welcome?: string; state: string; expiresAt: number }>(request.cookies.get(STATE_COOKIE)?.value);
     const code = request.nextUrl.searchParams.get("code");
     if (!code || state?.purpose !== "dashboard-oauth" || state.state !== request.nextUrl.searchParams.get("state") || !Number.isFinite(state.expiresAt) || state.expiresAt <= Date.now()) return finish("login");
     const tokenResponse = await fetch("https://discord.com/api/oauth2/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     const user = await profileResponse.json();
     if (!/^\d{17,20}$/.test(user.id)) return finish("login");
     const destination = state.view === "user" ? "/user-dashboard" : state.view === "trial" ? "/trial" : state.view === "admin" ? "/admin" : state.view === "home" ? "/" : "/server-dashboard";
-    const response = await finish("", destination);
+    const target = destination === "/server-dashboard" && state.welcome && /^\d{17,20}$/.test(state.welcome) ? `${destination}?welcome=${state.welcome}` : destination;
+    const response = await finish("", target);
     const sharedOptions = dashboardCookieOptions(request);
     response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
     // Separate authorization cookies are derived from the same verified Discord identity.

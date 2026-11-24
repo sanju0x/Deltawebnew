@@ -37,7 +37,11 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
       if (name === "dashboard_sessions") return { findOne: async (filter) => signedIn && filter.tokenHash === createHash("sha256").update(token).digest("hex") ? session : null };
       if (name === "bot_guilds") return { find: () => ({ project: () => ({ toArray: async () => presentIds.map(id => ({ guildId: id })) }) }), findOne: async () => offline ? null : { name: "Test server", channels: [{ id: "333333333333333333", name: "tripwire" }], configurableCommands: ["warn"], source: "ytsearch", disabledCommands: [] } };
       if (name === "server_configs") return { createIndex: async () => {}, findOne: async () => saved,
-        updateOne: async (filter, update) => { writes++; assert.equal(filter.guildId, guildId); saved = { ...update.$set, ...update.$setOnInsert }; } };
+        updateOne: async (filter, update) => { writes++; assert.equal(filter.guildId, guildId); saved = { ...saved, ...update.$setOnInsert };
+          for (const [path, value] of Object.entries(update.$set)) {
+            if (path.startsWith("greetings.")) (saved.greetings ??= {})[path.slice("greetings.".length)] = value;
+            else saved[path] = value;
+          } } };
       throw new Error(`Unexpected collection ${name}`);
     } }) }
   };
@@ -61,7 +65,7 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
       return route.namespace.GET({ cookies: { get: () => ({ value: token }) } });
     },
     request: (body = valid, { admin = false, origin = "https://delta.example", method = "PATCH", cookie = token } = {}) => entry.namespace.handleServerConfig({
-      method, nextUrl: { origin: "https://delta.example" }, cookies: { get: () => cookie ? { value: cookie } : undefined }, headers: new Headers({ origin, "content-type": "application/json" }), body: new Response(JSON.stringify(body)).body,
+      method, nextUrl: new URL("https://delta.example/api/dashboard/servers/" + guildId), cookies: { get: () => cookie ? { value: cookie } : undefined }, headers: new Headers({ origin, "content-type": "application/json" }), body: new Response(JSON.stringify(body)).body,
     }, guildId, admin),
     get writes() { return writes; }, get saved() { return saved; }, get permissionChecks() { return permissionChecks; }
   };
@@ -147,4 +151,19 @@ test("tripwire writes require administrator access and a channel belonging to th
   assert.equal(result.status, 200);
   assert.deepEqual((await result.json()).tripwire, rule);
   assert.equal((await admin.request({ channelId: null, action: null }, { method: "PUT" })).status, 200);
+});
+
+test("greetings are opt-in and independent across saves, with administrator-only role writes", async () => {
+  const app = await setup();
+  const defaults = (await (await app.request(valid, { method: "GET" })).json()).config.greetings;
+  assert.equal(defaults.welcome.enabled, false);
+  assert.equal(defaults.goodbye.enabled, false);
+  const welcome = { ...defaults.welcome, channelId: "333333333333333333", canvas: false, enabled: true };
+  const save = greetings => app.request({ ...valid, greetings });
+  assert.equal((await save({ welcome })).status, 200);
+  assert.deepEqual(app.saved.greetings.welcome, welcome);
+  assert.equal((await save({ goodbye: { ...defaults.goodbye, enabled: true } })).status, 400);
+  assert.equal((await save({ autoRole: "333333333333333333" })).status, 400);
+  assert.equal((await app.request()).status, 200);
+  assert.deepEqual(app.saved.greetings.welcome, welcome);
 });

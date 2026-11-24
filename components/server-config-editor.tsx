@@ -9,14 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MUSIC_SOURCES, IMAGE_HOSTS } from "@/lib/server-config-schema";
 
-type ServerConfig = { source: string; disabledCommands: string[]; customBot: boolean; nickname: string; bio: string; avatar: string; banner: string; status: string; error?: string | null; revision?: string };
+import { GreetingEditor, type Greetings, type GuildOption } from "./greeting-editor";
+
+type ServerConfig = { greetings: Greetings; source: string; disabledCommands: string[]; customBot: boolean; nickname: string; bio: string; avatar: string; banner: string; status: string; error?: string | null; revision?: string };
 function previewImage(value: string) {
   try { const url = new URL(value); return url.protocol === "https:" && IMAGE_HOSTS.includes(url.hostname) ? value : ""; }
   catch { return ""; }
 }
-export function ServerConfigEditor({ guildId, admin = false }: { guildId: string; admin?: boolean }) {
+export function ServerConfigEditor({ guildId, admin = false, initialSection = "overview" }: { guildId: string; admin?: boolean; initialSection?: string }) {
   const endpoint = `${admin ? "/api/admin/server-config" : "/api/dashboard/servers"}/${guildId}`;
   const [config, setConfig] = useState<ServerConfig | null>(null);
+  const [roles, setRoles] = useState<GuildOption[]>([]);
+  const [emojis, setEmojis] = useState<GuildOption[]>([]);
+  const [memberCount, setMemberCount] = useState(0);
   const [channels, setChannels] = useState<{id: string; name: string}[]>([]);
   const [canConfigureTripwire, setCanConfigureTripwire] = useState(false);
   const [channelId, setChannelId] = useState("");
@@ -41,6 +46,7 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     fetch(endpoint, { headers: { "x-editor-open": "1" }, cache: "no-store", signal: controller.signal }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load settings.");
+      setRoles(data.roles || []); setEmojis(data.emojis || []); setMemberCount(data.memberCount || 0);
       setChannels(data.channels || []); setCanConfigureTripwire(data.canConfigureTripwire);
       const rule = { channelId: data.tripwire?.channelId || "", action: data.tripwire?.action || "timeout" };
       setSavedRule(rule); setChannelId(rule.channelId); setAction(rule.action);
@@ -71,7 +77,10 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     setBusy(true); setError(""); setNotice("");
     try {
       if (configDirty || (!ruleDirty && config.status === "error")) {
-        const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify(config) });
+        const greetings = Object.fromEntries((Object.keys(config.greetings) as (keyof Greetings)[])
+          .filter(key => JSON.stringify(config.greetings[key]) !== JSON.stringify(savedConfig?.greetings[key]))
+          .map(key => [key, config.greetings[key]]));
+        const response = await fetch(endpoint, { method: "PATCH", headers: { "Content-Type": "application/json", "X-Config-Revision": config.revision || "initial" }, body: JSON.stringify({ ...config, greetings }) });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not save settings.");
         setConfig(data.config); setSavedConfig(data.config);
@@ -85,10 +94,11 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
     } catch (e) { setError(e instanceof Error ? e.message : "Could not save settings."); }
     finally { setBusy(false); }
   }
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState(initialSection);
   const [commandSearch, setCommandSearch] = useState("");
   const sections = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "welcome", label: "Welcome & goodbye", icon: Bot },
     ...(canConfigureTripwire ? [{ id: "tripwire", label: "Tripwire", icon: ShieldAlert }] : []),
     { id: "commands", label: "Command disable", icon: ListX },
     { id: "music", label: "Music source", icon: Music2 },
@@ -97,6 +107,7 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
   const prefix = `server-${guildId}`;
   const sectionMeta: Record<string, { title: string; subtitle: string }> = {
     overview: { title: "Server overview", subtitle: "Everything Delta can manage in your community." },
+    welcome: { title: "Welcome & goodbye", subtitle: "Customize what happens when members join or leave." },
     tripwire: { title: "Tripwire protection", subtitle: "Protect your community with automated actions." },
     commands: { title: "Command management", subtitle: "Search, enable or restrict commands for this server." },
     music: { title: "Music preferences", subtitle: "Choose which supported provider Delta searches by default." },
@@ -193,6 +204,8 @@ export function ServerConfigEditor({ guildId, admin = false }: { guildId: string
           </Select>
         </div>
       </fieldset>}
+      {activeSection === "welcome" && <fieldset disabled={busy}><GreetingEditor value={config.greetings} onChange={greetings => change({ greetings })}
+        channels={channels} roles={roles} emojis={emojis} server={serverName} memberCount={memberCount} canManageRoles={canConfigureTripwire} /></fieldset>}
       {activeSection === "music" && <fieldset disabled={busy} className="space-y-4 disabled:opacity-70">
         <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
           <h4 className="text-lg font-semibold">Default music source</h4>

@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Guild | null>(null);
+  const [welcomeGuild, setWelcomeGuild] = useState("");
   const [busy, setBusy] = useState(false);
   const [serverSearch, setServerSearch] = useState("");
   async function load() {
@@ -24,10 +25,17 @@ export default function DashboardPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load servers.");
       setAccount(data);
+      const target = new URLSearchParams(window.location.search).get("welcome");
+      if (target) {
+        const guild = (data.guilds as Guild[]).find(g => g.id === target && g.available);
+        if (guild) setSelected(guild);
+        else setError("This server is unavailable or you do not have access.");
+      }
     } catch (e) { setError(e instanceof Error ? e.message : "Could not load dashboard."); }
     finally { setLoading(false); }
   }
   useEffect(() => {
+    setWelcomeGuild(new URLSearchParams(window.location.search).get("welcome") || "");
     void load().then(() => {
       const reason = new URLSearchParams(window.location.search).get("error");
       if (reason) setError(reason === "configuration" ? "Discord dashboard login is not configured yet." : "Discord login was cancelled or expired. Please sign in again.");
@@ -49,15 +57,15 @@ export default function DashboardPage() {
   }
   return <DashboardShell active="servers" username={account?.user.name} avatarUrl={account ? discordAvatarUrl(account.user.id, account.user.avatar) : null} onLogout={account ? () => void logout() : undefined} loggingOut={busy}>
     {selected ? <div className="mx-auto max-w-6xl space-y-5">
-      <Button variant="outline" className="gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10" onClick={() => setSelected(null)}><ArrowLeft className="size-4" />All servers</Button>
-      <ServerConfigEditor key={selected.id} guildId={selected.id} />
+      <Button variant="outline" className="gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10" onClick={() => { setSelected(null); setWelcomeGuild(""); window.history.replaceState(null, "", "/server-dashboard"); }}><ArrowLeft className="size-4" />All servers</Button>
+      <ServerConfigEditor key={selected.id} guildId={selected.id} initialSection={selected.id === welcomeGuild ? "welcome" : "overview"} />
     </div> : <>
       <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-400">Your workspace</p><h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Select a Server</h1><p className="mt-2 max-w-2xl text-sm text-white/50">Choose a community to customize music, security, commands and Delta settings.</p></div>
       </div>
       {error && <p role="alert" className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
       {loading ? <p role="status" className="rounded-xl border border-white/10 bg-white/5 p-6 text-white/60">Loading your servers…</p>
-      : !account ? <div className="max-w-lg rounded-2xl border border-white/10 bg-white/[0.04] p-7"><div className="mb-4 grid size-12 place-items-center rounded-xl bg-red-500/15"><Server className="size-6 text-red-400" /></div><h2 className="text-xl font-bold">Connect your Discord</h2><p className="mt-2 mb-6 text-sm text-white/55">Sign in to see servers you own or have permission to manage.</p><a className="inline-flex rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-500" href="/api/dashboard/login">Log in with Discord</a></div>
+      : !account ? <div className="max-w-lg rounded-2xl border border-white/10 bg-white/[0.04] p-7"><div className="mb-4 grid size-12 place-items-center rounded-xl bg-red-500/15"><Server className="size-6 text-red-400" /></div><h2 className="text-xl font-bold">Connect your Discord</h2><p className="mt-2 mb-6 text-sm text-white/55">Sign in to see servers you own or have permission to manage.</p><a className="inline-flex rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-500" href={`/api/dashboard/login?view=server${welcomeGuild ? `&welcome=${encodeURIComponent(welcomeGuild)}` : ""}`}>Log in with Discord</a></div>
       : <section className="rounded-[20px] border border-white/[0.07] bg-[#1a1517]/90 p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div><h2 className="text-xl font-bold">Your servers</h2><p className="mt-1 text-xs text-white/45">{account.guilds.length} manageable servers · {account.guilds.filter(g => g.available).length} ready to configure</p></div>

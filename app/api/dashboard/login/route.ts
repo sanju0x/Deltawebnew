@@ -7,9 +7,12 @@ import { cookieOptions, redirectUri, siteOrigin, STATE_COOKIE, isServerDashboard
 const limit = submissionLimit(30, 600);
 
 export async function GET(request: NextRequest) {
+  const target = request.nextUrl.searchParams.get("welcome") || "";
+  const welcome = /^\d{17,20}$/.test(target) ? target : undefined;
   if (isServerDashboardHost(request) || request.nextUrl.hostname === "www.delta-bot.online") {
     const url = new URL("/api/dashboard/login", "https://delta-bot.online");
     url.searchParams.set("view", isServerDashboardHost(request) ? "server" : (request.nextUrl.searchParams.get("view") || "home"));
+    if (welcome) url.searchParams.set("welcome", welcome);
     return NextResponse.redirect(url);
   }
   const limited = limit(request.headers);
@@ -19,7 +22,7 @@ export async function GET(request: NextRequest) {
     const state = crypto.randomUUID();
     const requested = request.nextUrl.searchParams.get("view");
     const view = requested === "admin" || requested === "trial" || requested === "user" || requested === "server" ? requested : "home";
-    const signed = await createSignedValue({ purpose: "dashboard-oauth", view, state, expiresAt: Date.now() + 600000 });
+    const signed = await createSignedValue({ purpose: "dashboard-oauth", view, welcome, state, expiresAt: Date.now() + 600000 });
     const url = new URL("https://discord.com/oauth2/authorize");
     url.search = new URLSearchParams({ client_id: getDiscordClientId(), redirect_uri: redirectUri(request), response_type: "code", scope: "identify guilds", state }).toString();
     const response = NextResponse.redirect(url);
