@@ -1,4 +1,4 @@
-import { readJsonObject } from "@/lib/request-json.js";
+﻿import { readJsonObject } from "@/lib/request-json.js";
 import { recordActivity } from "@/lib/site-activity";
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -72,7 +72,7 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
     };
     const disabledCommands = (settings.disabledCommands || []).filter((name: string) => commands.includes(name));
     if (request.method === "GET" && request.headers.get("x-editor-open") === "1") await recordActivity("Dashboard", "Opened server configuration", userId, guildId);
-    return NextResponse.json({ config: { ...settings, greetings: { ...defaultGreetings(), ...config?.greetings }, disabledCommands }, commands, channels, roles, emojis: presence.emojis || [], memberCount: presence.memberCount || 0, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
+    return NextResponse.json({ config: { ...settings, greetings: defaultGreetings(config?.greetings), disabledCommands }, commands, channels, roles, emojis: presence.emojis || [], memberCount: presence.memberCount || 0, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (actor && request.method === "PATCH") await recordActivity("Dashboard", "Settings request failed", actor, guildId);
