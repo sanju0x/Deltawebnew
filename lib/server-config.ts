@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
 import { authorizeGuild, DashboardError, dashboardError, requireSameOrigin } from "@/lib/dashboard-auth";
-import { validateGreeting, defaultGreetings, validateServerConfig } from "@/lib/server-config-schema";
+import { validateModeration, validateGreeting, defaultGreetings, validateServerConfig } from "@/lib/server-config-schema";
 
 export async function handleServerConfig(request: NextRequest, guildId: string, admin = false) {
   let actor: string | undefined;
@@ -34,6 +34,11 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       let input;
       try {
         input = validateServerConfig(body, commands) as Record<string, unknown>;
+        if (body.moderation !== undefined) {
+          const moderation = validateModeration(body.moderation);
+          if (moderation.logChannelId && !channels.some((c: {id: string}) => c.id === moderation.logChannelId)) throw new Error("Choose a current text channel for moderation logs.");
+          if (moderation.automod.exemptChannels.some((id: string) => !channels.some((c: {id: string}) => c.id === id)) || moderation.automod.exemptRoles.some((id: string) => !roles.some((r: {id: string}) => r.id === id))) throw new Error("Choose current channels and roles for exemptions.");
+        }
         if (body.greetings !== undefined) {
           const greetings = body.greetings as Record<string, unknown>;
           if (!greetings || typeof greetings !== "object" || Array.isArray(greetings)) throw new Error("Invalid greetings.");
@@ -65,14 +70,14 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       }
       await recordActivity("Dashboard", "Saved settings for bot sync", userId, guildId);
     }
-    const config = await collection.findOne({ guildId }, { projection: { _id: 0, greetings: 1, source: 1, disabledCommands: 1, customBot: 1, nickname: 1, bio: 1, avatar: 1, banner: 1, displayNameFontID: 1, displayNameEffectID: 1, displayNameColors: 1, status: 1, error: 1, revision: 1 } });
+    const config = await collection.findOne({ guildId }, { projection: { _id: 0, moderation: 1, greetings: 1, source: 1, disabledCommands: 1, customBot: 1, nickname: 1, bio: 1, avatar: 1, banner: 1, displayNameFontID: 1, displayNameEffectID: 1, displayNameColors: 1, status: 1, error: 1, revision: 1 } });
     const settings = config || {
       source: presence.source || "ytsearch", disabledCommands: presence.disabledCommands || [],
       customBot: false, nickname: "", bio: "", avatar: "", banner: "", status: "applied"
     };
     const disabledCommands = (settings.disabledCommands || []).filter((name: string) => commands.includes(name));
     if (request.method === "GET" && request.headers.get("x-editor-open") === "1") await recordActivity("Dashboard", "Opened server configuration", userId, guildId);
-    return NextResponse.json({ config: { displayNameFontID: 0, displayNameEffectID: 0, displayNameColors: [], ...settings, greetings: defaultGreetings(config?.greetings), disabledCommands }, commands, channels, roles, emojis: presence.emojis || [], memberCount: presence.memberCount || 0, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
+    return NextResponse.json({ config: { displayNameFontID: 0, displayNameEffectID: 0, displayNameColors: [], ...settings, moderation: validateModeration(config?.moderation), greetings: defaultGreetings(config?.greetings), disabledCommands }, commands, channels, roles, emojis: presence.emojis || [], memberCount: presence.memberCount || 0, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (actor && request.method === "PATCH") await recordActivity("Dashboard", "Settings request failed", actor, guildId);

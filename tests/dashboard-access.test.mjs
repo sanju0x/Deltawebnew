@@ -80,6 +80,29 @@ test("fresh Discord Manage Server permission allows saving only the chosen guild
   assert.equal(app.saved.status, "pending");
   assert.equal(app.saved.appliedRevision, undefined);
 });
+
+test("moderation settings save for the authorized guild, retain defaults and reject foreign channel IDs", async () => {
+  const app = await setup();
+  const moderation = { logChannelId: "333333333333333333", automod: { enabled: true, action: "timeout", blockedWords: ["Spam"] } };
+  const response = await app.request({ ...valid, moderation });
+  assert.equal(response.status, 200);
+  assert.equal(app.saved.moderation.automod.enabled, true);
+  assert.deepEqual(app.saved.moderation.automod.blockedWords, ["spam"]);
+  assert.equal(app.saved.moderation.automod.timeoutSeconds, 600);
+  const settings = await response.json();
+  assert.equal(settings.config.moderation.logChannelId, "333333333333333333");
+  const before = app.writes;
+  assert.equal((await app.request({ ...valid, moderation: { ...moderation, logChannelId: "999999999999999999" } })).status, 400);
+  assert.equal((await app.request({ ...valid, moderation: { automod: { exemptChannels: ["999999999999999999"] } } })).status, 400);
+  assert.equal((await app.request({ ...valid, moderation: { automod: { timeoutSeconds: 2419201 } } })).status, 400);
+  assert.equal(app.writes, before);
+});
+
+test("unauthorized users cannot enable automod", async () => {
+  const app = await setup({ permissions: "0" });
+  assert.equal((await app.request({ ...valid, moderation: { automod: { enabled: true } } })).status, 403);
+  assert.equal(app.writes, 0);
+});
 test("missing, expired, and revoked sessions cannot read or write settings", async () => {
   for (const options of [{ signedIn: false }, { permissions: "0" }, { discordStatus: 401 }]) {
     const app = await setup(options);

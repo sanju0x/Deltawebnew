@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clipboard, Crown, ListMusic, Music, Search, Settings, Sliders, Sparkles, X } from "lucide-react";
+import { Check, Clipboard, Crown, ListMusic, Music, Search, Settings, ShieldAlert, Sliders, Sparkles, X } from "lucide-react";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
@@ -22,7 +22,8 @@ const commandCategories = [
     { name: "/loop", description: "Toggle loop mode for a track or queue", usage: "/loop <mode>" },
     { name: "/remove", description: "Remove a track from the queue", usage: "/remove <position>" },
     { name: "/clear", description: "Clear every track from the queue", usage: "/clear" },
-    { name: "/move", description: "Move a track to a different position", usage: "/move <from> <to>" },
+    { name: "/move", description: "Move Delta to your voice channel, including while idle", usage: "/move" },
+    { name: "/fixvoice", description: "Recreate the voice player, including while idle", usage: "/fixvoice" },
     { name: "/playlist create", description: "Create a personal playlist", usage: "/playlist create <name>" },
     { name: "/playlist add", description: "Save a song or URL", usage: "/playlist add <name> <song or URL>" },
     { name: "/playlist addcurrent", description: "Save the track playing in your voice channel", usage: "/playlist addcurrent <name>" },
@@ -40,6 +41,18 @@ const commandCategories = [
     { name: "/equalizer", description: "Configure equalizer settings", usage: "/equalizer <preset>" },
     { name: "/speed", description: "Change playback speed", usage: "/speed <0.5-2.0>" },
     { name: "/pitch", description: "Adjust the audio pitch", usage: "/pitch <value>" },
+  ] },
+  { id: "moderation", name: "Moderation", icon: ShieldAlert, commands: [
+    { name: "/mod slowmode", description: "Set channel slowmode (0 disables)", usage: "/mod slowmode <seconds> [reason]" },
+    { name: "/mod history", description: "View the last ten moderation cases", usage: "/mod history <user>" },
+    { name: "/mod unwarn", description: "Remove one warning from a member", usage: "/mod unwarn <user> <id> [reason]" },
+    { name: "/mod clearwarnings", description: "Clear a member's warnings", usage: "/mod clearwarnings <user> [reason]" },
+    { name: "/warn", description: "Warn a member", usage: "/warn <user> <reason>" },
+    { name: "/warnings", description: "View a member's warnings", usage: "/warnings <user>" },
+    { name: "/timeout", description: "Time out a member or remove their timeout", usage: "/timeout <user> [duration] [reason]" },
+    { name: "/kick", description: "Kick a member", usage: "/kick <user> [reason]" },
+    { name: "/ban", description: "Ban a member", usage: "/ban <user> [reason]" },
+    { name: "/unban", description: "Unban a user", usage: "/unban <user> [reason]" },
   ] },
   { id: "settings", name: "Settings", icon: Settings, commands: [
     { name: "/cmdtripwire", description: "Delete messages and kick, time out, or ban senders in one channel", usage: "/cmdtripwire <action> [channel]" },
