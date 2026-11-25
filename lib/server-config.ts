@@ -65,14 +65,14 @@ export async function handleServerConfig(request: NextRequest, guildId: string, 
       }
       await recordActivity("Dashboard", "Saved settings for bot sync", userId, guildId);
     }
-    const config = await collection.findOne({ guildId }, { projection: { _id: 0, greetings: 1, source: 1, disabledCommands: 1, customBot: 1, nickname: 1, bio: 1, avatar: 1, banner: 1, status: 1, error: 1, revision: 1 } });
+    const config = await collection.findOne({ guildId }, { projection: { _id: 0, greetings: 1, source: 1, disabledCommands: 1, customBot: 1, nickname: 1, bio: 1, avatar: 1, banner: 1, displayNameFontID: 1, displayNameEffectID: 1, displayNameColors: 1, status: 1, error: 1, revision: 1 } });
     const settings = config || {
       source: presence.source || "ytsearch", disabledCommands: presence.disabledCommands || [],
       customBot: false, nickname: "", bio: "", avatar: "", banner: "", status: "applied"
     };
     const disabledCommands = (settings.disabledCommands || []).filter((name: string) => commands.includes(name));
     if (request.method === "GET" && request.headers.get("x-editor-open") === "1") await recordActivity("Dashboard", "Opened server configuration", userId, guildId);
-    return NextResponse.json({ config: { ...settings, greetings: defaultGreetings(config?.greetings), disabledCommands }, commands, channels, roles, emojis: presence.emojis || [], memberCount: presence.memberCount || 0, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
+    return NextResponse.json({ config: { displayNameFontID: 0, displayNameEffectID: 0, displayNameColors: [], ...settings, greetings: defaultGreetings(config?.greetings), disabledCommands }, commands, channels, roles, emojis: presence.emojis || [], memberCount: presence.memberCount || 0, canConfigureTripwire, tripwire: canConfigureTripwire ? await rules.findOne({ _id: guildId }) : null, serverName: presence.name },
       { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (actor && request.method === "PATCH") await recordActivity("Dashboard", "Settings request failed", actor, guildId);

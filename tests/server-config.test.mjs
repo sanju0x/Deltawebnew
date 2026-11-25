@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import schema from "../lib/server-config-schema.js";
 const { canManageGuild, imageUrl, validateServerConfig } = schema;
-const valid = { source: "ytsearch", disabledCommands: ["play"], customBot: true, nickname: "Delta Music", bio: "Music for this server.", avatar: "https://i.imgur.com/example.png", banner: "" };
+const valid = { source: "ytsearch", disabledCommands: ["play"], customBot: true, nickname: "Delta Music", bio: "Music for this server.", avatar: "https://i.imgur.com/example.png", banner: "", displayNameFontID: 0, displayNameEffectID: 0, displayNameColors: [] };
 
 test("new greetings default to plain messages with generated canvas and preserve saved choices", () => {
   for (const kind of ["welcome", "goodbye"]) {
