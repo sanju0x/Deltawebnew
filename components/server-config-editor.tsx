@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MUSIC_SOURCES, IMAGE_HOSTS, DisplayNameFont, DisplayNameEffect } from "@/lib/server-config-schema";
+import { MUSIC_SOURCES, IMAGE_HOSTS } from "@/lib/server-config-schema";
+import { DisplayNamePreview, DisplayNameStyleEditor } from "./display-name-style-editor";
 
 import { GreetingEditor, type Greetings, type GuildOption } from "./greeting-editor";
 
@@ -313,36 +314,10 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
             <div aria-label="Server profile preview" className="overflow-hidden rounded-xl border bg-card">
               <div className="h-24 bg-secondary">{previewImage(config.banner) && <img alt="Banner preview" src={config.banner} className="h-full w-full object-cover" />}</div>
               <div className="space-y-2 px-5 pb-5"><img alt="Bot avatar preview" className="-mt-7 relative size-16 rounded-full border-4 border-card bg-card object-cover" src={previewImage(config.avatar) || "/icon.svg"} />
-                <strong>{config.nickname || "Delta"}</strong><p className="whitespace-pre-wrap break-words text-sm">{config.bio}</p></div>
+                <DisplayNamePreview font={config.displayNameFontID} effect={config.displayNameEffectID} colors={config.displayNameColors}>{config.nickname || "Delta"}</DisplayNamePreview><p className="whitespace-pre-wrap break-words text-sm">{config.bio}</p></div>
             </div>
             <div className="space-y-2"><Label htmlFor={`${prefix}-nickname`}>Nickname</Label><Input id={`${prefix}-nickname`} maxLength={32} value={config.nickname} placeholder="Delta Music" onChange={(e) => change({ nickname: e.target.value })} /></div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label htmlFor={`${prefix}-font`}>Display name font</Label>
-                <Select value={String(config.displayNameFontID)} onValueChange={value => change({ displayNameFontID: Number(value) })}>
-                  <SelectTrigger id={`${prefix}-font`}><SelectValue /></SelectTrigger><SelectContent>
-                    {Object.entries(DisplayNameFont).map(([name, id]) => <SelectItem key={id} value={String(id)}>{name.replaceAll("_", " ")} ({id})</SelectItem>)}
-                  </SelectContent></Select>
-              </div>
-              <div className="space-y-2"><Label htmlFor={`${prefix}-effect`}>Display name effect</Label>
-                <Select value={String(config.displayNameEffectID)} onValueChange={value => change({ displayNameEffectID: Number(value) })}>
-                  <SelectTrigger id={`${prefix}-effect`}><SelectValue /></SelectTrigger><SelectContent>
-                    {Object.entries(DisplayNameEffect).map(([name, id]) => <SelectItem key={id} value={String(id)}>{name.replaceAll("_", " ")} ({id})</SelectItem>)}
-                  </SelectContent></Select>
-              </div>
-            </div>
-            <div className="space-y-3"><Label>Display name colors</Label>
-              <Select value={String(config.displayNameColors.length)} onValueChange={value => change({ displayNameColors: Array.from({ length: Number(value) }, (_, index) => config.displayNameColors[index] ?? (index ? 0x1A1A1A : 0xFFFFFF)) })}>
-                <SelectTrigger aria-label="Number of display name colors"><SelectValue /></SelectTrigger><SelectContent>
-                  <SelectItem value="0">Default colors</SelectItem><SelectItem value="1">One color</SelectItem><SelectItem value="2">Two colors</SelectItem>
-                </SelectContent></Select>
-              <div className="flex flex-wrap gap-4">{config.displayNameColors.map((color, index) => <div key={index} className="space-y-2">
-                <Label htmlFor={`${prefix}-name-color-${index}`}>Color {index + 1}</Label>
-                <Input id={`${prefix}-name-color-${index}`} type="color" value={`#${color.toString(16).padStart(6, "0")}`} onChange={event => change({ displayNameColors: config.displayNameColors.map((current, i) => i === index ? parseInt(event.target.value.slice(1), 16) : current) })} />
-              </div>)}</div>
-              <p className="text-sm text-muted-foreground">Use two colors for a gradient. Discord renders the selected font and effect after saving.</p>
-              <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => change({ displayNameFontID: 10, displayNameEffectID: 2, displayNameColors: [0xFFFFFF, 0x1A1A1A] })}>Use Sinistre gradient</Button>
-                <Button type="button" variant="outline" onClick={() => change({ displayNameFontID: 0, displayNameEffectID: 0, displayNameColors: [] })}>Reset name style</Button></div>
-            </div>
+            <DisplayNameStyleEditor prefix={prefix} value={config} onChange={change} />
             <div className="space-y-2"><Label htmlFor={`${prefix}-bio`}>Bio</Label><Textarea id={`${prefix}-bio`} maxLength={190} value={config.bio} placeholder="Music and moderation for this server." onChange={(e) => change({ bio: e.target.value })} /><p className="text-sm text-muted-foreground">{config.bio.length}/190 characters</p></div>
             {(["avatar", "banner"] as const).map((field) => <div key={field} className="space-y-2"><Label htmlFor={`${prefix}-${field}`}>{field === "avatar" ? "Avatar" : "Banner"} image link</Label><Input id={`${prefix}-${field}`} type="url" maxLength={2048} value={config[field]} placeholder="https://cdn.discordapp.com/attachments/…" onChange={(e) => change({ [field]: e.target.value })} /></div>)}
             <p className="text-sm text-muted-foreground">Use a direct HTTPS PNG, JPEG, GIF or WebP link, up to 8 MB. Supported hosts: {IMAGE_HOSTS.join(", ")}. Leave a field blank to reset it.</p>

@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=BioRhyme:wght@700&family=Cherry+Bomb+One&family=Chicle&family=Kalam:wght@700&family=MuseoModerno:wght@700&family=New+Rocker&family=Orbitron:wght@700&family=Pixelify+Sans:wght@700&family=Playpen+Sans:wght@700&family=Zilla+Slab:wght@700&display=swap');
+
+.display-name { display: inline-block; max-width: 100%; overflow-wrap: anywhere; color: var(--name-color); font-weight: 700; line-height: 1.35; }
+.display-name.font-1 { font-family: 'Bangers', Impact, sans-serif; }
+.display-name.font-2 { font-family: 'BioRhyme', Georgia, serif; }
+.display-name.font-3 { font-family: 'Cherry Bomb One', ui-rounded, sans-serif; }
+.display-name.font-4 { font-family: 'Chicle', cursive; }
+.display-name.font-5 { font-family: 'Zilla Slab', Georgia, serif; letter-spacing: -.04em; }
+.display-name.font-6 { font-family: 'MuseoModerno', sans-serif; }
+.display-name.font-7 { font-family: Georgia, serif; letter-spacing: -.06em; }
+.display-name.font-8 { font-family: 'Pixelify Sans', monospace; }
+.display-name.font-9 { font-family: 'BioRhyme', Georgia, serif; letter-spacing: -.05em; }
+.display-name.font-10 { font-family: 'New Rocker', fantasy; }
+.display-name.font-11 { font-family: inherit; }
+.display-name.font-12 { font-family: 'Zilla Slab', Georgia, serif; }
+.display-name.font-13 { font-family: 'Playpen Sans', cursive; }
+.display-name.font-14 { font-family: 'Orbitron', monospace; }
+.display-name.font-15 { font-family: 'New Rocker', fantasy; }
+.display-name.font-16 { font-family: 'Kalam', cursive; }
+.display-name.font-17 { font-family: 'Pixelify Sans', monospace; letter-spacing: -.06em; }
+.display-name.effect-2 { background: linear-gradient(155deg, var(--name-color), var(--name-color-end)); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.display-name.effect-3 { color: #fff; -webkit-text-stroke: 1px var(--name-color); text-shadow: 0 0 5px var(--name-color), 0 0 14px var(--name-color), 0 0 24px var(--name-color); }
+.display-name.effect-4 { color: #16161a; -webkit-text-stroke: 1px var(--name-color); paint-order: stroke fill; text-shadow: 2px 2px 0 var(--name-color); }
+.display-name.effect-5 { color: #fff; -webkit-text-stroke: 1px var(--name-color); text-shadow: 2px 2px 0 var(--name-color), 3px 3px 0 var(--name-color); }
+.display-name.effect-6 { text-shadow: 0 0 5px var(--name-color), 0 0 15px var(--name-color), 0 0 25px var(--name-color); }
+.display-name.effect-7 { background: linear-gradient(160deg,#ff7cbe 5%,#ffde59 24%,#75ed94 43%,#49c8ff 62%,#9470ff 81%,#ee75d8); background-clip: text; -webkit-background-clip: text; color: transparent; filter: drop-shadow(0 2px 3px #8761d155); }
+.display-name.effect-8 { -webkit-text-stroke: 1px color-mix(in srgb, var(--name-color) 65%, white); text-shadow: 0 2px 0 color-mix(in srgb, var(--name-color) 65%, #b31360), 0 4px 0 color-mix(in srgb, var(--name-color) 40%, #b31360), 0 6px 9px #b3136055; }
+.name-style-tile { position: relative; display: flex; min-height: 100px; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px solid #ffffff20; border-radius: 12px; background: linear-gradient(145deg,#ffffff04,transparent); padding: 12px 6px; color: white; transition: border-color .15s, background .15s; }
+.name-style-tile > span { font-size: .875rem; }
+.name-style-tile:hover { border-color: #ffffff70; background-color: #ffffff08; }
+.name-style-tile[aria-pressed=true] { border-color: #f0647d; background-color: #f0647d15; box-shadow: inset 0 0 0 1px #f0647d; }
+.name-style-tile:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+.name-style-tile:disabled { cursor: wait; }
+.color-plane { position: relative; height: 136px; border-radius: 8px; background-image: linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent); cursor: crosshair; touch-action: none; }
+.color-plane > span { position: absolute; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 4px #000; transform: translate(-50%,-50%); pointer-events: none; }
+.hue-range { appearance: none; height: 12px; border-radius: 20px; background: linear-gradient(to right,red,#ff0,#0f0,#0ff,#00f,#f0f,red); }
+.hue-range::-webkit-slider-thumb { appearance: none; width: 17px; height: 17px; border-radius: 50%; background: white; border: 2px solid #333; box-shadow: 0 1px 4px #0008; }
+.hue-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: white; border: 2px solid #333; }
+fieldset:disabled .color-plane { pointer-events: none; opacity: .6; }
