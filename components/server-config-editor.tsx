@@ -1,7 +1,7 @@
 "use client";
 import { ModerationEditor, type ModerationConfig } from "./moderation-editor";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Bot, Check, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, Settings2 } from "lucide-react";
+import { ArrowUpRight, Bot, Check, CircleAlert, CircleCheck, Clock3, LayoutDashboard, ListX, Music2, Search, ShieldAlert, ShieldCheck, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,7 +107,8 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "welcome", label: "Welcome & goodbye", icon: Bot },
     ...(canConfigureTripwire ? [{ id: "tripwire", label: "Tripwire", icon: ShieldAlert }] : []),
-    { id: "moderation", label: "Moderation & automod", icon: ShieldAlert },
+    { id: "moderation", label: "Moderation", icon: ShieldAlert },
+    { id: "automod", label: "AutoMod", icon: ShieldCheck },
     { id: "commands", label: "Command disable", icon: ListX },
     { id: "music", label: "Music source", icon: Music2 },
     { id: "bot", label: "Custom bot", icon: Bot }
@@ -116,7 +117,8 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
   const sectionMeta: Record<string, { title: string; subtitle: string }> = {
     overview: { title: "Server overview", subtitle: "Everything Delta can manage in your community." },
     welcome: { title: "Welcome & goodbye", subtitle: "Customize what happens when members join or leave." },
-    moderation: { title: "Moderation & automod", subtitle: "Configure filters, exemptions and moderation logs." },
+    moderation: { title: "Moderation", subtitle: "Manage case logs, blocked words and trusted channels and roles." },
+    automod: { title: "AutoMod", subtitle: "Build automatic protection with clear rules and actions." },
     tripwire: { title: "Tripwire protection", subtitle: "Protect your community with automated actions." },
     commands: { title: "Command management", subtitle: "Search, enable or restrict commands for this server." },
     music: { title: "Music preferences", subtitle: "Choose which supported provider Delta searches by default." },
@@ -133,7 +135,8 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
     music: MUSIC_SOURCES.find(source => source.value === config.source)?.name || config.source,
     commands: `${config.disabledCommands.length} disabled`,
     bot: config.customBot ? "Custom profile on" : "Default profile",
-    moderation: config.moderation.automod.enabled ? "Automod on" : "Automod off",
+    moderation: config.moderation.logChannelId ? "Case logs configured" : "Set up moderation",
+    automod: config.moderation.automod.enabled ? "Protection on" : "Protection off",
     tripwire: channelId ? "Protection on" : "Protection off",
   } : {};
   const sectionNav = (
@@ -209,6 +212,8 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
             <h4 className="mt-7 text-lg font-bold">Setup & features</h4>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
+                { id: "moderation", label: "Moderation logs", value: config.moderation.logChannelId ? "Configured" : "Not configured", visible: true },
+                { id: "automod", label: "AutoMod", value: config.moderation.automod.enabled ? "On" : "Off", visible: true },
                 { id: "tripwire", label: "Tripwire protection", value: channelId ? "On" : "Off", visible: canConfigureTripwire },
                 { id: "commands", label: "Command restrictions", value: `${config.disabledCommands.length} disabled`, visible: true },
                 { id: "music", label: "Music provider", value: MUSIC_SOURCES.find(item => item.value === config.source)?.name || config.source, visible: true },
@@ -239,7 +244,7 @@ export function ServerConfigEditor({ guildId, admin = false, initialSection = "o
             </section>
           </aside>
         </div>}
-      {activeSection === "moderation" && <ModerationEditor value={config.moderation} channels={channels} roles={roles} disabled={busy} onChange={moderation => change({ moderation })} />}
+      {(activeSection === "moderation" || activeSection === "automod") && <ModerationEditor key={`${guildId}-${activeSection}`} section={activeSection} value={config.moderation} channels={channels} roles={roles} disabled={busy} onChange={moderation => change({ moderation })} onNavigate={setActiveSection} />}
       {activeSection === "tripwire" && canConfigureTripwire && <fieldset disabled={busy} className="space-y-4 rounded-xl border border-border bg-card p-5 sm:p-6"><legend className="px-2 font-semibold">Channel tripwire</legend>
         <p className="text-sm text-muted-foreground">Delta deletes member messages in this channel and applies the selected action.</p>
         <div className="space-y-2">

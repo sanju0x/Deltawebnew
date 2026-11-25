@@ -83,18 +83,21 @@ test("fresh Discord Manage Server permission allows saving only the chosen guild
 
 test("moderation settings save for the authorized guild, retain defaults and reject foreign channel IDs", async () => {
   const app = await setup();
-  const moderation = { logChannelId: "333333333333333333", automod: { enabled: true, action: "timeout", blockedWords: ["Spam"] } };
+  const moderation = { logChannelId: "333333333333333333", automod: { enabled: true, action: "timeout", blockedWords: ["Spam"], blockLinks: true, blockEveryone: true, blockDuplicates: true, spamMessageLimit: 4, spamWindowSeconds: 8, duplicateLimit: 3, capsPercent: 70, capsMinLength: 15, wordMatchMode: "whole" } };
   const response = await app.request({ ...valid, moderation });
   assert.equal(response.status, 200);
   assert.equal(app.saved.moderation.automod.enabled, true);
   assert.deepEqual(app.saved.moderation.automod.blockedWords, ["spam"]);
   assert.equal(app.saved.moderation.automod.timeoutSeconds, 600);
+  for (const key of ["blockLinks", "blockEveryone", "blockDuplicates", "spamMessageLimit", "spamWindowSeconds", "duplicateLimit", "capsPercent", "capsMinLength", "wordMatchMode"]) assert.equal(app.saved.moderation.automod[key], moderation.automod[key]);
   const settings = await response.json();
   assert.equal(settings.config.moderation.logChannelId, "333333333333333333");
+  assert.deepEqual(settings.config.moderation.automod, app.saved.moderation.automod);
   const before = app.writes;
   assert.equal((await app.request({ ...valid, moderation: { ...moderation, logChannelId: "999999999999999999" } })).status, 400);
   assert.equal((await app.request({ ...valid, moderation: { automod: { exemptChannels: ["999999999999999999"] } } })).status, 400);
   assert.equal((await app.request({ ...valid, moderation: { automod: { timeoutSeconds: 2419201 } } })).status, 400);
+  assert.equal((await app.request({ ...valid, moderation: { automod: { spamWindowSeconds: 31 } } })).status, 400);
   assert.equal(app.writes, before);
 });
 
