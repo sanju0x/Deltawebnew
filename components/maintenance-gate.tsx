@@ -12,7 +12,7 @@ export function MaintenanceBadge() {
 }
 export function MaintenanceGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const adminPage = pathname === "/maintenance" || pathname === "/admin" || pathname.startsWith("/admin/");
+  const adminPage = pathname === "/admin" || pathname.startsWith("/admin/");
   const [status, setStatus] = useState(available);
   const [loaded, setLoaded] = useState(false);
 
@@ -31,8 +31,12 @@ export function MaintenanceGate({ children }: { children: ReactNode }) {
             setStatus({ enabled: data.enabled === true, dashboard: data.dashboard === true, user: data.user === true, canBypass: data.canBypass === true });
             setLoaded(true);
           }
+        } else if (!controller.signal.aborted) {
+          setStatus(previous => ({ ...previous, canBypass: false }));
         }
-      } catch { /* Retain the last known status during temporary outages. */ }
+      } catch {
+        if (!controller.signal.aborted) setStatus(previous => ({ ...previous, canBypass: false }));
+      }
       finally { pending = false; }
     }
     void refresh();
@@ -41,7 +45,7 @@ export function MaintenanceGate({ children }: { children: ReactNode }) {
     return () => { controller.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [adminPage]);
 
-  const blocked = !adminPage && !status.canBypass && (status.enabled || (status.dashboard && (pathname === "/dashboard" || pathname.startsWith("/dashboard/") || pathname === "/server-dashboard" || pathname.startsWith("/server-dashboard/"))) || (status.user && (pathname === "/user-dashboard" || pathname.startsWith("/user-dashboard/"))));
+  const blocked = !adminPage && pathname !== "/maintenance" && !status.canBypass && (status.enabled || (status.dashboard && (pathname === "/dashboard" || pathname.startsWith("/dashboard/") || pathname === "/server-dashboard" || pathname.startsWith("/server-dashboard/"))) || (status.user && (pathname === "/user-dashboard" || pathname.startsWith("/user-dashboard/"))));
   useEffect(() => {
     if (!blocked) return;
     const previous = document.body.style.overflow;

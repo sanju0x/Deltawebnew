@@ -61,7 +61,7 @@ export function DashboardAccountMenu() {
         <DropdownMenuLabel className="truncate">{account.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {([{ path: "/server-dashboard", label: "Server dashboard", blocked: maintenance.dashboard }, { path: "/user-dashboard", label: "User dashboard", blocked: maintenance.user }]).map(item =>
-          item.blocked || maintenance.enabled ? <DropdownMenuItem key={item.path} disabled>{item.label} <MaintenanceBadge /></DropdownMenuItem> :
+          !maintenance.canBypass && (item.blocked || maintenance.enabled) ? <DropdownMenuItem key={item.path} disabled>{item.label} <MaintenanceBadge /></DropdownMenuItem> :
           <DropdownMenuItem key={item.path} asChild><Link href={item.path}><LayoutDashboard />{item.label}</Link></DropdownMenuItem> )}
 
         <DropdownMenuItem disabled={busy} onSelect={event => { event.preventDefault(); void logout(); }}>

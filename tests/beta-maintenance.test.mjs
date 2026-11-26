@@ -79,9 +79,20 @@ test("proxy blocks pages and APIs, keeps login available, and never gives beta t
   assert.equal((await proxy(request("/api/user-dashboard"))).status, 503);
   for (const path of ["/api/dashboard/login", "/api/dashboard/callback", "/api/maintenance"]) assert.equal((await proxy(request(path))).kind, "next");
   beta = true;
-  assert.equal((await proxy(request("/trial"))).kind, "next");
-  assert.equal((await proxy(request("/api/user-dashboard"))).kind, "next");
+  for (const path of ["/trial", "/api/user-dashboard"]) {
+    const allowed = await proxy(request(path));
+    assert.equal(allowed.kind, "next");
+    assert.equal(allowed.headers.get("Cache-Control"), "private, no-store");
+    assert.equal(allowed.headers.get("Vary"), "Cookie");
+  }
   assert.equal((await proxy(request("/api/admin/maintenance"))).status, 401);
+  beta = false;
+  for (const path of ["/trial", "/api/user-dashboard"]) {
+    const revoked = await proxy(request(path));
+    assert.equal(revoked.status, 503);
+    assert.equal(revoked.headers.get("Cache-Control"), "private, no-store");
+    assert.equal(revoked.headers.get("Vary"), "Cookie");
+  }
   enabled = false; beta = false;
   assert.equal((await proxy(request("/"))).kind, "next");
 });

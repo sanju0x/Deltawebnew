@@ -7,6 +7,12 @@ import {
 
 import { maintenanceStatus, canBypassMaintenance, maintenanceBlocksPath } from "@/lib/web-maintenance";
 
+function privateMaintenanceResponse(response: NextResponse) {
+  response.headers.set("Cache-Control", "private, no-store");
+  response.headers.append("Vary", "Cookie");
+  return response;
+}
+
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const hostname = request.nextUrl.hostname.toLowerCase();
@@ -26,8 +32,11 @@ export async function proxy(request: NextRequest) {
     if (["/api/maintenance", "/api/dashboard/account", "/api/dashboard/logout", "/api/dashboard/login", "/api/dashboard/callback"].includes(path) || path.startsWith("/api/auth/")) return NextResponse.next();
     try {
       const state = await maintenanceStatus();
-      if (maintenanceBlocksPath(state, path) && !await canBypassMaintenance(request)) {
-        return NextResponse.json({ error: "Under maintenance." }, { status: 503 });
+      if (maintenanceBlocksPath(state, path)) {
+        if (!await canBypassMaintenance(request)) {
+          return privateMaintenanceResponse(NextResponse.json({ error: "Under maintenance." }, { status: 503 }));
+        }
+        return privateMaintenanceResponse(NextResponse.next());
       }
     } catch { return NextResponse.json({ error: "Maintenance status unavailable." }, { status: 503 }); }
     return NextResponse.next();
@@ -36,11 +45,11 @@ export async function proxy(request: NextRequest) {
     if (path === "/maintenance") return NextResponse.next();
     try {
       const state = await maintenanceStatus();
-      if (!maintenanceBlocksPath(state, path) || await canBypassMaintenance(request)) return NextResponse.next();
+      if (!maintenanceBlocksPath(state, path)) return NextResponse.next();
+      if (await canBypassMaintenance(request)) return privateMaintenanceResponse(NextResponse.next());
     } catch { /* Keep public pages closed when maintenance cannot be verified. */ }
     const response = NextResponse.rewrite(new URL("/maintenance", request.url), { status: 503 });
-    response.headers.set("Cache-Control", "private, no-store");
-    return response;
+    return privateMaintenanceResponse(response);
   }
   if (request.nextUrl.pathname === "/admin/login") {
     return NextResponse.next();

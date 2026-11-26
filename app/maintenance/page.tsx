@@ -1,4 +1,18 @@
+"use client";
+
+import { useEffect } from "react";
+import { useMaintenance } from "@/components/maintenance-gate";
+
 export default function MaintenancePage() {
+  const { canBypass } = useMaintenance();
+  useEffect(() => {
+    if (canBypass) {
+      // A server rewrite still contains the maintenance page until a full request
+      // loads the original URL with the newly verified Discord role.
+      window.location.replace(window.location.pathname === "/maintenance" ? "/" : window.location.href);
+    }
+  }, [canBypass]);
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-2xl">
