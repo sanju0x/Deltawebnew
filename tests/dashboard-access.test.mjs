@@ -24,7 +24,6 @@ async function setup({ signedIn = true, permissions = "32", adminId = null, allo
     }
   });
   const deps = {
-    "@/lib/beta-tester": { discordBetaTester: async () => false },
     "@/lib/dashboard-token": dashboardToken,
     "@/lib/site-activity": { recordActivity: async () => {} },
     "node:crypto": { createHash, randomBytes, randomUUID },

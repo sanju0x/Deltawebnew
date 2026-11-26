@@ -63,7 +63,7 @@ export function MaintenanceGate({ children }: { children: ReactNode }) {
             {(pathname === "/dashboard" || pathname === "/user-dashboard") && <MaintenanceBadge />}
             <h1 className="text-2xl font-bold">Under maintenance</h1>
             <p className="mt-3 text-muted-foreground">We’re making improvements to the Delta website. Please check back soon.</p>
-            <p className="mt-3 text-muted-foreground">Beta testers can sign in with Discord to continue.</p>
+            <p className="mt-3 text-muted-foreground">Approved beta testers can sign in with Discord to continue. Contact an admin to request access.</p>
             <a className="button-primary mt-5 inline-block" href="/api/dashboard/login?view=home">Sign in with Discord</a>
             {!status.enabled && <a className="button-primary mt-5" href="/">Return home</a>}
           </div>

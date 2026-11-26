@@ -1,7 +1,7 @@
 import { trialCollections } from "@/lib/trials";
 import { NextRequest } from "next/server";
 import { dashboardSession } from "@/lib/dashboard-auth";
-import { discordBetaTester } from "@/lib/beta-tester";
+import { isBetaTester } from "@/lib/beta-tester";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
 
 export async function canBypassMaintenance(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function canBypassMaintenance(request: NextRequest) {
   if (adminId && getAllowedDiscordUserIds().has(adminId)) return true;
   try {
     const session = await dashboardSession(request);
-    return await discordBetaTester(session.accessToken);
+    return await isBetaTester(session.userId);
   } catch { return false; }
 }
 

@@ -54,6 +54,7 @@ import { SiteActivity } from "./site-activity";
 import { BotActivity } from "./bot-activity";
 import { TrialsManager } from "./trials-manager";
 import { MaintenanceToggle } from "./maintenance-toggle";
+import { BetaTestersManager } from "./beta-testers-manager";
 
 interface BugReport {
   id: string;
@@ -218,6 +219,7 @@ export function AdminDashboard() {
             <MaintenanceToggle scope="website" title="Whole website" />
             <MaintenanceToggle scope="dashboard" title="Server dashboard" />
             <MaintenanceToggle scope="user" title="User dashboard" />
+            <BetaTestersManager />
           </TabsContent>
           <TabsContent value="audio"><RuntimeMonitor mode="audio" /></TabsContent>
           <TabsContent value="shards"><RuntimeMonitor mode="shards" /></TabsContent>
