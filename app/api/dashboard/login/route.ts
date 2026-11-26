@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const view = requested === "admin" || requested === "trial" || requested === "user" || requested === "server" ? requested : "home";
     const signed = await createSignedValue({ purpose: "dashboard-oauth", view, welcome, state, expiresAt: Date.now() + 600000 });
     const url = new URL("https://discord.com/oauth2/authorize");
-    url.search = new URLSearchParams({ client_id: getDiscordClientId(), redirect_uri: redirectUri(request), response_type: "code", scope: "identify guilds", state }).toString();
+    url.search = new URLSearchParams({ client_id: getDiscordClientId(), redirect_uri: redirectUri(request), response_type: "code", scope: "identify guilds guilds.members.read", state }).toString();
     const response = NextResponse.redirect(url);
     response.cookies.set(STATE_COOKIE, signed, { ...cookieOptions, path: "/api/dashboard", maxAge: 600 });
     await recordActivity("Dashboard", "Started Discord sign-in");

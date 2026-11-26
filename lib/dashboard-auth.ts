@@ -4,6 +4,7 @@ import { getDb } from "@/lib/mongodb";
 import { openDiscordToken, sealDiscordToken } from "@/lib/dashboard-token";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
 import { canManageGuild } from "@/lib/server-config-schema";
+import { discordBetaTester } from "@/lib/beta-tester";
 
 export const DASHBOARD_COOKIE = "delta_dashboard_session";
 export const STATE_COOKIE = "delta_dashboard_oauth_state";
@@ -27,7 +28,8 @@ export async function createSession(userId: string, username: string, accessToke
   const token = randomBytes(32).toString("hex");
   const db = await getDb();
   await db.collection("dashboard_sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, avatar, sealedAccessToken: sealDiscordToken(accessToken, token),
+  const betaTester = await discordBetaTester(accessToken);
+  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, avatar, betaTester, sealedAccessToken: sealDiscordToken(accessToken, token),
     expiresAt: new Date(Date.now() + Math.min(expiresIn, 86400) * 1000) });
   return token;
 }

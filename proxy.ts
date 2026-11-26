@@ -5,7 +5,7 @@ import {
   getAllowedDiscordUserIds,
 } from "@/lib/admin-auth";
 
-import { maintenanceStatus } from "@/lib/web-maintenance";
+import { maintenanceStatus, canBypassMaintenance, maintenanceBlocksPath } from "@/lib/web-maintenance";
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -26,11 +26,21 @@ export async function proxy(request: NextRequest) {
     if (["/api/maintenance", "/api/dashboard/account", "/api/dashboard/logout", "/api/dashboard/login", "/api/dashboard/callback"].includes(path) || path.startsWith("/api/auth/")) return NextResponse.next();
     try {
       const state = await maintenanceStatus();
-      if (state.enabled || (state.user && path === "/api/user-dashboard") || (state.dashboard && (path === "/api/dashboard" || path.startsWith("/api/dashboard/servers/")))) {
+      if (maintenanceBlocksPath(state, path) && !await canBypassMaintenance(request)) {
         return NextResponse.json({ error: "Under maintenance." }, { status: 503 });
       }
     } catch { return NextResponse.json({ error: "Maintenance status unavailable." }, { status: 503 }); }
     return NextResponse.next();
+  }
+  if (!path.startsWith("/admin") && !path.startsWith("/api/admin")) {
+    if (path === "/maintenance") return NextResponse.next();
+    try {
+      const state = await maintenanceStatus();
+      if (!maintenanceBlocksPath(state, path) || await canBypassMaintenance(request)) return NextResponse.next();
+    } catch { /* Keep public pages closed when maintenance cannot be verified. */ }
+    const response = NextResponse.rewrite(new URL("/maintenance", request.url), { status: 503 });
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
   }
   if (request.nextUrl.pathname === "/admin/login") {
     return NextResponse.next();
@@ -63,5 +73,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard", "/server-dashboard", "/admin/:path*", "/api/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:png|jpg|jpeg|gif|svg|webp|woff|woff2)$).*)"],
 };
