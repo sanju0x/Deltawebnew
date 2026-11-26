@@ -23,11 +23,13 @@ export function dashboardError(error: unknown) {
 export function requireSameOrigin(request: NextRequest) {
   if (request.headers.get("origin") !== siteOrigin(request)) throw new DashboardError("Invalid request origin.", 403);
 }
-export async function createSession(userId: string, username: string, accessToken: string, expiresIn: number, avatar: string | null = null) {
+export async function createSession(userId: string, username: string, accessToken: string, expiresIn: number, avatar: string | null = null, discordUsername: string | null = null) {
   const token = randomBytes(32).toString("hex");
   const db = await getDb();
   await db.collection("dashboard_sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, avatar, sealedAccessToken: sealDiscordToken(accessToken, token),
+  await db.collection<{ _id: string; displayName: string; username: string | null; avatar: string | null }>("discord_profiles")
+    .updateOne({ _id: userId }, { $set: { displayName: username, username: discordUsername, avatar } }, { upsert: true });
+  await db.collection("dashboard_sessions").insertOne({ tokenHash: sessionHash(token), userId, username, discordUsername, avatar, sealedAccessToken: sealDiscordToken(accessToken, token),
     expiresAt: new Date(Date.now() + Math.min(expiresIn, 86400) * 1000) });
   return token;
 }

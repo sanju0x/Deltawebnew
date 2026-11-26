@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const target = destination === "/server-dashboard" && state.welcome && /^\d{17,20}$/.test(state.welcome) ? `${destination}?welcome=${state.welcome}` : destination;
     const response = await finish("", target);
     const sharedOptions = dashboardCookieOptions(request);
-    response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
+    response.cookies.set(DASHBOARD_COOKIE, await createSession(user.id, user.global_name || user.username, token.access_token, token.expires_in, user.avatar ?? null, user.username), { ...sharedOptions, maxAge: Math.min(token.expires_in, 86400) });
     // Separate authorization cookies are derived from the same verified Discord identity.
     // Admin rights still require the server-side allowlist; a login alone grants nothing.
     if (getAllowedDiscordUserIds().has(user.id)) {

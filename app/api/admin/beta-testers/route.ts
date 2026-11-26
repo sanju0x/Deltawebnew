@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_SESSION_COOKIE, getAdminSessionUserId, getAllowedDiscordUserIds } from "@/lib/admin-auth";
 import { trialOrigin } from "@/lib/trial-auth";
 import { betaTesterCollection } from "@/lib/beta-tester";
+import { betaTesterProfiles } from "@/lib/beta-tester-profiles";
 import { readJsonObject } from "@/lib/request-json.js";
 
 export const runtime = "nodejs";
@@ -17,7 +18,10 @@ export async function GET(request: NextRequest) {
   if (!await adminId(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
   try {
     const testers = await (await betaTesterCollection()).find({}).sort({ grantedAt: -1, _id: 1 }).toArray();
-    return NextResponse.json({ testers: testers.map(row => ({ userId: row._id, grantedAt: row.grantedAt })) }, { headers });
+    const profiles = await betaTesterProfiles(testers.map(row => row._id));
+    return NextResponse.json({ testers: testers.map(row => ({ userId: row._id, grantedAt: row.grantedAt,
+      ...(profiles.get(row._id) || { displayName: null, username: null, avatarUrl: null }),
+    })) }, { headers });
   } catch {
     return NextResponse.json({ error: "Could not load beta testers" }, { status: 503, headers });
   }

@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { discordAvatarUrl } from "@/lib/discord-avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-type Tester = { userId: string; grantedAt: number };
+type Tester = { userId: string; grantedAt: number; displayName: string | null; username: string | null; avatarUrl: string | null };
 
 export function BetaTestersManager() {
   const [testers, setTesters] = useState<Tester[]>([]);
@@ -86,7 +88,17 @@ export function BetaTestersManager() {
           <ul className="divide-y divide-border">
             {testers.map(tester => (
               <li key={tester.userId} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <span className="break-all font-mono text-sm">{tester.userId}</span>
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <Avatar className="size-11">
+                    <AvatarImage src={tester.avatarUrl || discordAvatarUrl(tester.userId, null) || undefined} alt="" />
+                    <AvatarFallback>{(tester.displayName || tester.username || "?").slice(0, 1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="break-words font-medium">{tester.displayName || tester.username || "Discord user"}</p>
+                    <p className="break-all text-sm text-muted-foreground">{tester.username ? `@${tester.username.replace(/^@/, "")}` : "Username available after sign-in"}</p>
+                    <p className="break-all font-mono text-sm text-muted-foreground">{tester.userId}</p>
+                  </div>
+                </div>
                 <Button type="button" variant="outline" disabled={busy} aria-label={`Revoke access for ${tester.userId}`} onClick={() => void update("revoke", tester.userId)}>Revoke access</Button>
               </li>
             ))}

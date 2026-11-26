@@ -4,6 +4,7 @@ import { stripTypeScriptTypes } from "node:module";
 import { test } from "node:test";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 import { readJsonObject } from "../lib/request-json.js";
+import { discordAvatarUrl } from "../lib/discord-avatar.ts";
 
 const userId = "222222222222222222";
 async function load(name, globals = {}, deps = {}) {
@@ -19,7 +20,7 @@ async function load(name, globals = {}, deps = {}) {
   return module.namespace;
 }
 
-async function adminSetup({ admin = "owner", allowed = true, fail = false } = {}) {
+async function adminSetup({ admin = "owner", allowed = true, fail = false, profiles = new Map() } = {}) {
   const rows = new Map();
   let writes = 0;
   const collection = {
@@ -36,6 +37,7 @@ async function adminSetup({ admin = "owner", allowed = true, fail = false } = {}
     "@/lib/admin-auth": { ADMIN_SESSION_COOKIE: "admin", getAdminSessionUserId: async () => admin, getAllowedDiscordUserIds: () => new Set(allowed ? ["owner"] : []) },
     "@/lib/trial-auth": { trialOrigin: () => "https://delta.example" },
     "@/lib/beta-tester": { betaTesterCollection: async () => { if (fail) throw Error("offline"); return collection; } },
+    "@/lib/beta-tester-profiles": { betaTesterProfiles: async () => profiles },
     "@/lib/request-json.js": { readJsonObject },
   });
   const request = (body, origin = "https://delta.example") => ({
@@ -59,9 +61,45 @@ test("admins can list, grant and revoke tester access with idempotent writes", a
   const response = await app.get();
   assert.equal(response.headers.get("cache-control"), "private, no-store");
   assert.equal(response.headers.get("vary"), "Cookie");
-  assert.deepEqual(await response.json(), { testers: [{ userId, grantedAt: app.rows.get(userId).grantedAt }] });
+  assert.deepEqual(await response.json(), { testers: [{ userId, grantedAt: app.rows.get(userId).grantedAt, displayName: null, username: null, avatarUrl: null }] });
   for (let i = 0; i < 2; i++) assert.equal((await app.post({ action: "revoke", userId })).status, 200);
   assert.equal(app.rows.size, 0);
+});
+
+test("tester list includes display name, username and avatar without changing access", async () => {
+  const profile = { displayName: "Test Listener", username: "listener", avatarUrl: discordAvatarUrl(userId, "avatar_hash") };
+  const app = await adminSetup({ profiles: new Map([[userId, profile]]) });
+  await app.post({ action: "grant", userId });
+  const payload = await (await app.get()).json();
+  assert.deepEqual(payload.testers, [{ userId, grantedAt: app.rows.get(userId).grantedAt, ...profile }]);
+  assert.equal(app.writes, 1);
+});
+
+test("tester profiles prefer saved Discord identity and support bot data and older sign-ins", async () => {
+  const otherId = "333333333333333333", legacyId = "444444444444444444";
+  const source = {
+    discord_profiles: [{ _id: userId, displayName: "Current name", username: "current_user", avatar: null }],
+    bot_usage: [{ _id: `user:${otherId}`, name: "Bot listener", username: "bot_listener", image: "https://cdn.discordapp.com/avatars/test.webp" }],
+    dashboard_sessions: [{ userId, username: "Old name", avatar: "old_hash" }, { userId: legacyId, username: "Legacy name", avatar: "legacy_hash" }],
+  };
+  const helper = await load("lib/beta-tester-profiles", {}, {
+    "@/lib/discord-avatar": { discordAvatarUrl },
+    "@/lib/mongodb": { getDb: async () => ({ collection: name => ({ find: (filter, options) => {
+      assert.ok(options.projection);
+      assert.equal(options.projection.accessToken, undefined);
+      assert.equal(options.projection.sealedAccessToken, undefined);
+      const cursor = { sort: () => cursor, toArray: async () => source[name] };
+      return cursor;
+    } }) }) },
+  });
+  assert.equal((await helper.betaTesterProfiles([])).size, 0);
+  const profiles = await helper.betaTesterProfiles([userId, otherId, legacyId]);
+  assert.deepEqual(JSON.parse(JSON.stringify(profiles.get(userId))), { displayName: "Current name", username: "current_user", avatarUrl: discordAvatarUrl(userId, null) });
+  assert.equal(profiles.get(otherId).username, "bot_listener");
+  assert.equal(profiles.get(otherId).displayName, "Bot listener");
+  assert.equal(profiles.get(legacyId).displayName, "Legacy name");
+  assert.equal(profiles.get(legacyId).username, null);
+  assert.equal(profiles.get(legacyId).avatarUrl, discordAvatarUrl(legacyId, "legacy_hash"));
 });
 
 test("tester management requires an allowlisted admin and same-origin writes", async () => {
